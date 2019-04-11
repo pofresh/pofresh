@@ -1,0 +1,23 @@
+var pofresh = require('pofresh-fresh');
+
+/**
+ * Init app for client.
+ */
+var app = pofresh.createApp();
+app.set('name', '$');
+
+// app configuration
+app.configure('production|development', function(){
+  app.set('connectorConfig',
+    {
+      connector : pofresh.connectors.udpconnector,
+     	heartbeat : 3
+    });
+});
+
+// start app
+app.start();
+
+process.on('uncaughtException', function (err) {
+  console.error(' Caught exception: ' + err.stack);
+});

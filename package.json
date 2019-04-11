@@ -1,0 +1,61 @@
+{
+  "name": "pofresh",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ljhsai/pofresh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ljhsai/pofresh.git"
+  },
+  "scripts": {
+    "test": "grunt"
+  },
+  "bugs": {
+    "url": "https://github.com/ljhsai/pofresh/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/ljhsai/pofresh#license"
+    }
+  ],
+  "keywords": [
+    "pofresh",
+    "framework",
+    "game",
+    "web",
+    "realtime",
+    "server"
+  ],
+  "dependencies": {
+    "socket.io": "^1.7.4",
+    "async": "^2.6.2",
+    "seq-queue": "^0.0.5",
+    "crc": "^3.8.0",
+    "cliff": "^0.1.10",
+    "mkdirp": "^0.5.1",
+    "ws": "^6.2.1",
+    "node-bignumber": "^1.2.1",
+    "commander": "^2.20.0",
+    "mqtt": "^2.18.8",
+    "pofresh-admin": "^1.0.0",
+    "pofresh-loader": "^1.0.0",
+    "pofresh-rpc": "^1.0.0",
+    "pofresh-protocol": "^1.0.0",
+    "pofresh-logger": "^1.0.0",
+    "pofresh-scheduler": "^1.0.0",
+    "pofresh-protobuf": "^1.0.0"
+  },
+  "bin": {
+    "pofresh": "./bin/pofresh"
+  },
+  "devDependencies": {
+    "should": "^13.2.3",
+    "mocha": ">=6.1.2",
+    "muk": ">=0.5.3",
+    "grunt": "~1.0.4",
+    "grunt-mocha-test": "^0.13.3",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-contrib-jshint": "~2.1.0",
+    "blanket": "~1.2.3"
+  }
+}

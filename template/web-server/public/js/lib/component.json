@@ -1,0 +1,6 @@
+{
+  "name": "pofresh-client",
+  "description": "pofresh-client",
+  "local": [ "boot" ],
+  "paths": [ "local"]
+}
