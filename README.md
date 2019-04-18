@@ -1,8 +1,8 @@
-## pofresh-fresh -- a fast, scalable game server framework for node.js
+## pofresh -- a fast, scalable game server framework for node.js
 
-pofresh-fresh is a fast, base [pofresh](https://github.com/NetEase/pofresh), scalable game server framework for [node.js](http://nodejs.org).
+pofresh is a fast, base [pofresh](https://github.com/NetEase/pofresh), scalable game server framework for [node.js](http://nodejs.org).
 It provides the basic development framework and many related components, including libraries and tools.
-pofresh-fresh is also suitable for real-time web applications; its distributed architecture makes pofresh-fresh scale better than other real-time web frameworks.
+pofresh is also suitable for real-time web applications; its distributed architecture makes pofresh-fresh scale better than other real-time web frameworks.
 
 [![Build Status](https://travis-ci.org/NetEase/pofresh.svg?branch=master)](https://travis-ci.org/NetEase/pofresh)
 

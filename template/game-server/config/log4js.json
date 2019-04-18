@@ -1,9 +1,9 @@
 {
-  "appenders": [
-    {
+  "appenders": {
+    "console": {
       "type": "console"
     },
-    {
+    "con-log": {
       "type": "file",
       "filename": "${opts:base}/logs/con-log-${opts:serverId}.log",
       "pattern": "connector",
@@ -14,7 +14,7 @@
       "backups": 5,
       "category": "con-log"
     },
-    {
+    "rpc-log": {
       "type": "file",
       "filename": "${opts:base}/logs/rpc-log-${opts:serverId}.log",
       "maxLogSize": 1048576,
@@ -24,7 +24,7 @@
       "backups": 5,
       "category": "rpc-log"
     },
-    {
+    "forward-log": {
       "type": "file",
       "filename": "${opts:base}/logs/forward-log-${opts:serverId}.log",
       "maxLogSize": 1048576,
@@ -34,17 +34,17 @@
       "backups": 5,
       "category": "forward-log"
     },
-    {
-     "type": "file",
-     "filename": "${opts:base}/logs/rpc-debug-${opts:serverId}.log",
-     "maxLogSize": 1048576,
-     "layout": {
-      "type": "basic"
-     },
-     "backups": 5,
-     "category": "rpc-debug"
+    "rpc-debug": {
+      "type": "file",
+      "filename": "${opts:base}/logs/rpc-debug-${opts:serverId}.log",
+      "maxLogSize": 1048576,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "rpc-debug"
     },
-    {
+    "crash-log": {
       "type": "file",
       "filename": "${opts:base}/logs/crash.log",
       "maxLogSize": 1048576,
@@ -52,56 +52,62 @@
         "type": "basic"
       },
       "backups": 5,
-      "category":"crash-log"
+      "category": "crash-log"
     },
-    {
+    "admin-log": {
       "type": "file",
       "filename": "${opts:base}/logs/admin.log",
       "maxLogSize": 1048576,
       "layout": {
-          "type": "basic"
-        }
-      ,"backups": 5,
-      "category":"admin-log"
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "admin-log"
     },
-    {
+    "pofresh": {
       "type": "file",
       "filename": "${opts:base}/logs/pofresh-${opts:serverId}.log",
       "maxLogSize": 1048576,
       "layout": {
-          "type": "basic"
-        }
-      ,"backups": 5,
-      "category":"pofresh"
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "pofresh"
     },
-    {
+    "pofresh-admin": {
       "type": "file",
       "filename": "${opts:base}/logs/pofresh-admin.log",
       "maxLogSize": 1048576,
       "layout": {
-          "type": "basic"
-        }
-      ,"backups": 5,
-      "category":"pofresh-admin"
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "pofresh-admin"
     },
-    {
+    "pofresh-rpc": {
       "type": "file",
       "filename": "${opts:base}/logs/pofresh-rpc-${opts:serverId}.log",
       "maxLogSize": 1048576,
       "layout": {
-          "type": "basic"
-        }
-      ,"backups": 5,
-      "category":"pofresh-rpc"
+        "type": "basic"
+      },
+      "backups": 5,
+      "category": "pofresh-rpc"
     }
-  ],
+  },
 
-  "levels": {
-    "rpc-log" : "ERROR",
-    "forward-log": "ERROR"
+  "categories": {
+    "default": {
+      "appenders": [
+        "console",
+        "rpc-log",
+        "forward-log"
+      ],
+      "level": "INFO"
+    }
   },
 
   "replaceConsole": true,
-
+  "rawMessage": false,
   "lineDebug": false
 }

@@ -1,4 +1,4 @@
-var pofresh = require('pofresh-fresh');
+var pofresh = require('pofresh');
 
 /**
  * Init app for client.
