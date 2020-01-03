@@ -1,16 +1,14 @@
 ## pofresh -- a fast, scalable game server framework for node.js
 
-pofresh is a fast, base [pofresh](https://github.com/NetEase/pofresh), scalable game server framework for [node.js](http://nodejs.org).
+pofresh is a fast, base [pomelo](https://github.com/NetEase/pomelo), scalable game server framework for [node.js](http://nodejs.org).
 It provides the basic development framework and many related components, including libraries and tools.
 pofresh is also suitable for real-time web applications; its distributed architecture makes pofresh-fresh scale better than other real-time web frameworks.
 
-[![Build Status](https://travis-ci.org/NetEase/pofresh.svg?branch=master)](https://travis-ci.org/NetEase/pofresh)
+[![Build Status](https://travis-ci.org/ljhsai/pofresh.svg?branch=master)](https://travis-ci.org/NetEase/pofresh)
 
- * Homepage: <http://pofresh.netease.com/>
- * Mailing list: <https://groups.google.com/group/pofresh>
- * Documentation: <http://github.com/NetEase/pofresh>
- * Wiki: <https://github.com/NetEase/pofresh/wiki/>````
- * Issues: <https://github.com/NetEase/pofresh/issues/>
+ * Documentation: <http://github.com/ljhsai/pofresh>
+ * Wiki: <https://github.com/ljhsai/pofresh/wiki/>
+ * Issues: <https://github.com/ljhsai/pofresh/issues/>
  * Tags: game, nodejs
 
 
@@ -55,9 +53,9 @@ pofresh has the following advantages:
 
 ## How can I develop with pofresh?
 With the following references, you can quickly familiarize yourself with the pofresh development process:
-* [pofresh documents](https://github.com/NetEase/pofresh/wiki)
-* [Getting started](https://github.com/NetEase/pofresh/wiki/Welcome-to-pofresh)
-* [Tutorial](https://github.com/NetEase/pofresh/wiki/Preface)
+* [pofresh documents](https://github.com/ljhsai/pofresh/wiki)
+* [Getting started](https://github.com/ljhsai/pofresh/wiki/Welcome-to-pofresh)
+* [Tutorial](https://github.com/ljhsai/pofresh/wiki/Preface)
 
 
 ## Contributors
