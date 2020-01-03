@@ -453,7 +453,7 @@ function terminal(signal, opts) {
     client.request(co.moduleId, {
       signal: signal, ids: opts.serverIds
     }, function(err, msg) {
-      if(err) {
+        if(err) {
         console.error(err);
       }
       if(signal === 'kill') {
@@ -494,6 +494,9 @@ function restart(opts) {
 
 function connectToMaster(id, opts, cb) {
   var client = new adminClient({username: opts.username, password: opts.password, md5: true});
+  client.on('client', function (err, res) {
+      console.log('client', err, res);
+  });
   client.connect(id, opts.host, opts.port, function(err) {
     if(err) {
       abort(CONNECT_ERROR + err.red);
