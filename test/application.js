@@ -1,9 +1,9 @@
-var app = require('../lib/application');
-var pofresh = require('../');
-var should = require('should');
+let app = require('../lib/application');
+let pofresh = require('../');
+let should = require('should');
 
-var WAIT_TIME = 1000;
-var mockBase = process.cwd() + '/test';
+let WAIT_TIME = 1000;
+let mockBase = process.cwd() + '/test';
 
 describe('application test', function () {
     afterEach(function () {
@@ -22,13 +22,13 @@ describe('application test', function () {
         it('should play the role of normal set and get', function () {
             should.not.exist(app.get('some undefined key'));
 
-            var key = 'some defined key', value = 'some value';
+            let key = 'some defined key', value = 'some value';
             app.set(key, value);
             value.should.equal(app.get(key));
         });
 
         it('should return the value if pass just one parameter to the set method', function () {
-            var key = 'some defined key', value = 'some value';
+            let key = 'some defined key', value = 'some value';
             should.not.exist(app.set(key));
             app.set(key, value);
             value.should.equal(app.set(key));
@@ -37,7 +37,7 @@ describe('application test', function () {
 
     describe("#enable and disable", function () {
         it('should play the role of enable and disable', function () {
-            var key = 'some enable key';
+            let key = 'some enable key';
             app.enabled(key).should.be.false;
             app.disabled(key).should.be.true;
 
@@ -53,9 +53,9 @@ describe('application test', function () {
 
     describe("#compoent", function () {
         it('should load the component and fire their lifecircle callback by app.start, app.afterStart, app.stop', function (done) {
-            var startCount = 0, afterStartCount = 0, stopCount = 0;
+            let startCount = 0, afterStartCount = 0, stopCount = 0;
 
-            var mockComponent = {
+            let mockComponent = {
                 start: function (cb) {
                     console.log('start invoked');
                     startCount++;
@@ -96,10 +96,10 @@ describe('application test', function () {
         });
 
         it('should access the component with a name by app.components.name after loaded', function () {
-            var key1 = 'key1', comp1 = {content: 'some thing in comp1'};
-            var comp2 = {name: 'key2', content: 'some thing in comp2'};
-            var key3 = 'key3';
-            var comp3 = function () {
+            let key1 = 'key1', comp1 = {content: 'some thing in comp1'};
+            let comp2 = {name: 'key2', content: 'some thing in comp2'};
+            let key3 = 'key3';
+            let comp3 = function () {
                 return {content: 'some thing in comp3', name: key3};
             };
 
@@ -114,9 +114,9 @@ describe('application test', function () {
         });
 
         it('should ignore duplicated components', function () {
-            var key = 'key';
-            var comp1 = {content: 'some thing in comp1'};
-            var comp2 = {content: 'some thing in comp2'};
+            let key = 'key';
+            let comp1 = {content: 'some thing in comp1'};
+            let comp2 = {content: 'some thing in comp2'};
 
             app.init({base: mockBase});
             app.load(key, comp1);
@@ -129,7 +129,7 @@ describe('application test', function () {
 
     // describe('#filter', function () {
     //     it('should add before filter and could fetch it later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('filter1');
     //             },
@@ -139,12 +139,12 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.before(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__befores__');
+    //         let filters2 = app.get('__befores__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
@@ -153,7 +153,7 @@ describe('application test', function () {
     //     });
     //
     //     it('should add after filter and could fetch it later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('filter1');
     //             },
@@ -163,12 +163,12 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.after(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__afters__');
+    //         let filters2 = app.get('__afters__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
@@ -177,7 +177,7 @@ describe('application test', function () {
     //     });
     //
     //     it('should add filter and could fetch it from before and after filter later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('filter1');
     //             },
@@ -187,19 +187,19 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.filter(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__befores__');
+    //         let filters2 = app.get('__befores__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
     //             filters2[i].should.equal(filters[i]);
     //         }
     //
-    //         var filters3 = app.get('__afters__');
+    //         let filters3 = app.get('__afters__');
     //         should.exist(filters3);
     //         filters3.length.should.equal(filters.length);
     //         for (i = 0, l = filters3.length; i < l; i++) {
@@ -210,7 +210,7 @@ describe('application test', function () {
     //
     // describe('#globalFilter', function () {
     //     it('should add before global filter and could fetch it later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('global filter1');
     //             },
@@ -220,12 +220,12 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.globalBefore(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__globalBefores__');
+    //         let filters2 = app.get('__globalBefores__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
@@ -234,7 +234,7 @@ describe('application test', function () {
     //     });
     //
     //     it('should add after global filter and could fetch it later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('filter1');
     //             },
@@ -244,12 +244,12 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.globalAfter(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__globalAfters__');
+    //         let filters2 = app.get('__globalAfters__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
@@ -258,7 +258,7 @@ describe('application test', function () {
     //     });
     //
     //     it('should add filter and could fetch it from before and after filter later', function () {
-    //         var filters = [
+    //         let filters = [
     //             function () {
     //                 console.error('filter1');
     //             },
@@ -268,19 +268,19 @@ describe('application test', function () {
     //
     //         app.init({base: mockBase});
     //
-    //         var i, l;
+    //         let i, l;
     //         for (i = 0, l = filters.length; i < l; i++) {
     //             app.globalFilter(filters[i]);
     //         }
     //
-    //         var filters2 = app.get('__globalBefores__');
+    //         let filters2 = app.get('__globalBefores__');
     //         should.exist(filters2);
     //         filters2.length.should.equal(filters.length);
     //         for (i = 0, l = filters2.length; i < l; i++) {
     //             filters2[i].should.equal(filters[i]);
     //         }
     //
-    //         var filters3 = app.get('__globalAfters__');
+    //         let filters3 = app.get('__globalAfters__');
     //         should.exist(filters3);
     //         filters3.length.should.equal(filters.length);
     //         for (i = 0, l = filters3.length; i < l; i++) {
@@ -291,8 +291,8 @@ describe('application test', function () {
     //
     // describe('#configure', function () {
     //     it('should execute the code block wtih the right environment', function () {
-    //         var proCount = 0, devCount = 0;
-    //         var proEnv = 'production', devEnv = 'development', serverType = 'server';
+    //         let proCount = 0, devCount = 0;
+    //         let proEnv = 'production', devEnv = 'development', serverType = 'server';
     //
     //         app.init({base: mockBase});
     //         app.set('serverType', serverType);
@@ -321,8 +321,8 @@ describe('application test', function () {
     //     });
     //
     //     it('should execute the code block wtih the right server', function () {
-    //         var server1Count = 0, server2Count = 0;
-    //         var proEnv = 'production', serverType1 = 'server1', serverType2 = 'server2';
+    //         let server1Count = 0, server2Count = 0;
+    //         let proEnv = 'production', serverType1 = 'server1', serverType2 = 'server2';
     //
     //         app.init({base: mockBase});
     //         app.set('serverType', serverType1);
@@ -353,11 +353,11 @@ describe('application test', function () {
     //
     // describe('#route', function () {
     //     it('should add route record and could fetch it later', function () {
-    //         var type1 = 'area', type2 = 'connector';
-    //         var func1 = function () {
+    //         let type1 = 'area', type2 = 'connector';
+    //         let func1 = function () {
     //             console.log('func1');
     //         };
-    //         var func2 = function () {
+    //         let func2 = function () {
     //             console.log('func2');
     //         };
     //
@@ -366,7 +366,7 @@ describe('application test', function () {
     //         app.route(type1, func1);
     //         app.route(type2, func2);
     //
-    //         var routes = app.get('__routes__');
+    //         let routes = app.get('__routes__');
     //         should.exist(routes);
     //         func1.should.equal(routes[type1]);
     //         func2.should.equal(routes[type2]);
@@ -375,7 +375,7 @@ describe('application test', function () {
     //
     // describe('#transaction', function () {
     //     it('should execute all conditions and handlers', function () {
-    //         var conditions = {
+    //         let conditions = {
     //             test1: function (cb) {
     //                 console.log('condition1');
     //                 cb();
@@ -385,8 +385,8 @@ describe('application test', function () {
     //                 cb();
     //             }
     //         };
-    //         var flag = 1;
-    //         var handlers = {
+    //         let flag = 1;
+    //         let handlers = {
     //             do1: function (cb) {
     //                 console.log('handler1');
     //                 cb();
@@ -405,7 +405,7 @@ describe('application test', function () {
     //     });
     //
     //     it('shoud execute conditions with error and do not execute handlers', function () {
-    //         var conditions = {
+    //         let conditions = {
     //             test1: function (cb) {
     //                 console.log('condition1');
     //                 cb();
@@ -419,7 +419,7 @@ describe('application test', function () {
     //                 cb();
     //             }
     //         };
-    //         var handlers = {
+    //         let handlers = {
     //             do1: function (cb) {
     //                 console.log('handler1');
     //                 cb();
@@ -435,7 +435,7 @@ describe('application test', function () {
     //
     // describe('#add and remove servers', function () {
     //     it('should add servers and emit event and fetch the new server info by get methods', function (done) {
-    //         var newServers = [
+    //         let newServers = [
     //             {
     //                 id: 'connector-server-1',
     //                 serverType: 'connecctor',
@@ -452,9 +452,9 @@ describe('application test', function () {
     //             newServers.should.eql(servers);
     //
     //             // check servers
-    //             var curServers = app.getServers();
+    //             let curServers = app.getServers();
     //             should.exist(curServers);
-    //             var item, i, l;
+    //             let item, i, l;
     //             for (i = 0, l = newServers.length; i < l; i++) {
     //                 item = newServers[i];
     //                 item.should.eql(curServers[item.id]);
@@ -467,21 +467,21 @@ describe('application test', function () {
     //             }
     //
     //             // check server types
-    //             var types = [];
+    //             let types = [];
     //             for (i = 0, l = newServers.length; i < l; i++) {
     //                 item = newServers[i];
     //                 if (types.indexOf(item.serverType) < 0) {
     //                     types.push(item.serverType);
     //                 }
     //             }
-    //             var types2 = app.getServerTypes();
+    //             let types2 = app.getServerTypes();
     //             types.length.should.equal(types2.length);
     //             for (i = 0, l = types.length; i < l; i++) {
     //                 types2.should.include(types[i]);
     //             }
     //
     //             // check server type list
-    //             var slist;
+    //             let slist;
     //             for (i = 0, l = newServers.length; i < l; i++) {
     //                 item = newServers[i];
     //                 slist = app.getServersByType(item.serverType);
@@ -496,7 +496,7 @@ describe('application test', function () {
     //     });
     //
     //     it('should remove server info and emit event', function (done) {
-    //         var newServers = [
+    //         let newServers = [
     //             {
     //                 id: 'connector-server-1',
     //                 serverType: 'connecctor',
@@ -508,7 +508,7 @@ describe('application test', function () {
     //             {id: 'area-server-1', serverType: 'area', host: '127.0.0.1', port: 2234},
     //             {id: 'path-server-1', serverType: 'path', host: '127.0.0.1', port: 2235}
     //         ];
-    //         var destServers = [
+    //         let destServers = [
     //             {
     //                 id: 'connector-server-1',
     //                 serverType: 'connecctor',
@@ -519,9 +519,9 @@ describe('application test', function () {
     //             },
     //             {id: 'path-server-1', serverType: 'path', host: '127.0.0.1', port: 2235}
     //         ];
-    //         var delIds = ['area-server-1'];
-    //         var addCount = 0;
-    //         var delCount = 0;
+    //         let delIds = ['area-server-1'];
+    //         let addCount = 0;
+    //         let delCount = 0;
     //
     //         app.init({base: mockBase});
     //         app.event.on(pofresh.events.ADD_SERVERS, function (servers) {
@@ -534,9 +534,9 @@ describe('application test', function () {
     //             delIds.should.eql(ids);
     //
     //             // check servers
-    //             var curServers = app.getServers();
+    //             let curServers = app.getServers();
     //             should.exist(curServers);
-    //             var item, i, l;
+    //             let item, i, l;
     //             for (i = 0, l = destServers.length; i < l; i++) {
     //                 item = destServers[i];
     //                 item.should.eql(curServers[item.id]);
@@ -550,21 +550,21 @@ describe('application test', function () {
     //
     //             // check server types
     //             // NOTICE: server types would not clear when remove server from app
-    //             var types = [];
+    //             let types = [];
     //             for (i = 0, l = newServers.length; i < l; i++) {
     //                 item = newServers[i];
     //                 if (types.indexOf(item.serverType) < 0) {
     //                     types.push(item.serverType);
     //                 }
     //             }
-    //             var types2 = app.getServerTypes();
+    //             let types2 = app.getServerTypes();
     //             types.length.should.equal(types2.length);
     //             for (i = 0, l = types.length; i < l; i++) {
     //                 types2.should.include(types[i]);
     //             }
     //
     //             // check server type list
-    //             var slist;
+    //             let slist;
     //             for (i = 0, l = destServers.length; i < l; i++) {
     //                 item = destServers[i];
     //                 slist = app.getServersByType(item.serverType);
@@ -582,7 +582,7 @@ describe('application test', function () {
     //
     // describe('#beforeStopHook', function () {
     //     it('should be called before application stopped.', function (done) {
-    //         var count = 0;
+    //         let count = 0;
     //         app.init({base: mockBase});
     //         app.beforeStopHook(function () {
     //             count++;
@@ -605,11 +605,11 @@ describe('application test', function () {
     // });
     // describe('#use', function () {
     //     it('should exist plugin component and event', function (done) {
-    //         var plugin = {
+    //         let plugin = {
     //             components: mockBase + '/mock-plugin/components/',
     //             events: mockBase + '/mock-plugin/events/'
     //         };
-    //         var opts = {};
+    //         let opts = {};
     //         app.use(plugin, opts);
     //         should.exist(app.event.listeners('bind_session'));
     //         should.exist(app.components.mockPlugin);
@@ -618,8 +618,8 @@ describe('application test', function () {
     // });
 });
 
-var contains = function(slist, sinfo) {
-  for(var i=0, l=slist.length; i<l; i++) {
+let contains = function(slist, sinfo) {
+  for(let i=0, l=slist.length; i<l; i++) {
     if(slist[i].id === sinfo.id) {
       return true;
     }

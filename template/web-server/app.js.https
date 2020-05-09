@@ -1,21 +1,21 @@
-var express = require('express');
-var https = require('https');
-var app = express();
+let express = require('express');
+let https = require('https');
+let app = express();
 
-var fs = require('fs');
+let fs = require('fs');
 
-var options = {
+let options = {
   key: fs.readFileSync('../shared/server.key'),
   cert: fs.readFileSync('../shared/server.crt')
 };
 
-var serveStatic = require('serve-static');
+let serveStatic = require('serve-static');
 
-var env = process.env.NODE_ENV || 'development';
+let env = process.env.NODE_ENV || 'development';
 if ('development' === env) {
   app.use(serveStatic(__dirname + '/public'));
 } else {
-  var oneYear = 31557600000;
+  let oneYear = 31557600000;
   app.use(serveStatic(__dirname + '/public', { maxAge: oneYear }));
 }
 

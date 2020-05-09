@@ -17,11 +17,11 @@
   <script src="js/lib/pofresh.js">
   </script>
   <script type="text/javascript">
-  var pofresh = window.pofresh;
-  var host = "127.0.0.1";
-  var port = "3010";
-  var connected = false;
-  var node, para;
+  let pofresh = window.pofresh;
+  let host = "127.0.0.1";
+  let port = "3010";
+  let connected = false;
+  let node, para;
   function show() {
     if(!connected) {
       pofresh.init({
