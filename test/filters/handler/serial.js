@@ -29,7 +29,6 @@ describe("#serialFilter", function () {
         service.after(filter);
 
         service.beforeFilter(null, mockSession, function () {
-            console.log('beforeFilter', mockSession);
             should.exist(mockSession);
             should.exist(mockSession.__serialTask__);
             _session = mockSession;
@@ -37,7 +36,6 @@ describe("#serialFilter", function () {
 
 
         service.afterFilter(null, null, mockSession, null, function () {
-            console.log('afterFilter=>', mockSession, _session);
             should.exist(mockSession);
             // should.strictEqual(mockSession, _session);
         });

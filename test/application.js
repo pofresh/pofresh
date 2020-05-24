@@ -56,19 +56,16 @@ describe('application test', function () {
 
             let mockComponent = {
                 start: function (cb) {
-                    console.log('start invoked');
                     startCount++;
                     cb();
                 },
 
                 afterStart: function (cb) {
-                    console.log('afterStart invoked');
                     afterStartCount++;
                     cb();
                 },
 
                 stop: function (force, cb) {
-                    console.log('stop invoked');
                     stopCount++;
                     cb();
                 }
