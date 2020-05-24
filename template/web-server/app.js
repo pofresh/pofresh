@@ -1,11 +1,11 @@
-let app = require('express')();
-let serveStatic = require('serve-static');
+const app = require('express')();
+const serveStatic = require('serve-static');
 
-let env = process.env.NODE_ENV || 'development';
+const env = process.env.NODE_ENV || 'development';
 if ('development' === env) {
   app.use(serveStatic(__dirname + '/public'));
 } else {
-  let oneYear = 31557600000;
+  const oneYear = 31557600000;
   app.use(serveStatic(__dirname + '/public', { maxAge: oneYear }));
 }
 

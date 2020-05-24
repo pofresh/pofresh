@@ -1,9 +1,8 @@
-let app = require('../lib/application');
-let pofresh = require('../');
-let should = require('should');
+const app = require('../lib/application');
+const should = require('should');
 
-let WAIT_TIME = 1000;
-let mockBase = process.cwd() + '/test';
+const WAIT_TIME = 1000;
+const mockBase = process.cwd() + '/test';
 
 describe('application test', function () {
     afterEach(function () {
@@ -580,29 +579,6 @@ describe('application test', function () {
     //     });
     // });
     //
-    // describe('#beforeStopHook', function () {
-    //     it('should be called before application stopped.', function (done) {
-    //         let count = 0;
-    //         app.init({base: mockBase});
-    //         app.beforeStopHook(function () {
-    //             count++;
-    //         });
-    //         app.start(function (err) {
-    //             should.not.exist(err);
-    //         });
-    //
-    //         setTimeout(function () {
-    //             // wait for after start
-    //             app.stop(false);
-    //
-    //             setTimeout(function () {
-    //                 // wait for stop
-    //                 count.should.equal(1);
-    //                 done();
-    //             }, WAIT_TIME);
-    //         }, WAIT_TIME);
-    //     });
-    // });
     // describe('#use', function () {
     //     it('should exist plugin component and event', function (done) {
     //         let plugin = {
@@ -618,11 +594,11 @@ describe('application test', function () {
     // });
 });
 
-let contains = function(slist, sinfo) {
-  for(let i=0, l=slist.length; i<l; i++) {
-    if(slist[i].id === sinfo.id) {
-      return true;
+let contains = function (slist, sinfo) {
+    for (let i = 0, l = slist.length; i < l; i++) {
+        if (slist[i].id === sinfo.id) {
+            return true;
+        }
     }
-  }
-  return false;
+    return false;
 };

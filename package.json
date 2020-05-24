@@ -1,6 +1,6 @@
 {
   "name": "pofresh",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/ljhsai/pofresh",
   "repository": {
     "type": "git",
@@ -27,32 +27,32 @@
     "server"
   ],
   "dependencies": {
-    "socket.io": "^1.7.4",
-    "async": "^2.6.2",
-    "seq-queue": "^0.0.5",
-    "crc": "^3.8.0",
+    "async": "^3.2.0",
     "cliff": "^0.1.10",
-    "mkdirp": "^0.5.1",
-    "ws": "^6.2.1",
+    "commander": "^5.1.0",
+    "crc": "^3.8.0",
+    "mkdirp": "^1.0.4",
+    "mqtt": "^4.1.0",
     "node-bignumber": "^1.2.1",
-    "commander": "^2.20.0",
-    "mqtt": "^2.18.8",
-    "pofresh-admin": "^1.0.0",
-    "pofresh-loader": "^1.0.0",
-    "pofresh-rpc": "^1.0.0",
-    "pofresh-protocol": "^1.0.0",
-    "pofresh-logger": "^1.0.2",
-    "pofresh-scheduler": "^1.0.0",
-    "pofresh-protobuf": "^1.0.0"
+    "pofresh-admin": "^2.0.0",
+    "pofresh-loader": "^2.0.0",
+    "pofresh-logger": "^2.0.0",
+    "pofresh-protobuf": "^2.0.0",
+    "pofresh-protocol": "^2.0.0",
+    "pofresh-rpc": "^2.0.0",
+    "pofresh-scheduler": "^2.0.0",
+    "seq-queue": "^0.0.5",
+    "socket.io": "^2.3.0",
+    "ws": "^7.3.0"
   },
   "bin": {
     "pofresh": "./bin/pofresh"
   },
   "devDependencies": {
-    "blanket": "~1.2.3",
-    "grunt": "~1.0.4",
+    "blanket": "^1.2.3",
+    "grunt": "^1.1.0",
     "grunt-contrib-clean": "^2.0.0",
-    "grunt-contrib-jshint": "~2.1.0",
+    "grunt-contrib-jshint": "^2.1.0",
     "grunt-mocha-test": "^0.13.3",
     "mocha": "^6.1.3",
     "muk": ">=0.5.3",

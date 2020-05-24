@@ -95,7 +95,6 @@
       "category": "pofresh-rpc"
     }
   },
-
   "categories": {
     "default": {
       "appenders": [
@@ -106,7 +105,6 @@
       "level": "INFO"
     }
   },
-
   "replaceConsole": true,
   "rawMessage": false,
   "lineDebug": false

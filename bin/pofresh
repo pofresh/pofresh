@@ -82,10 +82,7 @@ program.command('add')
     .option('-h, --host <master-host>', 'master server host', DEFAULT_MASTER_HOST)
     .option('-P, --port <master-port>', 'master server port', DEFAULT_MASTER_PORT)
     .action(function () {
-        let args = [].slice.call(arguments, 0);
-        let opts = args[args.length - 1];
-        opts.args = args.slice(0, -1);
-        add(opts);
+        add(this);
     });
 
 program.command('stop')
@@ -95,10 +92,8 @@ program.command('stop')
     .option('-h, --host <master-host>', 'master server host', DEFAULT_MASTER_HOST)
     .option('-P, --port <master-port>', 'master server port', DEFAULT_MASTER_PORT)
     .action(function () {
-        let args = [].slice.call(arguments, 0);
-        let opts = args[args.length - 1];
-        opts.serverIds = args.slice(0, -1);
-        terminal('stop', opts);
+        this.serverIds = this.args;
+        terminal('stop', this);
     });
 
 program.command('kill')
@@ -109,10 +104,8 @@ program.command('kill')
     .option('-P, --port <master-port>', 'master server port', DEFAULT_MASTER_PORT)
     .option('-f, --force', 'using this option would kill all the node processes')
     .action(function () {
-        let args = [].slice.call(arguments, 0);
-        let opts = args[args.length - 1];
-        opts.serverIds = args.slice(0, -1);
-        terminal('kill', opts);
+        this.serverIds = this.args;
+        terminal('kill', this);
     });
 
 program.command('restart')
@@ -593,7 +586,7 @@ function copy(origin, target) {
         abort(origin + 'does not exist.');
     }
     if (!fs.existsSync(target)) {
-        mkdir(target);
+        mkdirp.sync(target, '0755');
         console.log('   create : '.green + target);
     }
     fs.readdir(origin, function (err, datalist) {

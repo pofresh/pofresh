@@ -48,24 +48,6 @@ describe('path util test', function() {
     });
   });
 
-  describe('#listUserRemoteDir', function() {
-    it('should return sub-direcotry name list of servers/ directory', function() {
-      let expectNames = ['connector', 'area'];
-      let p = pathUtil.listUserRemoteDir(mockBase);
-      should.exist(p);
-      expectNames.length.should.equal(p.length);
-      for(let i=0, l=expectNames.length; i<l; i++) {
-        p.should.include(expectNames[i]);
-      }
-    });
-
-    it('should throw err if the servers/ illegal', function() {
-      (function() {
-        pathUtil.listUserRemoteDir('some illegal base');
-      }).should.throw();
-    });
-  });
-
   describe('#remotePathRecord', function() {
     let namespace = 'user';
     let serverType = 'connector';
