@@ -4,7 +4,7 @@ pofresh is a fast, base [pomelo](https://github.com/NetEase/pomelo), scalable ga
 It provides the basic development framework and many related components, including libraries and tools.
 pofresh is also suitable for real-time web applications; its distributed architecture makes pofresh-fresh scale better than other real-time web frameworks.
 
-[![Build Status](https://travis-ci.org/ljhsai/pofresh.svg?branch=master)](https://travis-ci.org/NetEase/pofresh)
+[![Build Status](https://travis-ci.org/ljhsai/pofresh.svg?branch=master)](https://travis-ci.org/ljhsai/pofresh)
 
  * Documentation: <http://github.com/ljhsai/pofresh>
  * Wiki: <https://github.com/ljhsai/pofresh/wiki/>
@@ -35,7 +35,7 @@ pofresh is also suitable for real-time web applications; its distributed archite
 
 * Many clients support, including javascript, flash, android, iOS, cocos2d-x, C
 * Many libraries and tools, including command line tool, admin tool, performance test tool, AI, path finding etc.
-* Good reference materials: full docs, many examples and [an open-source MMO RPG demo](https://github.com/NetEase/pofresh/wiki/Introduction-to--Lord-of-pofresh)
+* Good reference materials: full docs, many examples and [an open-source MMO RPG demo](https://github.com/ljhsai/pofresh/wiki/Introduction-to--Lord-of-pofresh)
 
 ### Extensible
 
@@ -49,7 +49,38 @@ pofresh has the following advantages:
 * The architecture is scalable. It uses a multi-process, single thread runtime architecture, which has been proven in the industry and is especially suited to the node.js thread model.
 * Easy to use, the development model is quite similar to web, using convention over configuration, with almost zero config. The [API](http://pofresh.netease.com/api.html) is also easy to use.
 * The framework is extensible. Based on the node.js micro module principle, the core of pofresh is small. All of the components, libraries and tools are individual npm modules, and anyone can create their own module to extend the framework.
-* The reference materials and documentation are quite complete. In addition to the documentation, we also provide [an open-source MMO RPG demo](https://github.com/NetEase/pofresh/wiki/Introduction-to--Lord-of-pofresh) (HTML5 client), which is a far better reference material than any book.
+* The reference materials and documentation are quite complete. In addition to the documentation, we also provide [an open-source MMO RPG demo](https://github.com/ljhsai/pofresh/wiki/Introduction-to--Lord-of-pofresh) (HTML5 client), which is a far better reference material than any book.
+
+## Install
+
+```javascript
+> npm install -g pofresh
+
+> pofresh -V   //check install
+```
+
+## use
+
+```javascript
+> pofresh init your-project
+
+> cd your-project
+
+> ./npm-install.sh //linux or mac 
+or
+> ./npm-install.bat  //windows
+
+> cd game-server
+
+> pofresh start //run server
+
+> cd web-server
+
+> node app.js
+
+open http://127.0.0.1:3001
+
+```
 
 ## How can I develop with pofresh?
 With the following references, you can quickly familiarize yourself with the pofresh development process:

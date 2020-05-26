@@ -388,7 +388,7 @@ require.register("component-emitter/index.js", function (exports, require, modul
     };
 
 });
-require.register("NetEase-pofresh-protocol/lib/protocol.js", function (exports, require, module) {
+require.register("pofresh-protocol/lib/protocol.js", function (exports, require, module) {
     (function (exports, ByteArray, global) {
         let Protocol = exports;
 
@@ -1718,15 +1718,14 @@ require.register("boot/index.js", function (exports, require, module) {
 
     let pofresh = require('pofresh-jsclient-websocket');
     window.pofresh = pofresh;
-
 });
 require.alias("boot/index.js", "pofresh-client/deps/boot/index.js");
 require.alias("component-emitter/index.js", "boot/deps/emitter/index.js");
 require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
-require.alias("NetEase-pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/lib/protocol.js");
-require.alias("NetEase-pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/index.js");
-require.alias("NetEase-pofresh-protocol/lib/protocol.js", "NetEase-pofresh-protocol/index.js");
+require.alias("pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/lib/protocol.js");
+require.alias("pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/index.js");
+require.alias("pofresh-protocol/lib/protocol.js", "pofresh-protocol/index.js");
 
 require.alias("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", "boot/deps/pofresh-protobuf/lib/client/protobuf.js");
 require.alias("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", "boot/deps/pofresh-protobuf/index.js");
