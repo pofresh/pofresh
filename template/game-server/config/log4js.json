@@ -11,8 +11,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "con-log"
+      "backups": 5
     },
     "rpc-log": {
       "type": "file",
@@ -21,8 +20,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "rpc-log"
+      "backups": 5
     },
     "forward-log": {
       "type": "file",
@@ -31,8 +29,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "forward-log"
+      "backups": 5
     },
     "rpc-debug": {
       "type": "file",
@@ -41,8 +38,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "rpc-debug"
+      "backups": 5
     },
     "crash-log": {
       "type": "file",
@@ -51,8 +47,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "crash-log"
+      "backups": 5
     },
     "admin-log": {
       "type": "file",
@@ -61,8 +56,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "admin-log"
+      "backups": 5
     },
     "pofresh": {
       "type": "file",
@@ -71,8 +65,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "pofresh"
+      "backups": 5
     },
     "pofresh-admin": {
       "type": "file",
@@ -81,8 +74,7 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "pofresh-admin"
+      "backups": 5
     },
     "pofresh-rpc": {
       "type": "file",
@@ -91,18 +83,77 @@
       "layout": {
         "type": "basic"
       },
-      "backups": 5,
-      "category": "pofresh-rpc"
+      "backups": 5
+    },
+
+    "transaction-log": {
+      "type": "file",
+      "filename": "${opts:base}/logs/transaction-${opts:serverId}.log",
+      "maxLogSize": 1048576,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5
+    },
+
+    "transaction-error-log": {
+      "type": "file",
+      "filename": "${opts:base}/logs/transaction-error-${opts:serverId}.log",
+      "maxLogSize": 1048576,
+      "layout": {
+        "type": "basic"
+      },
+      "backups": 5
     }
   },
   "categories": {
     "default": {
-      "appenders": [
-        "console",
-        "rpc-log",
-        "forward-log"
-      ],
-      "level": "INFO"
+      "appenders": ["pofresh"],
+      "level": "all"
+    },
+    "con-log": {
+      "appenders": ["console", "con-log"],
+      "level": "all"
+    },
+    "rpc-log": {
+      "appenders": ["console", "rpc-log"],
+      "level": "all"
+    },
+    "forward-log": {
+      "appenders": ["console", "forward-log"],
+      "level": "all"
+    },
+    "rpc-debug": {
+      "appenders": ["console", "rpc-debug"],
+      "level": "all"
+    },
+    "crash-log": {
+      "appenders": ["console", "crash-log"],
+      "level": "all"
+    },
+    "admin-log": {
+      "appenders": ["console", "admin-log"],
+      "level": "all"
+    },
+    "pofresh": {
+      "appenders": ["console", "pofresh"],
+      "level": "all"
+    },
+    "pofresh-admin": {
+      "appenders": ["console", "pofresh-admin"],
+      "level": "all"
+    },
+    "pofresh-rpc": {
+      "appenders": ["console", "pofresh-rpc"],
+      "level": "all"
+    },
+    "transaction-log": {
+      "appenders": ["console", "transaction-log"],
+      "level": "all"
+    },
+    "transaction-error-log": {
+      "appenders": ["console", "transaction-error-log"],
+      "level": "all"
     }
   },
   "replaceConsole": true,
