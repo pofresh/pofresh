@@ -20,7 +20,7 @@ describe("#toobusyFilter", function () {
 
     it("should do before filter error because of too busy", function (done) {
         const service = new FilterService();
-        const filter = toobusyFilter(10);
+        const filter = toobusyFilter(10, 100);
         service.before(filter);
 
         let exit = false;
