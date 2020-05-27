@@ -3,11 +3,16 @@ const should = require('should');
 
 const WAIT_TIME = 1000;
 const mockBase = process.cwd() + '/test';
+// const mockBase = process.cwd() + '';
 
 describe('application test', function () {
     afterEach(function () {
         app.state = 0;
         app.settings = {};
+    });
+
+    after(function () {
+        setTimeout(()=>process.exit(), 500);
     });
 
     describe('#init', function () {
@@ -89,7 +94,7 @@ describe('application test', function () {
                     done();
                 }, WAIT_TIME);
             }, WAIT_TIME);
-        });
+        }).timeout(5000);
 
         it('should access the component with a name by app.components.name after loaded', function () {
             let key1 = 'key1', comp1 = {content: 'some thing in comp1'};
@@ -103,7 +108,6 @@ describe('application test', function () {
             app.load(key1, comp1);
             app.load(comp2);
             app.load(comp3);
-
             app.components.key1.should.eql(comp1);
             app.components.key2.should.eql(comp2);
             app.components.key3.should.eql(comp3());
@@ -473,7 +477,7 @@ describe('application test', function () {
     //             let types2 = app.getServerTypes();
     //             types.length.should.equal(types2.length);
     //             for (i = 0, l = types.length; i < l; i++) {
-    //                 types2.should.include(types[i]);
+    //                 types2.should.containEql(types[i]);
     //             }
     //
     //             // check server type list
@@ -556,7 +560,7 @@ describe('application test', function () {
     //             let types2 = app.getServerTypes();
     //             types.length.should.equal(types2.length);
     //             for (i = 0, l = types.length; i < l; i++) {
-    //                 types2.should.include(types[i]);
+    //                 types2.should.containEql(types[i]);
     //             }
     //
     //             // check server type list

@@ -51,7 +51,7 @@ pofresh has the following advantages:
 * The framework is extensible. Based on the node.js micro module principle, the core of pofresh is small. All of the components, libraries and tools are individual npm modules, and anyone can create their own module to extend the framework.
 * The reference materials and documentation are quite complete. In addition to the documentation, we also provide [an open-source MMO RPG demo](https://github.com/ljhsai/pofresh/wiki/Introduction-to--Lord-of-pofresh) (HTML5 client), which is a far better reference material than any book.
 
-## Install
+## Installation
 
 ```javascript
 > npm install -g pofresh
@@ -59,7 +59,7 @@ pofresh has the following advantages:
 > pofresh -V   //check install
 ```
 
-## use
+## Usage
 
 ```javascript
 > pofresh init your-project

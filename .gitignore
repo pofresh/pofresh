@@ -14,6 +14,7 @@ node_modules_back/*
 *.sublime-workspace
 lib/doc/
 lib-cov/
-coverage.html
+coverage/
 .DS_Store
 .idea/*
+.nyc_output/

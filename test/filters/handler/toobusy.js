@@ -20,13 +20,13 @@ describe("#toobusyFilter", function () {
 
     it("should do before filter error because of too busy", function (done) {
         const service = new FilterService();
-        const filter = toobusyFilter();
+        const filter = toobusyFilter(10);
         service.before(filter);
 
         let exit = false;
 
         function load() {
-            service.beforeFilter(null, mockSession, function (err, resp) {
+            service.beforeFilter(null, mockSession,function (err, resp) {
                 should.exist(mockSession);
                 if (!!err) {
                     exit = true;
@@ -45,5 +45,5 @@ describe("#toobusyFilter", function () {
 
         load();
 
-    }).timeout(3000);
+    }).timeout(5000);
 });
