@@ -1,7 +1,7 @@
 {
   "esversion": 6,
   "node": true,
-  "camelcase": true,
+  "camelcase": false,
   "eqeqeq": true,
   "undef": true,
   "unused": true,
