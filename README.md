@@ -1,6 +1,6 @@
 # pofresh-admin
 
-`pofresh-admin` is an admin console library for [pofresh](https://github.com/NetEase/pofresh). It provides the a series of utilities to monitor the `pofresh` server clusters.
+`pofresh-admin` is an admin console library for [pofresh](https://github.com/pofresh/pofresh). It provides the a series of utilities to monitor the `pofresh` server clusters.
 
 ## Installation
 
@@ -18,7 +18,7 @@ There are three process roles in `pofresh-admin`: master, monitor and client.
 
 + monitor - monitor proxy, in every server process which needs to be monitored. It should be started during the process starts and registers itself to the master server and reports the monitored process status to the master. 
 
-+ client - `pofresh-admin` client process that fetches the status from master server, such as [pofresh-admin-web](https://github.com/NetEase/pofresh-admin-web) and [pofresh-cli](https://github.com/NetEase/pofresh-cli).
++ client - `pofresh-admin` client process that fetches the status from master server, such as [pofresh-admin-web](https://github.com/pofresh/pofresh-admin-web) and [pofresh-cli](https://github.com/pofresh/pofresh-cli).
 
 ### Message types
 
@@ -197,7 +197,7 @@ adminUser.json
 ```
 
 ## Self-defined auth 
-pofresh-admin provides a simple auth function in [pofresh-admin auth](https://github.com/NetEase/pofresh-admin/blob/master/lib/util/utils.js#L78)  
+pofresh-admin provides a simple auth function in [pofresh-admin auth](https://github.com/pofresh/pofresh-admin/blob/master/lib/util/utils.js#L78)  
 developers can provide self-defined auth in pofresh by  
 in master server
 ```javascript
@@ -212,7 +212,7 @@ app.set('adminAuthUser', function(msg, cb){
 
 ## Server master auth  
 server connect to master with authorization  
-pofresh-admin provides a simple auth function in [pofresh-admin auth](https://github.com/NetEase/pofresh-admin/blob/master/lib/util/utils.js#L117)  
+pofresh-admin provides a simple auth function in [pofresh-admin auth](https://github.com/pofresh/pofresh-admin/blob/master/lib/util/utils.js#L117)  
 developers can provide self-defined auth in pofresh by  
 in master server
 ```javascript

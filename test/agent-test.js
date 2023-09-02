@@ -35,8 +35,7 @@ describe('agent', function () {
         let resp2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req1Count++;
                 moduleId.should.eql(moduleId1);
                 cb(null, msg);
@@ -44,8 +43,7 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req2Count++;
                 moduleId.should.eql(moduleId2);
                 cb(null, msg);
@@ -53,16 +51,14 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor1 = new Monitor({
-            consoleService: monitorConsole1,
+        let monitor1 = new Monitor(monitorConsole1, {
             id: monitorId1,
             type: monitorType1,
             info: {
                 host: '127.0.0.1'
             }
         });
-        let monitor2 = new Monitor({
-            consoleService: monitorConsole2,
+        let monitor2 = new Monitor(monitorConsole2, {
             id: monitorId2,
             type: monitorType2,
             info: {
@@ -72,28 +68,26 @@ describe('agent', function () {
 
         master.listen(masterPort);
         flow.exec(function () {
-                monitor1.connect(masterPort, masterHost, this);
-            },
-            function (err) {
+            monitor1.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor2.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            master.request(monitorId1, moduleId1, msg1, function (err, resp) {
+                resp1Count++;
                 should.not.exist(err);
-                monitor2.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                master.request(monitorId1, moduleId1, msg1, function (err, resp) {
-                    resp1Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg1);
-                });
-
-                master.request(monitorId2, moduleId2, msg2, function (err, resp) {
-                    resp2Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg2);
-                });
+                should.exist(resp);
+                resp.should.eql(msg1);
             });
+
+            master.request(monitorId2, moduleId2, msg2, function (err, resp) {
+                resp2Count++;
+                should.not.exist(err);
+                should.exist(resp);
+                resp.should.eql(msg2);
+            });
+        });
 
         setTimeout(function () {
             req1Count.should.equal(1);
@@ -118,8 +112,7 @@ describe('agent', function () {
         let respCount = 0;
 
         let monitorConsole = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 reqCount++;
                 moduleId.should.eql(moduleId);
                 cb(new Error(errMsg));
@@ -127,8 +120,7 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor = new Monitor({
-            consoleService: monitorConsole,
+        let monitor = new Monitor(monitorConsole, {
             id: monitorId,
             type: monitorType,
             info: {
@@ -139,17 +131,16 @@ describe('agent', function () {
         master.listen(masterPort);
 
         flow.exec(function () {
-                monitor.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                master.request(monitorId, moduleId, msg, function (err, resp) {
-                    respCount++;
-                    should.exist(err);
-                    err.message.should.eql(errMsg);
-                    should.not.exist(resp);
-                });
+            monitor.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            master.request(monitorId, moduleId, msg, function (err, resp) {
+                respCount++;
+                should.exist(err);
+                err.message.should.eql(errMsg);
+                should.not.exist(resp);
             });
+        });
 
         setTimeout(function () {
             reqCount.should.equal(1);
@@ -174,8 +165,7 @@ describe('agent', function () {
         let req2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req1Count++;
                 moduleId.should.eql(moduleId1);
                 msg.should.eql(msg1);
@@ -183,8 +173,7 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req2Count++;
                 moduleId.should.eql(moduleId2);
                 msg.should.eql(msg2);
@@ -192,33 +181,25 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor1 = new Monitor({
-            consoleService: monitorConsole1,
-            id: monitorId1,
-            type: monitorType1,
-            info: {host: '127.0.0.1'}
+        let monitor1 = new Monitor(monitorConsole1, {
+            id: monitorId1, type: monitorType1, info: {host: '127.0.0.1'}
         });
-        let monitor2 = new Monitor({
-            consoleService: monitorConsole2,
-            id: monitorId2,
-            type: monitorType2,
-            info: {host: '127.0.0.1'}
+        let monitor2 = new Monitor(monitorConsole2, {
+            id: monitorId2, type: monitorType2, info: {host: '127.0.0.1'}
         });
 
         master.listen(masterPort);
 
         flow.exec(function () {
-                monitor1.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                monitor2.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                master.notifyById(monitorId1, moduleId1, msg1);
-                master.notifyById(monitorId2, moduleId2, msg2);
-            });
+            monitor1.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor2.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            master.notifyById(monitorId1, moduleId1, msg1);
+            master.notifyById(monitorId2, moduleId2, msg2);
+        });
 
         setTimeout(function () {
             req1Count.should.equal(1);
@@ -250,8 +231,7 @@ describe('agent', function () {
         let reqType2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req1Count++;
                 reqType1Count++;
                 moduleId.should.eql(moduleId1);
@@ -260,8 +240,7 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req2Count++;
                 reqType1Count++;
                 moduleId.should.eql(moduleId1);
@@ -270,8 +249,7 @@ describe('agent', function () {
         };
 
         let monitorConsole3 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req3Count++;
                 reqType2Count++;
                 moduleId.should.eql(moduleId2);
@@ -280,42 +258,30 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor1 = new Monitor({
-            consoleService: monitorConsole1,
-            id: monitorId1,
-            type: monitorType1,
-            info: {host: '127.0.0.1'}
+        let monitor1 = new Monitor(monitorConsole1, {
+            id: monitorId1, type: monitorType1, info: {host: '127.0.0.1'}
         });
-        let monitor2 = new Monitor({
-            consoleService: monitorConsole2,
-            id: monitorId2,
-            type: monitorType1,
-            info: {host: '127.0.0.1'}
+        let monitor2 = new Monitor(monitorConsole2, {
+            id: monitorId2, type: monitorType1, info: {host: '127.0.0.1'}
         });
-        let monitor3 = new Monitor({
-            consoleService: monitorConsole3,
-            id: monitorId3,
-            type: monitorType2,
-            info: {host: '127.0.0.1'}
+        let monitor3 = new Monitor(monitorConsole3, {
+            id: monitorId3, type: monitorType2, info: {host: '127.0.0.1'}
         });
 
         master.listen(masterPort);
         flow.exec(function () {
-                monitor1.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                monitor2.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                monitor3.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                master.notifyByType(monitorType1, moduleId1, msg1);
-                master.notifyByType(monitorType2, moduleId2, msg2);
-            });
+            monitor1.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor2.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor3.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            master.notifyByType(monitorType1, moduleId1, msg1);
+            master.notifyByType(monitorType2, moduleId2, msg2);
+        });
 
         setTimeout(function () {
             req1Count.should.equal(1);
@@ -345,8 +311,7 @@ describe('agent', function () {
         let req2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req1Count++;
                 orgModuleId.should.eql(moduleId);
                 msg.should.eql(orgMsg);
@@ -354,8 +319,7 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 req2Count++;
                 orgModuleId.should.eql(moduleId);
                 msg.should.eql(orgMsg);
@@ -363,31 +327,23 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor1 = new Monitor({
-            consoleService: monitorConsole1,
-            id: monitorId1,
-            type: monitorType1,
-            info: {host: '127.0.0.1'}
+        let monitor1 = new Monitor(monitorConsole1, {
+            id: monitorId1, type: monitorType1, info: {host: '127.0.0.1'}
         });
-        let monitor2 = new Monitor({
-            consoleService: monitorConsole2,
-            id: monitorId2,
-            type: monitorType2,
-            info: {host: '127.0.0.1'}
+        let monitor2 = new Monitor(monitorConsole2, {
+            id: monitorId2, type: monitorType2, info: {host: '127.0.0.1'}
         });
 
         master.listen(masterPort);
         flow.exec(function () {
-                monitor1.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                monitor2.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                master.notifyAll(orgModuleId, orgMsg);
-            });
+            monitor1.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor2.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            master.notifyAll(orgModuleId, orgMsg);
+        });
 
         setTimeout(function () {
             req1Count.should.equal(1);
@@ -410,8 +366,7 @@ describe('agent', function () {
         let reqCount = 0;
 
         let masterConsole = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            authServer: authServer, execute: function (moduleId, method, msg, cb) {
                 reqCount++;
                 orgModuleId.should.eql(moduleId);
                 msg.should.eql(orgMsg);
@@ -423,21 +378,17 @@ describe('agent', function () {
         };
 
         let master = new Master(masterConsole);
-        let monitor = new Monitor({
-            consoleService: monitorConsole,
-            id: monitorId,
-            type: monitorType,
-            info: {host: '127.0.0.1'}
+        let monitor = new Monitor(monitorConsole, {
+            id: monitorId, type: monitorType, info: {host: '127.0.0.1'}
         });
 
         master.listen(masterPort);
         flow.exec(function () {
-                monitor.connect(masterPort, masterHost, this);
-            },
-            function (err) {
-                should.not.exist(err);
-                monitor.notify(orgModuleId, orgMsg);
-            });
+            monitor.connect(masterPort, masterHost, this);
+        }, function (err) {
+            should.not.exist(err);
+            monitor.notify(orgModuleId, orgMsg);
+        });
 
         setTimeout(function () {
             reqCount.should.equal(1);

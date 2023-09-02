@@ -7,7 +7,7 @@
     "window",
     "__resources__"
   ],
-  "esversion": 6,
+  "esversion": 8,
   "node": true,
   "eqeqeq": true,
   "undef": true,
