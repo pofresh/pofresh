@@ -1,6 +1,7 @@
 const should = require('should');
 const flow = require('flow');
 const ConsoleService = require('..');
+const logger = require("../../pofresh-logger");
 
 const WAIT_TIME = 100;
 
@@ -8,13 +9,41 @@ const masterHost = '127.0.0.1';
 const masterPort = 3333;
 
 describe('console service', function () {
+    before(function (done) {
+        const logger = require('pofresh-logger');
+        logger.configure({
+            "appenders": {
+                "console": {
+                    "type": "console"
+                },
+            },
+            "categories": {
+                "default": {
+                    "appenders": ["console"],
+                    "level": "all"
+                }
+            },
+            "replaceConsole": true,
+            "rawMessage": false,
+            "lineDebug": true
+        });
+        done();
+    });
+
     it('should forward message from master to the monitorHandler method of the module of the right monitor, and get the response by masterAgent.request', function (done) {
-        let monitorId1 = 'connector-server-1';
-        let monitorId2 = 'area-server-1';
-        let monitorType1 = 'connector';
-        let monitorType2 = 'area';
-        let moduleId1 = 'testModuleId1';
-        let moduleId2 = 'testModuleId2';
+
+        const monitorConfig1 = {
+            id: 'connector-server-1',
+            type: 'connector',
+            moduleId: 'testModuleId1'
+        };
+
+        const monitorConfig2 = {
+            id: 'area-server-1',
+            type: 'area',
+            moduleId: 'testModuleId2'
+        };
+
         let msg1 = {msg: 'message to monitor1'};
         let msg2 = {msg: 'message to monitor2'};
 
@@ -23,20 +52,20 @@ describe('console service', function () {
         let resp1Count = 0;
         let resp2Count = 0;
 
-        let masterConsole = ConsoleService.createMasterConsole({
+        const masterConsole = ConsoleService.createMasterConsole({
             port: masterPort
         });
 
-        let monitorConsole1 = ConsoleService.createMonitorConsole({
+        const monitorConsole1 = ConsoleService.createMonitorConsole({
             host: masterHost,
             port: masterPort,
-            id: monitorId1,
-            type: monitorType1,
+            id: monitorConfig1.id,
+            type: monitorConfig1.type,
             info: {host: '127.0.0.1'}
         });
 
-        monitorConsole1.register(moduleId1, {
-            monitorHandler: function (agent, msg, cb) {
+        monitorConsole1.register(monitorConfig1.moduleId, {
+            monitorHandler (agent, msg, cb) {
                 req1Count++;
                 should.exist(msg);
                 msg.should.eql(msg1);
@@ -44,15 +73,15 @@ describe('console service', function () {
             }
         });
 
-        let monitorConsole2 = ConsoleService.createMonitorConsole({
+        const monitorConsole2 = ConsoleService.createMonitorConsole({
             host: masterHost,
             port: masterPort,
-            id: monitorId2,
-            type: monitorType2,
+            id: monitorConfig2.id,
+            type: monitorConfig2.type,
             info: {host: '127.0.0.1'}
         });
 
-        monitorConsole2.register(moduleId2, {
+        monitorConsole2.register(monitorConfig2.moduleId, {
             monitorHandler: function (agent, msg, cb) {
                 req2Count++;
                 should.exist(msg);
@@ -74,14 +103,14 @@ describe('console service', function () {
             },
             function (err) {
                 should.not.exist(err);
-                masterConsole.agent.request(monitorId1, moduleId1, msg1, function (err, resp) {
+                masterConsole.agent.request(monitorConsole1.id, monitorConfig1.moduleId, msg1, function (err, resp) {
                     resp1Count++;
                     should.not.exist(err);
                     should.exist(resp);
                     resp.should.eql(msg1);
                 });
 
-                masterConsole.agent.request(monitorId2, moduleId2, msg2, function (err, resp) {
+                masterConsole.agent.request(monitorConsole2.id, monitorConfig2.moduleId, msg2, function (err, resp) {
                     resp2Count++;
                     should.not.exist(err);
                     should.exist(resp);

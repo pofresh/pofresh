@@ -16,7 +16,7 @@ describe('agent', function () {
     };
 
     let masterConsole = {
-        authServer: authServer
+        authServer
     };
 
     it('should forward the message from master to the right monitor and get the response by reuqest', function (done) {
@@ -35,7 +35,8 @@ describe('agent', function () {
         let resp2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer, execute: function (moduleId, method, msg, cb) {
+            authServer,
+            execute: function (moduleId, method, msg, cb) {
                 req1Count++;
                 moduleId.should.eql(moduleId1);
                 cb(null, msg);
@@ -43,7 +44,8 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer, execute: function (moduleId, method, msg, cb) {
+            authServer,
+            execute: function (moduleId, method, msg, cb) {
                 req2Count++;
                 moduleId.should.eql(moduleId2);
                 cb(null, msg);
@@ -112,7 +114,8 @@ describe('agent', function () {
         let respCount = 0;
 
         let monitorConsole = {
-            authServer: authServer, execute: function (moduleId, method, msg, cb) {
+            authServer,
+            execute (moduleId, method, msg, cb) {
                 reqCount++;
                 moduleId.should.eql(moduleId);
                 cb(new Error(errMsg));
@@ -165,7 +168,8 @@ describe('agent', function () {
         let req2Count = 0;
 
         let monitorConsole1 = {
-            authServer: authServer, execute: function (moduleId, method, msg, cb) {
+            authServer,
+            execute (moduleId, method, msg, cb) {
                 req1Count++;
                 moduleId.should.eql(moduleId1);
                 msg.should.eql(msg1);
@@ -173,7 +177,8 @@ describe('agent', function () {
         };
 
         let monitorConsole2 = {
-            authServer: authServer, execute: function (moduleId, method, msg, cb) {
+            authServer,
+            execute (moduleId, method, msg, cb) {
                 req2Count++;
                 moduleId.should.eql(moduleId2);
                 msg.should.eql(msg2);

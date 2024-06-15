@@ -14,7 +14,7 @@ const opts = {
         host: host,
         port: 4300
     }
-}
+};
 
 const monitorConsole = MonitorConsole.createMonitorConsole(opts);
 const myModule = TestModule();

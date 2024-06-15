@@ -4,15 +4,15 @@
   "private": false,
   "dependencies": {
     "mqtt-connection": "^4.1.0",
-    "pofresh-logger": "^2.0.3",
+    "pofresh-logger": "^2.0.4",
     "pofresh-monitor": "^2.0.1",
     "pofresh-scheduler": "^2.0.1",
     "reverse-read-line": "^0.2.0",
-    "socket.io": "^4.6.0",
-    "socket.io-client": "^4.6.0"
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5"
   },
   "peerDependencies": {
-    "pofresh-logger": "^2.0.3"
+    "pofresh-logger": "^2.0.4"
   },
   "devDependencies": {
     "flow": ">=0.0.1",
