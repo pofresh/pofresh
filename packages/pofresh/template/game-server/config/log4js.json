@@ -131,7 +131,6 @@
         "pofresh",
         "pofresh-admin",
         "pofresh-rpc",
-        "transaction-rpc",
         "transaction-error-log"
       ],
       "level": "all"
