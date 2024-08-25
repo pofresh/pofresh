@@ -3,6 +3,7 @@
   "version": "2.0.1",
   "dependencies": {
     "pofresh-logger": "workspace:*",
+    "pofresh-loader": "workspace:*",
     "async": "^3.2.6",
     "bearcat-buffer": "0.1.1",
     "crc": "^4.3.2",

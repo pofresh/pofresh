@@ -2,11 +2,7 @@
     "name": "pofresh-logger",
     "version": "2.0.4",
     "private": false,
-    "exports": {
-        ".": {
-            "default": "./index.js"
-        }
-    },
+    "main": "index.js",
     "dependencies": {
         "log4js": "^6.9.1"
     },

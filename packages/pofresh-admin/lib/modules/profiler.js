@@ -3,7 +3,7 @@ const utils = require('../util/utils');
 
 let profiler = null;
 try {
-    profiler = require('v8-profiler');
+    profiler = require('v8-profiler-next');
 } catch (e) {
     logger.error(e);
 }

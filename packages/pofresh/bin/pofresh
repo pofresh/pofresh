@@ -3,17 +3,16 @@
 /**
  * Module dependencies.
  */
-const fs = require('fs'),
-    os = require('os'),
-    path = require('path'),
-    util = require('util'),
+const fs = require('node:fs'),
+    os = require('node:os'),
+    path = require('node:path'),
+    util = require('node:util'),
     cliff = require('cliff'),
     {mkdirp} = require('mkdirp'),
     co = require('../lib/modules/console'),
     utils = require('../lib/util/utils'),
     starter = require('../lib/master/starter'),
-    exec = require('child_process').exec,
-    spawn = require('child_process').spawn,
+    {exec, spawn} = require('node:child_process'),
     version = require('../package.json').version,
     AdminClient = require('pofresh-admin').adminClient,
     constants = require('../lib/util/constants'),
