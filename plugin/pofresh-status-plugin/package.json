@@ -1,0 +1,15 @@
+{
+  "name": "pofresh-status-plugin",
+  "version": "2.0.0",
+  "private": false,
+  "author": "luson",
+  "contributors": [
+    {
+      "name": "gitig"
+    }
+  ],
+  "dependencies": {
+    "pofresh-logger": "^2.0.3",
+    "redis": "^4.6.7"
+  }
+}

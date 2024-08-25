@@ -1,0 +1,8 @@
+{
+    "name": "pofresh-http",
+    "version": "1.0.0",
+    "private": false,
+    "dependencies": {
+        "pofresh": "^2.2.5"
+    }
+}

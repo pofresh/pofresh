@@ -1,0 +1,4 @@
+packages:
+  - "plugin/*"
+  - "packages/*"
+  - "test/*"

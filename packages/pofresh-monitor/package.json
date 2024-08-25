@@ -1,0 +1,14 @@
+{
+  "name": "pofresh-monitor",
+  "description": "monitor the operating-system and process information",
+  "version": "2.0.1",
+  "author": "luson <ljhxai@163.com>",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "repository": "https://github.com/pofresh/pofresh-monitor.git",
+  "main": "index"
+}

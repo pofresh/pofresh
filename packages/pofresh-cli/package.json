@@ -1,0 +1,28 @@
+{
+  "name": "pofresh-cli",
+  "version": "2.0.1",
+  "description": "Pofresh command line client for managing pofresh",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "",
+  "keywords": [
+    "pofresh",
+    "command",
+    "line",
+    "maintening"
+  ],
+  "bin": {
+    "pofresh-cli": "./bin/pofresh-cli"
+  },
+  "dependencies": {
+    "optimist": ">=0.6.1",
+    "cliff": ">=0.1.8",
+    "pofresh-admin": "workspace:*",
+    "pofresh-logger": "workspace:*",
+    "async": ">=3.2.6"
+  },
+  "author": "luson",
+  "license": "MIT"
+}

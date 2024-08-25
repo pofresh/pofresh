@@ -1,0 +1,14 @@
+{
+  "esversion": 8,
+  "node": true,
+  "camelcase": false,
+  "eqeqeq": true,
+  "undef": true,
+  "unused": true,
+  "curly": true,
+  "newcap": true,
+  "nonew": true,
+  "trailing": true,
+  "smarttabs": true,
+  "noarg": true
+}
