@@ -6,6 +6,6 @@
   "devDependencies": {
     "should": ">=0.0.1",
     "mocha": ">=10.7.3",
-    "jscoverage": ">=0.0.1"
+    "jscoverage": ">=0.6.0"
   }
 }

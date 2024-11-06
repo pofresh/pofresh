@@ -16,7 +16,8 @@ const fs = require('node:fs'),
     version = require('../package.json').version,
     AdminClient = require('pofresh-admin').adminClient,
     constants = require('../lib/util/constants'),
-    {program} = require('commander');
+    {program} = require('commander'),
+    {select} = require('@inquirer/prompts');
 
 /**
  *  Constant Variables
@@ -632,25 +633,26 @@ function mkdir(path, fn) {
  * @param {Function} cb
  */
 function connectorType(cb) {
-    prompt('Please select underly connector, 1 for websocket(native socket), 2 for socket.io, 3 for wss, 4 for socket.io(wss), 5 for udp, 6 for mqtt: [1]', function (msg) {
-        switch (msg.trim()) {
-            case '':
-                cb(1);
-                break;
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-                cb(msg.trim());
-                break;
-            default:
-                console.log('Invalid choice! Please input 1 - 5.'.red + '\n');
-                connectorType(cb);
-                break;
-        }
-    });
+
+    select({
+        message: 'Please select underly connector',
+        choices: [
+            {name: 'websocket(native socket)', value: 1},
+            {name: 'socket.io', value: 2},
+            {name: 'wss', value: 3},
+            {name: 'socket.io(wss)', value: 4},
+            {name: 'udp', value: 5},
+            {name: 'mqtt', value: 6},
+        ]
+    })
+        .then((answers) => {
+            // Use user feedback for... whatever!!
+            console.log('array', answers);
+            cb(answers);
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
 }
 
 /**

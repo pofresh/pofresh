@@ -27,6 +27,7 @@
     "server"
   ],
   "dependencies": {
+    "@inquirer/prompts": "^7.0.1",
     "async": "^3.2.6",
     "cliff": "^0.1.10",
     "commander": "^12.1.0",
