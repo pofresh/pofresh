@@ -1,10 +1,10 @@
-let fs = require('fs');
-let pofresh = require('pofresh');
+const fs = require('fs');
+const pofresh = require('pofresh');
 
 /**
  * Init app for client.
  */
-let app = pofresh.createApp();
+const app = pofresh.createApp();
 app.set('name', '$');
 
 // app configuration

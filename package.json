@@ -27,9 +27,6 @@
     "server"
   ],
   "packageManager": "pnpm@9.0.0",
-  "dependencies": {
-
-  },
   "devDependencies": {
     "turbo": "^2.0.14"
   }

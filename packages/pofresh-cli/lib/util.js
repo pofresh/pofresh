@@ -67,16 +67,16 @@ function formatOutput(comd, data) {
         const header = [];
         let results = [];
         serverMap = {};
-        serverMap["all"] = 1;
+        serverMap.all = 1;
         header.push(['serverId', 'serverType', 'host', 'port', 'pid', 'heapUsed(M)', 'uptime(m)']);
         let color = getColor(header[0].length);
         for (let key in msg) {
             let server = msg[key];
-            if (!server['port']) {
-                server['port'] = null;
+            if (!server.port) {
+                server.port = null;
             }
-            serverMap[server['serverId']] = 1;
-            rows.push([server['serverId'], server['serverType'], server['host'], server['port'], server['pid'], server['heapUsed'], server['uptime']]);
+            serverMap[server.serverId] = 1;
+            rows.push([server.serverId, server.serverType, server.host, server.port, server.pid, server.heapUsed, server.uptime]);
         }
         async.sortBy(rows, function (server, callback) {
             callback(null, server[0]);
@@ -95,9 +95,9 @@ function formatOutput(comd, data) {
             sumloginedCount = 0;
         for (let key in msg) {
             let server = msg[key];
-            rows.push([server['serverId'], server['totalConnCount'], server['loginedCount']]);
-            sumConnCount += server['totalConnCount'];
-            sumloginedCount += server['loginedCount'];
+            rows.push([server.serverId, server.totalConnCount, server.loginedCount]);
+            sumConnCount += server.totalConnCount;
+            sumloginedCount += server.loginedCount;
         }
         rows.push(['sum connections', sumConnCount, sumloginedCount]);
         log('\n' + cliff.stringifyRows(rows, color) + '\n');
@@ -111,18 +111,18 @@ function formatOutput(comd, data) {
         rows.push(['loginTime', 'uid', 'address']);
         for (let key in msg) {
             let server = msg[key];
-            let loginedList = server['loginedList'] || [];
+            let loginedList = server.loginedList || [];
             if (loginedList && loginedList.length === 0) {
                 log('\nno user logined in this connector\n');
                 return;
             }
-            log('\nserverId: ' + server['serverId'] + ' totalConnCount: ' + server['totalConnCount'] + ' loginedCount: ' + server['loginedCount']);
+            log('\nserverId: ' + server.serverId + ' totalConnCount: ' + server.totalConnCount + ' loginedCount: ' + server.loginedCount);
             for (let i = 0; i < loginedList.length; i++) {
-                rows.push([format_date(new Date(loginedList[i]['loginTime'])), loginedList[i]['uid'], loginedList[i]['address']]);
+                rows.push([format_date(new Date(loginedList[i].loginTime)), loginedList[i].uid, loginedList[i].address]);
             }
             log('\n' + cliff.stringifyRows(rows, color) + '\n');
-            return;
         }
+        return;
     }
 
     if (comd === 'modules') {
@@ -138,7 +138,7 @@ function formatOutput(comd, data) {
         rows.push(['time', 'serverId', 'serverType', 'pid', 'cpuAvg', 'memAvg', 'vsz', 'rss', 'usr', 'sys', 'gue']);
         let color = getColor(rows[0].length);
         if (server) {
-            rows.push([server['time'], server['serverId'], server['serverType'], server['pid'], server['cpuAvg'], server['memAvg'], server['vsz'], server['rss'], server['usr'], server['sys'], server['gue']]);
+            rows.push([server.time, server.serverId, server.serverType, server.pid, server.cpuAvg, server.memAvg, server.vsz, server.rss, server.usr, server.sys, server.gue]);
             log('\n' + cliff.stringifyRows(rows, color) + '\n');
         } else {
             log('\n' + consts.STATUS_ERROR + '\n');
@@ -152,16 +152,16 @@ function formatOutput(comd, data) {
     }
 
     if (comd === 'stop') {
-        return
+        return;
     }
 
     if (comd === 'add') {
-        return
+        return;
     }
 
     if (comd === 'proxy' || comd === 'handler') {
         log('\n' + cliff.inspect(data) + '\n');
-        return
+        return;
     }
 
     if (comd === 'memory' || comd === 'cpu') {

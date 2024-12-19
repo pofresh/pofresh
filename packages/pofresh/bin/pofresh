@@ -7,8 +7,8 @@ const fs = require('node:fs'),
     os = require('node:os'),
     path = require('node:path'),
     util = require('node:util'),
-    cliff = require('cliff'),
     {mkdirp} = require('mkdirp'),
+    cliff = require('../lib/util/cliFormat'),
     co = require('../lib/modules/console'),
     utils = require('../lib/util/utils'),
     starter = require('../lib/master/starter'),
@@ -16,7 +16,9 @@ const fs = require('node:fs'),
     version = require('../package.json').version,
     AdminClient = require('pofresh-admin').adminClient,
     constants = require('../lib/util/constants'),
-    {program} = require('commander');
+    {program} = require('commander'),
+    {green, red} = require('chalk'),
+    {select} = require('@inquirer/prompts');
 
 /**
  *  Constant Variables
@@ -37,10 +39,10 @@ const FILE_READ_ERROR = 'Fail to read the file, please check if the application 
 const CLOSE_APP_INFO = 'Closing the application......\nPlease wait......';
 const ADD_SERVER_INFO = 'Successfully add server.';
 const RESTART_SERVER_INFO = 'Successfully restart server.';
-const INIT_PROJ_NOTICE = '\nThe default admin user is: \n\n' + '  username'.green + ': admin\n  ' + 'password'.green + ': admin\n\nYou can configure admin users by editing adminUser.json later.\n ';
-const SCRIPT_NOT_FOUND = 'Fail to find an appropriate script to run,\nplease check the current work directory or the directory specified by option `--directory`.\n'.red;
-const MASTER_HA_NOT_FOUND = 'Fail to find an appropriate masterha config file, \nplease check the current work directory or the arguments passed to.\n'.red;
-const COMMAND_ERROR = 'Illegal command format. Use `pofresh --help` to get more info.\n'.red;
+const INIT_PROJ_NOTICE = '\nThe default admin user is: \n\n' + green('  username') + ': admin\n  ' + green('password') + ': admin\n\nYou can configure admin users by editing adminUser.json later.\n ';
+const SCRIPT_NOT_FOUND = red('Fail to find an appropriate script to run,\nplease check the current work directory or the directory specified by option `--directory`.\n');
+const MASTER_HA_NOT_FOUND = red('Fail to find an appropriate masterha config file, \nplease check the current work directory or the arguments passed to.\n');
+const COMMAND_ERROR = red('Illegal command format. Use `pofresh --help` to get more info.\n');
 const DAEMON_INFO = 'The application is running in the background now.\n';
 
 program.version(version);
@@ -149,7 +151,7 @@ function init(path) {
                     if (force) {
                         createApplicationAt(path, type);
                     } else {
-                        abort('Fail to init a project'.red);
+                        abort(red('Fail to init a project'));
                     }
                 });
             }
@@ -493,7 +495,7 @@ function connectToMaster(id, opts, cb) {
     });
     client.connect(id, opts.host, opts.port, function (err) {
         if (err) {
-            abort(CONNECT_ERROR + err.red);
+            abort(CONNECT_ERROR + red(err.message || err));
         }
         if (typeof cb === 'function') {
             cb(client);
@@ -588,7 +590,7 @@ function copy(origin, target) {
     }
     if (!fs.existsSync(target)) {
         mkdirp.sync(target, '0755');
-        console.log('   create : '.green + target);
+        console.log(green('   create : ') + target);
     }
     try {
         const datalist = fs.readdirSync(origin);
@@ -597,7 +599,7 @@ function copy(origin, target) {
             let tCurrent = path.resolve(target, datalist[i]);
             if (fs.statSync(oCurrent).isFile()) {
                 fs.writeFileSync(tCurrent, fs.readFileSync(oCurrent, ''), '');
-                console.log('   create : '.green + tCurrent);
+                console.log(green('   create : ') + tCurrent);
             } else if (fs.statSync(oCurrent).isDirectory()) {
                 copy(oCurrent, tCurrent);
             }
@@ -632,25 +634,24 @@ function mkdir(path, fn) {
  * @param {Function} cb
  */
 function connectorType(cb) {
-    prompt('Please select underly connector, 1 for websocket(native socket), 2 for socket.io, 3 for wss, 4 for socket.io(wss), 5 for udp, 6 for mqtt: [1]', function (msg) {
-        switch (msg.trim()) {
-            case '':
-                cb(1);
-                break;
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-                cb(msg.trim());
-                break;
-            default:
-                console.log('Invalid choice! Please input 1 - 5.'.red + '\n');
-                connectorType(cb);
-                break;
-        }
-    });
+
+    select({
+        message: 'Please select underly connector',
+        choices: [
+            {name: 'websocket(native socket)', value: 1},
+            {name: 'socket.io', value: 2},
+            {name: 'wss', value: 3},
+            {name: 'socket.io(wss)', value: 4},
+            {name: 'udp', value: 5},
+            {name: 'mqtt', value: 6},
+        ]
+    })
+        .then((answers) => {
+            cb(answers);
+        })
+        .catch((error) => {
+            console.error(error.message);
+        });
 }
 
 /**
