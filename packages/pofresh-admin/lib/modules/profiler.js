@@ -1,28 +1,16 @@
 const logger = require('pofresh-logger').getLogger('pofresh-admin', __filename);
 const utils = require('../util/utils');
 
-let profiler = null;
-try {
-    profiler = require('v8-profiler-next');
-} catch (e) {
-    logger.error(e);
-}
+const inspector = require('inspector');
+const session = new inspector.Session();
 
 const fs = require('fs');
 const ProfileProxy = require('../util/profileProxy');
 const path = require("path");
 
 module.exports = function (opts) {
-    if (!profiler) {
-        return {};
-    } else {
-        return new Module(opts);
-    }
+    return new Module(opts);
 };
-
-if (!profiler) {
-    module.exports.moduleError = 1;
-}
 
 const moduleId = 'profiler';
 
@@ -39,42 +27,46 @@ class Module {
         let type = msg.type, action = msg.action, uid = msg.uid, result = null;
         if (type === 'CPU') {
             if (action === 'start') {
-                profiler.startProfiling();
+                session.post('Profiler.enable', () => {
+                    session.post('Profiler.start', () => {});
+                });
             } else {
-                result = profiler.stopProfiling();
-                const res = {};
-                res.head = result.getTopDownRoot();
-                res.bottomUpHead = result.getBottomUpRoot();
-                res.msg = msg;
-                agent.notify(moduleId, {clientId: msg.clientId, type: type, body: res});
+                session.post('Profiler.stop', (err, { profile }) => {
+                    const res = {};
+                    res.head = profile;
+                    res.bottomUpHead = null; // inspector does not provide bottom-up view
+                    res.msg = msg;
+                    agent.notify(moduleId, {clientId: msg.clientId, type: type, body: res});
+                });
             }
         } else {
-            const snapshot = profiler.takeSnapshot();
-            const appBase = path.dirname(require.main.filename);
-            const name = appBase + '/logs/' + utils.format(new Date()) + '.log';
-            const log = fs.createWriteStream(name, {'flags': 'a'});
-            let data;
-            snapshot.serialize({
-                onData: function (chunk, size) {
-                    chunk = chunk + '';
-                    data = {
-                        method: 'Profiler.addHeapSnapshotChunk',
-                        params: {
-                            uid: uid,
-                            chunk: chunk
-                        }
-                    };
-                    log.write(chunk);
-                    agent.notify(moduleId, {clientId: msg.clientId, type: type, body: data});
-                },
-                onEnd: function () {
-                    agent.notify(moduleId, {
-                        clientId: msg.clientId,
-                        type: type,
-                        body: {params: {uid: uid}}
+            session.post('HeapProfiler.enable', () => {
+                session.post('HeapProfiler.takeHeapSnapshot', { reportProgress: false }, (err, { uid: snapshotId }) => {
+                    const appBase = path.dirname(require.main.filename);
+                    const name = appBase + '/logs/' + utils.format(new Date()) + '.log';
+                    const log = fs.createWriteStream(name, {'flags': 'a'});
+                    session.on('HeapProfiler.addHeapSnapshotChunk', ({ params }) => {
+                        const data = {
+                            method: 'Profiler.addHeapSnapshotChunk',
+                            params: {
+                                uid: uid,
+                                chunk: params.chunk
+                            }
+                        };
+                        log.write(params.chunk);
+                        agent.notify(moduleId, {clientId: msg.clientId, type: type, body: data});
                     });
-                    profiler.deleteAllSnapshots();
-                }
+                    session.on('HeapProfiler.reportHeapSnapshotProgress', ({ done }) => {
+                        if (done) {
+                            agent.notify(moduleId, {
+                                clientId: msg.clientId,
+                                type: type,
+                                body: {params: {uid: uid}}
+                            });
+                            session.post('HeapProfiler.disable', () => {});
+                        }
+                    });
+                });
             });
         }
     }
@@ -109,7 +101,6 @@ class Module {
         this.proxy[method](id, params, clientId, agent);
     }
 }
-
 
 function list(agent, msg, cb) {
     const servers = [];
