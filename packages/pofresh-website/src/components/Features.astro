@@ -1,0 +1,65 @@
+---
+const features = [
+  {
+    title: "高性能架构",
+    description: "基于Node.js的事件驱动架构，支持WebSocket、TCP协议，单机可支持数万并发连接。",
+    icon: "⚡",
+    color: "text-yellow-500"
+  },
+  {
+    title: "分布式设计",
+    description: "原生支持分布式部署，负载均衡，服务发现，自动故障转移，轻松构建大规模游戏服务。",
+    icon: "🌐",
+    color: "text-blue-500"
+  },
+  {
+    title: "插件化系统",
+    description: "灵活的插件架构，支持自定义协议、路由、中间件，轻松扩展框架功能。",
+    icon: "🔧",
+    color: "text-green-500"
+  },
+  {
+    title: "实时监控",
+    description: "内置性能监控和日志系统，实时查看服务器状态、连接数、消息统计等关键指标。",
+    icon: "📊",
+    color: "text-purple-500"
+  },
+  {
+    title: "热重载",
+    description: "支持代码热重载，无需重启服务器即可更新游戏逻辑，提高开发效率。",
+    icon: "🔄",
+    color: "text-red-500"
+  },
+  {
+    title: "完整解决方案",
+    description: "提供从客户端SDK到服务器端的全套解决方案，包括聊天、匹配、排行榜等常用功能。",
+    icon: "🎯",
+    color: "text-indigo-500"
+  }
+];
+---
+
+<section class="py-20 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+        为什么选择 Pofresh？
+      </h2>
+      <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        Pofresh 提供了构建现代实时游戏所需的一切功能，从简单的聊天应用到复杂的MMORPG，都能轻松应对。
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {
+        features.map((feature) => (
+          <div class="bg-gray-50 rounded-xl p-8 hover:shadow-lg transition-shadow">
+            <div class={`text-4xl mb-4 ${feature.color}`}>{feature.icon}</div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+            <p class="text-gray-600 leading-relaxed">{feature.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

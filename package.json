@@ -1,13 +1,21 @@
 {
   "name": "pofresh",
-  "version": "2.0.4",
+  "version": "3.0.1",
   "homepage": "https://github.com/ljhsai/pofresh",
   "repository": {
     "type": "git",
     "url": "https://github.com/ljhsai/pofresh.git"
   },
   "scripts": {
-    "test": "gulp"
+    "test": "gulp",
+    "lint": "eslint packages/ plugin/ --ext .js",
+    "lint:fix": "eslint packages/ plugin/ --ext .js --fix",
+    "format": "prettier --write 'packages/**/*.js' 'plugin/**/*.js'",
+    "audit": "pnpm audit --audit-level moderate",
+    "security:check": "pnpm audit && npm run lint",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "clean": "turbo run clean"
   },
   "bugs": {
     "url": "https://github.com/ljhsai/pofresh/issues"
@@ -28,6 +36,12 @@
   ],
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {
-    "turbo": "^2.0.14"
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "turbo": "^2.5.4"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
   }
 }

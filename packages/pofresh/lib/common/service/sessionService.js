@@ -25,6 +25,12 @@ class SessionService {
         this.singleSession = opts.singleSession;
         this.sessions = {};     // sid -> session
         this.uidMap = {};       // uid -> sessions
+        this.sessionTimeout = opts.sessionTimeout || 30 * 60 * 1000; // 30分钟
+        this.cleanupInterval = opts.cleanupInterval || 5 * 60 * 1000; // 5分钟
+        this.maxSessionsPerUser = opts.maxSessionsPerUser || 10;
+        
+        // 启动会话清理定时器
+        this.startCleanupTimer();
     }
 
     /**
@@ -41,6 +47,7 @@ class SessionService {
      */
     create(sid, frontendId, socket) {
         const session = new Session(sid, frontendId, socket, this);
+        session.lastActivity = Date.now();
         this.sessions[session.id] = session;
         return session;
     }
@@ -182,26 +189,43 @@ class SessionService {
      * @api private
      */
     remove(sid) {
-        let session = this.sessions[sid];
-        if (session) {
-            let uid = session.uid;
-            delete this.sessions[session.id];
+        this.removeSession(sid);
+    }
 
-            let sessions = this.uidMap[uid];
-            if (!sessions) {
-                return;
-            }
+    /**
+     * Internal method to remove session and clean up resources
+     * @param {String} sid session id
+     * @api private
+     */
+    removeSession(sid) {
+        const session = this.sessions[sid];
+        if (!session) {
+            return;
+        }
 
-            for (let i = 0, l = sessions.length; i < l; i++) {
-                if (sessions[i].id === sid) {
-                    sessions.splice(i, 1);
-                    if (sessions.length === 0) {
-                        delete this.uidMap[uid];
+        // Clean up session resources
+        if (session.__socket__) {
+            session.__socket__.removeAllListeners();
+        }
+
+        delete this.sessions[session.id];
+        
+        if (session.uid) {
+            const sessions = this.uidMap[session.uid];
+            if (sessions) {
+                for (let i = 0, l = sessions.length; i < l; i++) {
+                    if (sessions[i].id === session.id) {
+                        sessions.splice(i, 1);
+                        if (sessions.length === 0) {
+                            delete this.uidMap[session.uid];
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
+        
+        logger.debug('Session removed: %s', sid);
     }
 
     /**
@@ -381,6 +405,83 @@ class SessionService {
     }
 
     /**
+     * Start cleanup timer for expired sessions
+     * @api private
+     */
+    startCleanupTimer() {
+        if (this.cleanupTimer) {
+            clearInterval(this.cleanupTimer);
+        }
+        
+        this.cleanupTimer = setInterval(() => {
+            this.cleanupExpiredSessions();
+        }, this.cleanupInterval);
+    }
+
+    /**
+     * Clean up expired sessions
+     * @api private
+     */
+    cleanupExpiredSessions() {
+        const now = Date.now();
+        const expiredSessions = [];
+        
+        for (const sid in this.sessions) {
+            const session = this.sessions[sid];
+            if (session.lastActivity && 
+                (now - session.lastActivity) > this.sessionTimeout) {
+                expiredSessions.push(sid);
+            }
+        }
+        
+        expiredSessions.forEach(sid => {
+            logger.info('Removing expired session: %s', sid);
+            this.removeSession(sid);
+        });
+        
+        if (expiredSessions.length > 0) {
+            logger.info('Cleaned up %d expired sessions', expiredSessions.length);
+        }
+    }
+
+    /**
+     * Stop cleanup timer
+     * @api private
+     */
+    stopCleanupTimer() {
+        if (this.cleanupTimer) {
+            clearInterval(this.cleanupTimer);
+            this.cleanupTimer = null;
+        }
+    }
+
+    /**
+     * Update session last activity time
+     * @param {String} sid session id
+     * @api private
+     */
+    updateActivity(sid) {
+        const session = this.sessions[sid];
+        if (session) {
+            session.lastActivity = Date.now();
+        }
+    }
+
+    /**
+     * Get session statistics
+     * @returns {Object} Session statistics
+     * @api public
+     */
+    getStats() {
+        return {
+            totalSessions: Object.keys(this.sessions).length,
+            totalUsers: Object.keys(this.uidMap).length,
+            sessionTimeout: this.sessionTimeout,
+            cleanupInterval: this.cleanupInterval
+        };
+    }
+
+    /**
      * Iterate all the binded session in the session service.
      *
      * @param  {Function} cb callback function to fetch session
@@ -434,6 +535,8 @@ class Session extends EventEmitter {
         this.frontendId = frontendId; // r
         this.uid = null;        // r
         this.settings = {};
+        this.lastActivity = Date.now();
+        this.createdAt = Date.now();
 
         // private
         this.__socket__ = socket;
@@ -514,7 +617,10 @@ class Session extends EventEmitter {
      * @param  {Object} msg final message sent to client
      */
     send(msg) {
-        this.__socket__.send(msg);
+        this.lastActivity = Date.now();
+        if (this.__socket__ && typeof this.__socket__.send === 'function') {
+            this.__socket__.send(msg);
+        }
     }
 
     /**

@@ -183,43 +183,102 @@ utils.checkPort = function (server, cb) {
         this.invokeCallback(cb, 'leisure');
         return;
     }
-    let self = this;
-    let port = server.port || server.clientPort;
-    let host = server.host;
-    let generateCommand = function (self, host, port) {
-        let cmd;
-        let ssh_params = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS);
-        if (!!ssh_params && Array.isArray(ssh_params)) {
-            ssh_params = ssh_params.join(' ');
-        } else {
-            ssh_params = "";
+    
+    const port = server.port || server.clientPort;
+    const host = server.host;
+    
+    // 使用Node.js原生方式检查端口，避免命令注入
+    const net = require('net');
+    
+    const checkPortInternal = (portToCheck, callback) => {
+        if (!portToCheck) {
+            callback('leisure');
+            return;
         }
-        if (!self.isLocal(host)) {
-            cmd = util.format('ssh %s %s "netstat -an|awk \'{print $4}\'|grep %s|wc -l"', host, ssh_params, port);
-        } else {
-            cmd = util.format('netstat -an|awk \'{print $4}\'|grep %s|wc -l', port);
+        
+        // 验证端口范围为有效数字
+        const portNum = parseInt(portToCheck, 10);
+        if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+            logger.error('Invalid port number: %s', portToCheck);
+            callback('error');
+            return;
         }
-        return cmd;
+        
+        if (this.isLocal(host)) {
+            // 本地端口检查 - 使用安全的TCP连接测试
+            const socket = new net.Socket();
+            const timeout = 2000;
+            
+            socket.setTimeout(timeout);
+            socket.on('connect', () => {
+                socket.destroy();
+                callback('busy');
+            });
+            socket.on('timeout', () => {
+                socket.destroy();
+                callback('leisure');
+            });
+            socket.on('error', () => {
+                socket.destroy();
+                callback('leisure');
+            });
+            
+            socket.connect(portNum, '127.0.0.1');
+        } else {
+            // 远程端口检查 - 使用安全的SSH连接
+            const { spawn } = require('child_process');
+            const sshParams = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS) || [];
+            
+            // 验证SSH参数安全性 - 仅允许已知安全参数
+            const validParams = sshParams.filter(param => 
+                typeof param === 'string' && /^[a-zA-Z0-9=-]+$/.test(param)
+            );
+            
+            const args = [...validParams, host, 'nc', '-z', host, portNum.toString()];
+            
+            try {
+                const child = spawn('ssh', args, { 
+                    stdio: 'pipe',
+                    timeout: 5000
+                });
+                
+                let hasError = false;
+                child.stderr.on('data', (data) => {
+                    hasError = true;
+                    logger.warn('SSH port check warning: %s', data.toString().trim());
+                });
+                
+                child.on('close', (code) => {
+                    if (hasError) {
+                        callback('error');
+                    } else if (code === 0) {
+                        callback('busy');
+                    } else {
+                        callback('leisure');
+                    }
+                });
+                
+                child.on('error', (err) => {
+                    logger.error('SSH port check error: %j', err.message);
+                    callback('error');
+                });
+            } catch (err) {
+                logger.error('Failed to spawn SSH process: %j', err.message);
+                callback('error');
+            }
+        }
     };
-    let cmd1 = generateCommand(self, host, port);
-    let child = exec(cmd1, function (err, stdout, stderr) {
-        if (err) {
-            logger.error('command %s execute with error: %j', cmd1, err.stack);
-            self.invokeCallback(cb, 'error');
-        } else if (stdout.trim() !== '0') {
-            self.invokeCallback(cb, 'busy');
+    
+    // 检查主要端口
+    checkPortInternal(server.port, (result1) => {
+        if (result1 === 'busy') {
+            this.invokeCallback(cb, 'busy');
+        } else if (result1 === 'error') {
+            this.invokeCallback(cb, 'error');
         } else {
-            port = server.clientPort;
-            let cmd2 = generateCommand(self, host, port);
-            exec(cmd2, function (err, stdout, stderr) {
-                if (err) {
-                    logger.error('command %s execute with error: %j', cmd2, err.stack);
-                    self.invokeCallback(cb, 'error');
-                } else if (stdout.trim() !== '0') {
-                    self.invokeCallback(cb, 'busy');
-                } else {
-                    self.invokeCallback(cb, 'leisure');
-                }
+            // 检查客户端端口
+            checkPortInternal(server.clientPort, (result2) => {
+                this.invokeCallback(cb, result2);
             });
         }
     });

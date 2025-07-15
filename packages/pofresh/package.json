@@ -27,39 +27,39 @@
     "server"
   ],
   "dependencies": {
-    "@inquirer/prompts": "^7.0.1",
+    "@inquirer/prompts": "^7.5.3",
     "async": "^3.2.6",
     "chalk": "4.1.2",
     "commander": "^12.1.0",
     "crc": "^4.3.2",
     "mkdirp": "^3.0.1",
-    "mqtt": "^5.10.0",
+    "mqtt": "^5.13.1",
     "muk": "^0.5.3",
     "node-bignumber": "^1.2.2",
-    "nyc": "^17.0.0",
+    "nyc": "^17.1.0",
     "pofresh-admin": "workspace:*",
     "pofresh-loader": "workspace:*",
     "pofresh-logger": "workspace:*",
     "pofresh-protobuf": "workspace:*",
-    "pofresh-protocol": "workspace:*0",
+    "pofresh-protocol": "workspace:*",
     "pofresh-rpc": "workspace:*",
     "pofresh-scheduler": "workspace:*",
     "seq-queue": "^0.0.5",
-    "socket.io": "^4.7.5",
-    "table": "^6.8.2",
+    "socket.io": "^4.8.1",
+    "table": "^6.9.0",
     "toobusy-js": "^0.5.1",
-    "ws": "^8.18.0"
+    "ws": "^8.18.2"
   },
   "bin": {
     "pofresh": "./bin/pofresh"
   },
   "devDependencies": {
-    "gulp": "^5.0.0",
+    "gulp": "^5.0.1",
     "gulp-clean": "^0.4.0",
     "gulp-jshint": "^2.1.0",
     "gulp-shell": "^0.8.0",
     "jshint": "^2.13.6",
-    "mocha": "^10.7.3",
+    "mocha": "^10.8.2",
     "muk": ">=0.5.3",
     "nyc": "^17.0.0",
     "should": "^13.2.3"
