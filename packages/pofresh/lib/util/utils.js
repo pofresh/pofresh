@@ -10,9 +10,9 @@ const utils = module.exports;
 /**
  * Invoke callback with check
  */
-utils.invokeCallback = function(cb) {
+utils.invokeCallback = (cb, ...args) => {
   if (typeof cb === 'function') {
-    cb.apply(null, Array.prototype.slice.call(arguments, 1));
+    cb(...args);
   }
 };
 
@@ -32,40 +32,21 @@ utils.size = function(obj) {
 /**
  * Check a string whether ends with another string
  */
-utils.endsWith = function(str, suffix) {
-  if (typeof str !== 'string' || typeof suffix !== 'string' || suffix.length > str.length) {
-    return false;
-  }
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
-};
+utils.endsWith = (str, suffix) => 
+  typeof str === 'string' && typeof suffix === 'string' && str.endsWith(suffix);
 
 /**
  * Check a string whether starts with another string
  */
-utils.startsWith = function(str, prefix) {
-  if (typeof str !== 'string' || typeof prefix !== 'string' || prefix.length > str.length) {
-    return false;
-  }
-
-  return str.indexOf(prefix) === 0;
-};
+utils.startsWith = (str, prefix) => 
+  typeof str === 'string' && typeof prefix === 'string' && str.startsWith(prefix);
 
 /**
  * Compare the two arrays and return the difference.
  */
-utils.arrayDiff = function(array1, array2) {
-  const o = {};
-  for (let i = 0, len = array2.length; i < len; i++) {
-    o[array2[i]] = true;
-  }
-
-  const result = [];
-  for (let i = 0, len = array1.length; i < len; i++) {
-    const v = array1[i];
-    if (o[v]) continue;
-    result.push(v);
-  }
-  return result;
+utils.arrayDiff = (array1, array2) => {
+  const set2 = new Set(array2);
+  return array1.filter(item => !set2.has(item));
 };
 
 /*
@@ -101,13 +82,7 @@ utils.format = function(date, format) {
 /**
  * check if has Chinese characters.
  */
-utils.hasChineseChar = function(str) {
-  if (/.*[\u4e00-\u9fa5]+.*$/.test(str)) {
-    return true;
-  } else {
-    return false;
-  }
-};
+utils.hasChineseChar = str => /[\u4e00-\u9fa5]/.test(str);
 
 /**
  * transform unicode to utf8
@@ -334,16 +309,8 @@ utils.loadCluster = function(app, server, serverMap) {
   }
 };
 
-utils.extends = function(origin, add) {
-  if (!add || !this.isObject(add)) return origin;
-
-  const keys = Object.keys(add);
-  let i = keys.length;
-  while (i--) {
-    origin[keys[i]] = add[keys[i]];
-  }
-  return origin;
-};
+utils.extends = (origin, add) => 
+  (!add || !utils.isObject(add)) ? origin : { ...origin, ...add };
 
 utils.headHandler = function(headBuffer) {
   let len = 0;
@@ -356,28 +323,11 @@ utils.headHandler = function(headBuffer) {
   return len;
 };
 
-const localIps = (function() {
-  const ifaces = os.networkInterfaces();
-  const ips = [];
-  for (const dev in ifaces) {
-    ifaces[dev].forEach(function(details) {
-      if (details.family === 'IPv4') {
-        ips.push(details.address);
-      }
-    });
-  }
-  return ips;
-})();
+const localIps = Object.values(os.networkInterfaces())
+  .flat()
+  .filter(details => details.family === 'IPv4')
+  .map(details => details.address);
 
-function inLocal(host) {
-  for (const index in localIps) {
-    if (host === localIps[index]) {
-      return true;
-    }
-  }
-  return false;
-}
+const inLocal = host => localIps.includes(host);
 
-utils.isObject = function(arg) {
-  return typeof arg === 'object' && arg !== null;
-};
+utils.isObject = arg => arg !== null && typeof arg === 'object';
