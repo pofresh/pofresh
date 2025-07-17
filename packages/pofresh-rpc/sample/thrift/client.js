@@ -17,19 +17,18 @@
  * under the License.
  */
 
-var thrift = require('thrift');
+const thrift = require('thrift');
 // var ThriftTransports = require('thrift/transport');
 // var ThriftProtocols = require('thrift/protocol');
-var Calculator = require('./gen-nodejs/Calculator');
-var ttypes = require('./gen-nodejs/tutorial_types');
+const Calculator = require('./gen-nodejs/Calculator');
+const ttypes = require('./gen-nodejs/tutorial_types');
 
+const transport = thrift.TBufferedTransport();
+const protocol = thrift.TBinaryProtocol();
 
-transport = thrift.TBufferedTransport()
-protocol = thrift.TBinaryProtocol()
-
-var connection = thrift.createConnection("localhost", 9090, {
-  transport : transport,
-  protocol : protocol
+const connection = thrift.createConnection('localhost', 9090, {
+  transport: transport,
+  protocol: protocol
 });
 
 connection.on('error', function(err) {
@@ -37,17 +36,17 @@ connection.on('error', function(err) {
 });
 
 // Create a Calculator client with the connection
-var client = thrift.createClient(Calculator, connection);
+const client = thrift.createClient(Calculator, connection);
 
-var num_requests = 20000;
-var times = 0;
-var start = Date.now();
+const num_requests = 20000;
+let times = 0;
+let start = Date.now();
 
-var rpcRequest = function(msg, cb) {
+const rpcRequest = function(msg, cb) {
   client.ping(function(err, response) {
-    cb()
+    cb();
   });
-}
+};
 
 function run() {
   if (times > num_requests) {
@@ -55,9 +54,14 @@ function run() {
   }
 
   if (times == num_requests) {
-    var now = Date.now();
-    var cost = now - start;
-    console.log('run %d num requests cost: %d ops/sec', num_requests, cost, (num_requests / (cost / 1000)).toFixed(2));
+    const now = Date.now();
+    const cost = now - start;
+    console.log(
+      'run %d num requests cost: %d ops/sec',
+      num_requests,
+      cost,
+      (num_requests / (cost / 1000)).toFixed(2)
+    );
     times = 0;
     start = now;
     // return;
@@ -66,11 +70,11 @@ function run() {
 
   times++;
   rpcRequest({}, function() {
-      run();
+    run();
   });
 }
 
-run()
+run();
 // work = new ttypes.Work();
 // work.op = ttypes.Operation.DIVIDE;
 // work.num1 = 1;
