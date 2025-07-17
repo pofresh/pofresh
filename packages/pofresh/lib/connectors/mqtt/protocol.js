@@ -2,41 +2,41 @@
 
 /* Command code => mnemonic */
 module.exports.types = {
-    0: 'reserved',
-    1: 'connect',
-    2: 'connack',
-    3: 'publish',
-    4: 'puback',
-    5: 'pubrec',
-    6: 'pubrel',
-    7: 'pubcomp',
-    8: 'subscribe',
-    9: 'suback',
-    10: 'unsubscribe',
-    11: 'unsuback',
-    12: 'pingreq',
-    13: 'pingresp',
-    14: 'disconnect',
-    15: 'reserved'
+  0: 'reserved',
+  1: 'connect',
+  2: 'connack',
+  3: 'publish',
+  4: 'puback',
+  5: 'pubrec',
+  6: 'pubrel',
+  7: 'pubcomp',
+  8: 'subscribe',
+  9: 'suback',
+  10: 'unsubscribe',
+  11: 'unsuback',
+  12: 'pingreq',
+  13: 'pingresp',
+  14: 'disconnect',
+  15: 'reserved'
 };
 
 /* Mnemonic => Command code */
 module.exports.codes = {};
-for (let k in module.exports.types) {
-    let v = module.exports.types[k];
-    module.exports.codes[v] = k;
+for (const k in module.exports.types) {
+  const v = module.exports.types[k];
+  module.exports.codes[v] = k;
 }
 
 /* Header */
 module.exports.CMD_SHIFT = 4;
-module.exports.CMD_MASK = 0xF0;
+module.exports.CMD_MASK = 0xf0;
 module.exports.DUP_MASK = 0x08;
 module.exports.QOS_MASK = 0x03;
 module.exports.QOS_SHIFT = 1;
 module.exports.RETAIN_MASK = 0x01;
 
 /* Length */
-module.exports.LENGTH_MASK = 0x7F;
+module.exports.LENGTH_MASK = 0x7f;
 module.exports.LENGTH_FIN_MASK = 0x80;
 
 /* Connect */

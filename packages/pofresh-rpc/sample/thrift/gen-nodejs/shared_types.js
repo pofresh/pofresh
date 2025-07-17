@@ -3,12 +3,11 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-var thrift = require('thrift');
-var Thrift = thrift.Thrift;
-var Q = thrift.Q;
+const thrift = require('thrift');
+const Thrift = thrift.Thrift;
+const Q = thrift.Q;
 
-
-var ttypes = module.exports = {};
+const ttypes = (module.exports = {});
 SharedStruct = module.exports.SharedStruct = function(args) {
   this.key = null;
   this.value = null;
@@ -24,33 +23,31 @@ SharedStruct = module.exports.SharedStruct = function(args) {
 SharedStruct.prototype = {};
 SharedStruct.prototype.read = function(input) {
   input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
+  while (true) {
+    const ret = input.readFieldBegin();
+    const fname = ret.fname;
+    const ftype = ret.ftype;
+    const fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    switch (fid)
-    {
-      case 1:
+    switch (fid) {
+    case 1:
       if (ftype == Thrift.Type.I32) {
         this.key = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 2:
+    case 2:
       if (ftype == Thrift.Type.STRING) {
         this.value = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
-      default:
-        input.skip(ftype);
+    default:
+      input.skip(ftype);
     }
     input.readFieldEnd();
   }
@@ -74,4 +71,3 @@ SharedStruct.prototype.write = function(output) {
   output.writeStructEnd();
   return;
 };
-

@@ -10,27 +10,25 @@ const Monitor = require('../monitor/monitor');
  * @param  {Object} app  current application context
  * @return {Object}      component instances
  */
-module.exports = function (app, opts) {
-    return new Component(app, opts);
+module.exports = function(app, opts) {
+  return new Component(app, opts);
 };
 
 class Component {
-    constructor(app, opts) {
-        this.name = '__monitor__';
-        this.monitor = new Monitor(app, opts);
-    }
+  constructor(app, opts) {
+    this.name = '__monitor__';
+    this.monitor = new Monitor(app, opts);
+  }
 
-    start(cb) {
-        this.monitor.start(cb);
-    }
+  start(cb) {
+    this.monitor.start(cb);
+  }
 
-    stop(force, cb) {
-        this.monitor.stop(cb);
-    }
+  stop(force, cb) {
+    this.monitor.stop(cb);
+  }
 
-    reconnect(masterInfo) {
-        this.monitor.reconnect(masterInfo);
-    }
+  reconnect(masterInfo) {
+    this.monitor.reconnect(masterInfo);
+  }
 }
-
-

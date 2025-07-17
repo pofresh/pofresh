@@ -1,46 +1,46 @@
 const Utils = {};
 
-Utils.invokeCallback = function (cb) {
-    if (typeof cb === 'function') {
-        cb.apply(null, Array.prototype.slice.call(arguments, 1));
-    }
+Utils.invokeCallback = function(cb) {
+  if (typeof cb === 'function') {
+    cb.apply(null, Array.prototype.slice.call(arguments, 1));
+  }
 };
 
-Utils.applyCallback = function (cb, args) {
-    if (typeof cb === 'function') {
-        cb.apply(null, args);
-    }
+Utils.applyCallback = function(cb, args) {
+  if (typeof cb === 'function') {
+    cb.apply(null, args);
+  }
 };
 
-Utils.getObjectClass = function (obj) {
-    if (!obj) {
-        return;
-    }
+Utils.getObjectClass = function(obj) {
+  if (!obj) {
+    return;
+  }
 
-    var constructor = obj.constructor;
-    if (!constructor) {
-        return;
-    }
+  const constructor = obj.constructor;
+  if (!constructor) {
+    return;
+  }
 
-    if (constructor.name) {
-        return constructor.name;
-    }
+  if (constructor.name) {
+    return constructor.name;
+  }
 
-    var str = constructor.toString();
-    if (!str) {
-        return;
-    }
+  const str = constructor.toString();
+  if (!str) {
+    return;
+  }
 
-    var arr = null;
-    if (str.charAt(0) == '[') {
-        arr = str.match(/\[\w+\s*(\w+)\]/);
-    } else {
-        arr = str.match(/function\s*(\w+)/);
-    }
+  let arr = null;
+  if (str.charAt(0) == '[') {
+    arr = str.match(/\[\w+\s*(\w+)\]/);
+  } else {
+    arr = str.match(/function\s*(\w+)/);
+  }
 
-    if (arr && arr.length == 2) {
-        return arr[1];
-    }
+  if (arr && arr.length == 2) {
+    return arr[1];
+  }
 };
 
 /**
@@ -50,9 +50,9 @@ Utils.getObjectClass = function (obj) {
  * @return {Boolean} true|false
  * @api public
  */
-Utils.checkFloat = function (v) {
-    return v === Number(v) && v % 1 !== 0;
-    // return parseInt(v) !== v;
+Utils.checkFloat = function(v) {
+  return v === Number(v) && v % 1 !== 0;
+  // return parseInt(v) !== v;
 };
 
 /**
@@ -62,10 +62,10 @@ Utils.checkFloat = function (v) {
  * @return {Function} high order function
  * @api public
  */
-Utils.isType = function (type) {
-    return function (obj) {
-        return {}.toString.call(obj) == "[object " + type + "]";
-    };
+Utils.isType = function(type) {
+  return function(obj) {
+    return {}.toString.call(obj) == '[object ' + type + ']';
+  };
 };
 
 /**
@@ -75,7 +75,7 @@ Utils.isType = function (type) {
  * @return {Boolean} true|false
  * @api public
  */
-Utils.checkArray = Array.isArray || Utils.isType("Array");
+Utils.checkArray = Array.isArray || Utils.isType('Array');
 
 /**
  * Utils check number
@@ -84,7 +84,7 @@ Utils.checkArray = Array.isArray || Utils.isType("Array");
  * @return {Boolean} true|false
  * @api public
  */
-Utils.checkNumber = Utils.isType("Number");
+Utils.checkNumber = Utils.isType('Number');
 
 /**
  * Utils check function
@@ -93,7 +93,7 @@ Utils.checkNumber = Utils.isType("Number");
  * @return {Boolean}    true|false
  * @api public
  */
-Utils.checkFunction = Utils.isType("Function");
+Utils.checkFunction = Utils.isType('Function');
 /**
  * Utils check object
  *
@@ -101,7 +101,7 @@ Utils.checkFunction = Utils.isType("Function");
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.checkObject = Utils.isType("Object");
+Utils.checkObject = Utils.isType('Object');
 
 /**
  * Utils check string
@@ -110,7 +110,7 @@ Utils.checkObject = Utils.isType("Object");
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.checkString = Utils.isType("String");
+Utils.checkString = Utils.isType('String');
 
 /**
  * Utils check boolean
@@ -119,7 +119,7 @@ Utils.checkString = Utils.isType("String");
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.checkBoolean = Utils.isType("Boolean");
+Utils.checkBoolean = Utils.isType('Boolean');
 
 /**
  * Utils check bean
@@ -128,14 +128,12 @@ Utils.checkBoolean = Utils.isType("Boolean");
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.checkBean = function (obj) {
-    return obj && obj.$id &&
-        Utils.checkFunction(obj.writeFields) &&
-        Utils.checkFunction(obj.readFields);
+Utils.checkBean = function(obj) {
+  return obj && obj.$id && Utils.checkFunction(obj.writeFields) && Utils.checkFunction(obj.readFields);
 };
 
-Utils.checkNull = function (obj) {
-    return !Utils.isNotNull(obj);
+Utils.checkNull = function(obj) {
+  return !Utils.isNotNull(obj);
 };
 
 /**
@@ -145,15 +143,15 @@ Utils.checkNull = function (obj) {
  * @return {Array}   array
  * @api public
  */
-Utils.to_array = function (args) {
-    var len = args.length;
-    var arr = new Array(len);
+Utils.to_array = function(args) {
+  const len = args.length;
+  const arr = new Array(len);
 
-    for (var i = 0; i < len; i++) {
-        arr[i] = args[i];
-    }
+  for (let i = 0; i < len; i++) {
+    arr[i] = args[i];
+  }
 
-    return arr;
+  return arr;
 };
 
 /**
@@ -163,102 +161,102 @@ Utils.to_array = function (args) {
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.isNotNull = function (value) {
-    if (value !== null && typeof value !== 'undefined') {
-        return true;
-    }
-    return false;
+Utils.isNotNull = function(value) {
+  if (value !== null && typeof value !== 'undefined') {
+    return true;
+  }
+  return false;
 };
 
-Utils.getType = function (object) {
-    if (object === null || typeof object === 'undefined') {
-        return Utils.typeMap.null;
+Utils.getType = function(object) {
+  if (object === null || typeof object === 'undefined') {
+    return Utils.typeMap.null;
+  }
+
+  if (Buffer.isBuffer(object)) {
+    return Utils.typeMap.buffer;
+  }
+
+  if (Utils.checkArray(object)) {
+    return Utils.typeMap.array;
+  }
+
+  if (Utils.checkString(object)) {
+    return Utils.typeMap.string;
+  }
+
+  if (Utils.checkObject(object)) {
+    if (Utils.checkBean(object)) {
+      return Utils.typeMap.bean;
     }
 
-    if (Buffer.isBuffer(object)) {
-        return Utils.typeMap.buffer;
+    return Utils.typeMap.object;
+  }
+
+  if (Utils.checkBoolean(object)) {
+    return Utils.typeMap.boolean;
+  }
+
+  if (Utils.checkNumber(object)) {
+    if (Utils.checkFloat(object)) {
+      return Utils.typeMap.float;
     }
 
-    if (Utils.checkArray(object)) {
-        return Utils.typeMap.array;
+    if (isNaN(object)) {
+      return Utils.typeMap.null;
     }
 
-    if (Utils.checkString(object)) {
-        return Utils.typeMap.string;
-    }
-
-    if (Utils.checkObject(object)) {
-        if (Utils.checkBean(object)) {
-            return Utils.typeMap.bean;
-        }
-
-        return Utils.typeMap.object;
-    }
-
-    if (Utils.checkBoolean(object)) {
-        return Utils.typeMap.boolean;
-    }
-
-    if (Utils.checkNumber(object)) {
-        if (Utils.checkFloat(object)) {
-            return Utils.typeMap.float;
-        }
-
-        if (isNaN(object)) {
-            return Utils.typeMap.null;
-        }
-
-        return Utils.typeMap.number;
-    }
+    return Utils.typeMap.number;
+  }
 };
 
-var typeArray = ['', 'null', 'buffer', 'array', 'string', 'object', 'bean', 'boolean', 'float', 'number'];
-var typeMap = {};
-for (var i = 1; i <= typeArray.length; i++) {
-    typeMap[typeArray[i]] = i;
+const typeArray = ['', 'null', 'buffer', 'array', 'string', 'object', 'bean', 'boolean', 'float', 'number'];
+const typeMap = {};
+for (let i = 1; i <= typeArray.length; i++) {
+  typeMap[typeArray[i]] = i;
 }
 
 Utils.typeArray = typeArray;
 
 Utils.typeMap = typeMap;
 
-Utils.getBearcat = function () {
-    return require('bearcat');
+Utils.getBearcat = function() {
+  return require('bearcat');
 };
 
-Utils.genServicesMap = function (services) {
-    var nMap = {}; // namespace
-    var sMap = {}; // service
-    var mMap = {}; // method
-    var nList = [];
-    var sList = [];
-    var mList = [];
+Utils.genServicesMap = function(services) {
+  const nMap = {}; // namespace
+  const sMap = {}; // service
+  const mMap = {}; // method
+  const nList = [];
+  const sList = [];
+  const mList = [];
 
-    var nIndex = 0;
-    var sIndex = 0;
-    var mIndex = 0;
+  let nIndex = 0;
+  let sIndex = 0;
+  let mIndex = 0;
 
-    for (var namespace in services) {
-        nList.push(namespace);
-        nMap[namespace] = nIndex++;
-        var s = services[namespace];
+  for (const namespace in services) {
+    nList.push(namespace);
+    nMap[namespace] = nIndex++;
+    const s = services[namespace];
 
-        for (var service in s) {
-            sList.push(service);
-            sMap[service] = sIndex++;
-            var m = s[service];
+    for (const service in s) {
+      sList.push(service);
+      sMap[service] = sIndex++;
+      const m = s[service];
 
-            for (var method in m) {
-                var func = m[method];
-                if (Utils.checkFunction(func)) {
-                    mList.push(method);
-                    mMap[method] = mIndex++;
-                }
-            }
+      for (const method in m) {
+        const func = m[method];
+        if (Utils.checkFunction(func)) {
+          mList.push(method);
+          mMap[method] = mIndex++;
         }
+      }
     }
+  }
 
-    return [nMap, sMap, mMap, nList, sList, mList];
+  return [nMap, sMap, mMap, nList, sList, mList];
 };
 
 module.exports = Utils;

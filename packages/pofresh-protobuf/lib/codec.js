@@ -5,26 +5,26 @@ const Encoder = module.exports;
  * @param  {[integer]} num
  * @return {[array]}
  */
-Encoder.encodeUInt32 = function (num) {
-    let n = parseInt(num);
-    if (isNaN(n) || n < 0) {
-        console.log(n);
-        return null;
+Encoder.encodeUInt32 = function(num) {
+  let n = parseInt(num);
+  if (isNaN(n) || n < 0) {
+    console.log(n);
+    return null;
+  }
+
+  const result = [];
+  do {
+    let tmp = n % 128;
+    const next = Math.floor(n / 128);
+
+    if (next !== 0) {
+      tmp = tmp + 128;
     }
+    result.push(tmp);
+    n = next;
+  } while (n !== 0);
 
-    let result = [];
-    do {
-        let tmp = n % 128;
-        let next = Math.floor(n / 128);
-
-        if (next !== 0) {
-            tmp = tmp + 128;
-        }
-        result.push(tmp);
-        n = next;
-    } while (n !== 0);
-
-    return result;
+  return result;
 };
 
 /**
@@ -32,36 +32,35 @@ Encoder.encodeUInt32 = function (num) {
  * @param  {[sInt32]} num  The sInt32 need to encode
  * @return {[array]} A byte array represent the integer
  */
-Encoder.encodeSInt32 = function (num) {
-    let n = parseInt(num);
-    if (isNaN(n)) {
-        return null;
-    }
-    n = n < 0 ? (Math.abs(n) * 2 - 1) : n * 2;
+Encoder.encodeSInt32 = function(num) {
+  let n = parseInt(num);
+  if (isNaN(n)) {
+    return null;
+  }
+  n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;
 
-    return Encoder.encodeUInt32(n);
+  return Encoder.encodeUInt32(n);
 };
 
-Encoder.decodeUInt32 = function (bytes) {
-    let n = 0;
+Encoder.decodeUInt32 = function(bytes) {
+  let n = 0;
 
-    for (let i = 0; i < bytes.length; i++) {
-        let m = parseInt(bytes[i]);
-        n = n + ((m & 0x7f) * Math.pow(2, (7 * i)));
-        if (m < 128) {
-            return n;
-        }
+  for (let i = 0; i < bytes.length; i++) {
+    const m = parseInt(bytes[i]);
+    n = n + (m & 0x7f) * Math.pow(2, 7 * i);
+    if (m < 128) {
+      return n;
     }
+  }
 
-    return n;
+  return n;
 };
 
+Encoder.decodeSInt32 = function(bytes) {
+  let n = this.decodeUInt32(bytes);
+  const flag = n % 2 === 1 ? -1 : 1;
 
-Encoder.decodeSInt32 = function (bytes) {
-    let n = this.decodeUInt32(bytes);
-    let flag = ((n % 2) === 1) ? -1 : 1;
+  n = (((n % 2) + n) / 2) * flag;
 
-    n = ((n % 2 + n) / 2) * flag;
-
-    return n;
+  return n;
 };

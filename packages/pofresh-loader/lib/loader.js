@@ -22,70 +22,72 @@ const ph = require('path');
  * @param {Boolean} isReload if true, loader would reload the module.
  * @return {Object}          module that has loaded.
  */
-module.exports.load = function (mpath, context, isReload = false) {
-    if (!mpath) {
-        throw new Error('path should not be empty.');
-    }
+module.exports.load = function(mpath, context, isReload = false) {
+  if (!mpath) {
+    throw new Error('path should not be empty.');
+  }
 
-    try {
-        mpath = fs.realpathSync(mpath);
-    } catch (err) {
-        throw err;
-    }
+  try {
+    mpath = fs.realpathSync(mpath);
+  } catch (err) {
+    throw err;
+  }
 
-    if (!fs.statSync(mpath).isDirectory()) {
-        throw new Error('path should be directory.');
-    }
+  if (!fs.statSync(mpath).isDirectory()) {
+    throw new Error('path should be directory.');
+  }
 
-    return loadPath(mpath, context, isReload);
+  return loadPath(mpath, context, isReload);
 };
 
 function loadPath(path, context, isReload = false) {
-    const files = fs.readdirSync(path);
-    if (files.length === 0) {
-        console.warn('path is empty, path:', path);
-        return;
+  const files = fs.readdirSync(path);
+  if (files.length === 0) {
+    console.warn('path is empty, path:', path);
+    return;
+  }
+
+  let fp,
+    m,
+    res = {};
+  files.forEach(fn => {
+    fp = ph.join(path, fn);
+    if (!fs.statSync(fp).isFile() || ph.extname(fn) !== '.js') {
+      // only load js file type
+      return;
     }
 
-    let fp, m, res = {};
-    files.forEach(fn => {
-        fp = ph.join(path, fn);
-        if (!fs.statSync(fp).isFile() || ph.extname(fn) !== '.js') {
-            // only load js file type
-            return;
-        }
+    m = loadFile(fp, context, isReload);
 
-        m = loadFile(fp, context, isReload);
+    if (!m) {
+      return;
+    }
+    const name = m.name || ph.basename(fn, '.js');
+    res[name] = m;
+  });
 
-        if (!m) {
-            return;
-        }
-        const name = m.name || ph.basename(fn, '.js');
-        res[name] = m;
-    });
-
-    return res;
+  return res;
 }
 
 function loadFile(fp, context, isReload = false) {
-    let m = requireUncached(fp, isReload);
+  let m = requireUncached(fp, isReload);
 
-    if (!m) {
-        return;
-    }
+  if (!m) {
+    return;
+  }
 
-    if (typeof m === 'function') {
-        // if the module provides a factory function
-        // then invoke it to get a instance
-        m = m(context);
-    }
+  if (typeof m === 'function') {
+    // if the module provides a factory function
+    // then invoke it to get a instance
+    m = m(context);
+  }
 
-    return m;
+  return m;
 }
 
 function requireUncached(module, isReload = false) {
-    if (isReload) {
-        delete require.cache[require.resolve(module)];
-    }
-    return require(module);
+  if (isReload) {
+    delete require.cache[require.resolve(module)];
+  }
+  return require(module);
 }

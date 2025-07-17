@@ -12,6 +12,37 @@
   }
 }
 
+/* 自定义图标大小 */
+.icon-small {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-medium {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-large {
+  width: 24px;
+  height: 24px;
+}
+
+.emoji-small {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.emoji-medium {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.emoji-large {
+  font-size: 2rem;
+  line-height: 1;
+}
+
 @layer components {
   .prose {
     @apply max-w-none;

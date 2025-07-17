@@ -5,13 +5,13 @@ const Parser = module.exports;
  * @param  {[Object]} protos Original protos, in a js map.
  * @return {[Object]} The presed result, a js object represent all the meta data of the given protos.
  */
-Parser.parse = function (protos) {
-    let maps = {};
-    for (let key in protos) {
-        maps[key] = parseObject(protos[key]);
-    }
+Parser.parse = function(protos) {
+  const maps = {};
+  for (const key in protos) {
+    maps[key] = parseObject(protos[key]);
+  }
 
-    return maps;
+  return maps;
 };
 
 /**
@@ -20,39 +20,39 @@ Parser.parse = function (protos) {
  * @return {[Object]} The parsed result, a js object.
  */
 function parseObject(obj) {
-    let proto = {};
-    let nestProtos = {};
-    let tags = {};
+  const proto = {};
+  const nestProtos = {};
+  const tags = {};
 
-    for (let name in obj) {
-        let tag = obj[name];
-        let params = name.split(' ');
+  for (const name in obj) {
+    const tag = obj[name];
+    const params = name.split(' ');
 
-        switch (params[0]) {
-            case 'message':
-                if (params.length !== 2) {
-                    continue;
-                }
-                nestProtos[params[1]] = parseObject(tag);
-                continue;
-            case 'required':
-            case 'optional':
-            case 'repeated': {
-                //params length should be 3 and tag can't be duplicated
-                if (params.length !== 3 || !!tags[tag]) {
-                    continue;
-                }
-                proto[params[2]] = {
-                    option: params[0],
-                    type: params[1],
-                    tag: tag
-                };
-                tags[tag] = params[2];
-            }
-        }
+    switch (params[0]) {
+    case 'message':
+      if (params.length !== 2) {
+        continue;
+      }
+      nestProtos[params[1]] = parseObject(tag);
+      continue;
+    case 'required':
+    case 'optional':
+    case 'repeated': {
+      //params length should be 3 and tag can't be duplicated
+      if (params.length !== 3 || !!tags[tag]) {
+        continue;
+      }
+      proto[params[2]] = {
+        option: params[0],
+        type: params[1],
+        tag: tag
+      };
+      tags[tag] = params[2];
     }
+    }
+  }
 
-    proto.__messages = nestProtos;
-    proto.__tags = tags;
-    return proto;
+  proto.__messages = nestProtos;
+  proto.__tags = tags;
+  return proto;
 }

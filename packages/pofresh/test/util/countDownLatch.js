@@ -1,8 +1,8 @@
-let CountDownLatch = require('../../lib/util/countDownLatch');
-let should = require('should');
+const CountDownLatch = require('../../lib/util/countDownLatch');
+const should = require('should');
 
-let cbCreator = (function() {
-  let count =0;
+const cbCreator = (function() {
+  let count = 0;
 
   return {
     callback: function() {
@@ -21,13 +21,14 @@ describe('countdown latch test', function() {
 
   describe('#count down', function() {
     it('should invoke the callback after the done method was invoked the specified times', function(done) {
-      let n = 3, doneCount = 0;
-      let cdl = CountDownLatch.createCountDownLatch(n, function() {
+      let n = 3,
+        doneCount = 0;
+      const cdl = CountDownLatch.createCountDownLatch(n, function() {
         doneCount.should.equal(n);
         done();
       });
 
-      for(let i=0; i<n; i++) {
+      for (let i = 0; i < n; i++) {
         doneCount++;
         cdl.done();
       }
@@ -50,10 +51,10 @@ describe('countdown latch test', function() {
     });
 
     it('should throw exception if try to invoke done metho of a latch that has fired cb', function() {
-      let n = 3;
-      let cdl = CountDownLatch.createCountDownLatch(n, function() {});
+      const n = 3;
+      const cdl = CountDownLatch.createCountDownLatch(n, function() {});
 
-      for(let i=0; i<n; i++) {
+      for (let i = 0; i < n; i++) {
         cdl.done();
       }
 
@@ -63,15 +64,14 @@ describe('countdown latch test', function() {
     });
 
     it('should invoke the callback if timeout', function() {
-      let n = 3;
-      let cdl = CountDownLatch.createCountDownLatch(n, {timeout: 3000}, function(isTimeout) {
+      const n = 3;
+      const cdl = CountDownLatch.createCountDownLatch(n, { timeout: 3000 }, function(isTimeout) {
         isTimeout.should.equal(true);
       });
 
-      for(let i=0; i<n-1; i++) {
+      for (let i = 0; i < n - 1; i++) {
         cdl.done();
       }
     });
-
   });
 });

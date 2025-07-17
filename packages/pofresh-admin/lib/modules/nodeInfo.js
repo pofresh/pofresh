@@ -5,53 +5,52 @@
  */
 const monitor = require('pofresh-monitor');
 
-const DEFAULT_INTERVAL = 5 * 60;		// in second
-const DEFAULT_DELAY = 10;			    // in second
+const DEFAULT_INTERVAL = 5 * 60; // in second
+const DEFAULT_DELAY = 10; // in second
 
 const moduleId = 'nodeInfo';
 
-module.exports = function (opts) {
-    return new Module(opts);
+module.exports = function(opts) {
+  return new Module(opts);
 };
 
 module.exports.moduleId = moduleId;
 
 class Module {
-    constructor(opts) {
-        opts = opts || {};
-        this.type = opts.type || 'pull';
-        this.interval = opts.interval || DEFAULT_INTERVAL;
-        this.delay = opts.delay || DEFAULT_DELAY;
+  constructor(opts) {
+    opts = opts || {};
+    this.type = opts.type || 'pull';
+    this.interval = opts.interval || DEFAULT_INTERVAL;
+    this.delay = opts.delay || DEFAULT_DELAY;
+  }
+
+  monitorHandler(agent) {
+    const params = {
+      serverId: agent.id,
+      pid: process.pid
+    };
+    monitor.psmonitor.getPsInfo(params, (err, data) => {
+      agent.notify(moduleId, { serverId: agent.id, body: data });
+    });
+  }
+
+  masterHandler(agent, msg) {
+    if (!msg) {
+      agent.notifyAll(moduleId);
+      return;
     }
 
-    monitorHandler(agent) {
-        const params = {
-            serverId: agent.id,
-            pid: process.pid
-        };
-        monitor.psmonitor.getPsInfo(params, (err, data) => {
-            agent.notify(moduleId, {serverId: agent.id, body: data});
-        });
-
+    const body = msg.body;
+    let data = agent.get(moduleId);
+    if (!data) {
+      data = {};
+      agent.set(moduleId, data);
     }
 
-    masterHandler(agent, msg) {
-        if (!msg) {
-            agent.notifyAll(moduleId);
-            return;
-        }
+    data[msg.serverId] = body;
+  }
 
-        const body = msg.body;
-        let data = agent.get(moduleId);
-        if (!data) {
-            data = {};
-            agent.set(moduleId, data);
-        }
-
-        data[msg.serverId] = body;
-    }
-
-    clientHandler(agent, msg, cb) {
-        cb(null, agent.get(moduleId) || {});
-    }
+  clientHandler(agent, msg, cb) {
+    cb(null, agent.get(moduleId) || {});
+  }
 }

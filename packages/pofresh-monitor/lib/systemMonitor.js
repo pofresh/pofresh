@@ -2,9 +2,9 @@
  * Module dependencies
  */
 
-const os = require('os')
-    , util = require('../utils/util')
-    , exec = require('child_process').exec;
+const os = require('os'),
+  util = require('../utils/util'),
+  exec = require('child_process').exec;
 
 const info = {};
 
@@ -22,18 +22,18 @@ module.exports.getSysInfo = getSysInfo;
  */
 
 function getSysInfo(callback) {
-    if (process.platform === 'win32') return;
-    let reData = getBasicInfo();
-    exec('iostat ', function (err, output) {
-        if (!!err) {
-            console.error('getSysInfo failed! ' + err.stack);
-            callback(err, reData);
-        } else {
-            reData.iostat = format(output);
-            callback(null, reData);
-        }
-    });
-};
+  if (process.platform === 'win32') return;
+  const reData = getBasicInfo();
+  exec('iostat ', function(err, output) {
+    if (err) {
+      console.error('getSysInfo failed! ' + err.stack);
+      callback(err, reData);
+    } else {
+      reData.iostat = format(output);
+      callback(null, reData);
+    }
+  });
+}
 
 /**
  * analysis the disk i/o data,return a map contains kb_read,kb_wrtn ect.
@@ -43,37 +43,40 @@ function getSysInfo(callback) {
  */
 
 function format(data) {
-    let time = util.formatTime(new Date());
-    let output_array = data.toString().replace(/^\s+|\s+$/g, "").split(/\s+/);
-    let output_values = [];
-    for (let i = 0, counter = 0; i < output_array.length; i++) {
-        if (!isNaN(output_array[i])) {
-            output_values[counter] = parseFloat(output_array[i]);
-            counter++;
-        }
+  const time = util.formatTime(new Date());
+  const output_array = data
+    .toString()
+    .replace(/^\s+|\s+$/g, '')
+    .split(/\s+/);
+  const output_values = [];
+  for (let i = 0, counter = 0; i < output_array.length; i++) {
+    if (!isNaN(output_array[i])) {
+      output_values[counter] = parseFloat(output_array[i]);
+      counter++;
     }
-    if (output_values.length > 0) {
-        let output_hash = {
-            date: time,
-            disk: {
-                kb_read: output_values[9],
-                kb_wrtn: output_values[10],
-                kb_read_per: output_values[7],
-                kb_wrtn_per: output_values[8],
-                tps: output_values[6]
-            },
-            cpu: {
-                cpu_user: output_values[0],
-                cpu_nice: output_values[1],
-                cpu_system: output_values[2],
-                cpu_iowait: output_values[3],
-                cpu_steal: output_values[4],
-                cpu_idle: output_values[5]
-            }
-        }
-        return output_hash;
-    }
-};
+  }
+  if (output_values.length > 0) {
+    const output_hash = {
+      date: time,
+      disk: {
+        kb_read: output_values[9],
+        kb_wrtn: output_values[10],
+        kb_read_per: output_values[7],
+        kb_wrtn_per: output_values[8],
+        tps: output_values[6]
+      },
+      cpu: {
+        cpu_user: output_values[0],
+        cpu_nice: output_values[1],
+        cpu_system: output_values[2],
+        cpu_iowait: output_values[3],
+        cpu_steal: output_values[4],
+        cpu_idle: output_values[5]
+      }
+    };
+    return output_hash;
+  }
+}
 
 /**
  * get basic information of operating-system
@@ -83,12 +86,12 @@ function format(data) {
  */
 
 function getBasicInfo() {
-    let result = {};
-    for (let key in info) {
-        result[key] = info[key]();
-    }
-    return result;
-};
+  const result = {};
+  for (const key in info) {
+    result[key] = info[key]();
+  }
+  return result;
+}
 
 info.hostname = os.hostname;
 
@@ -112,20 +115,18 @@ info.cpus = os.cpus;
 
 info.networkInterfaces = os.networkInterfaces;
 
-info.versions = function () {
-    return process.versions
+info.versions = function() {
+  return process.versions;
 };
 
-info.arch = function () {
-    return process.arch
+info.arch = function() {
+  return process.arch;
 };
 
-info.platform = function () {
-    return process.platform
+info.platform = function() {
+  return process.platform;
 };
 
 info.memoryUsage = process.memoryUsage;
 
 info.uptime = process.uptime;
-
-

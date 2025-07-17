@@ -8,35 +8,33 @@ const DEFAULT_INTERVAL = 500;
 
 let toobusy = null;
 
-module.exports = function (maxLag, interval) {
-    return new Filter(maxLag || DEFAULT_MAXLAG, interval || DEFAULT_INTERVAL);
+module.exports = function(maxLag, interval) {
+  return new Filter(maxLag || DEFAULT_MAXLAG, interval || DEFAULT_INTERVAL);
 };
 
 class Filter {
-    constructor(maxLag, interval) {
-        try {
-            toobusy = require('toobusy-js');
-        } catch (e) {
-        }
-        if (!!toobusy) {
-            toobusy.maxLag(maxLag);
-            toobusy.interval(interval);
-        }
+  constructor(maxLag, interval) {
+    try {
+      toobusy = require('toobusy-js');
+    } catch (e) {}
+    if (toobusy) {
+      toobusy.maxLag(maxLag);
+      toobusy.interval(interval);
     }
+  }
 
-    before(msg, session, next) {
-        if (!!toobusy && toobusy()) {
-            conLogger.warn('[toobusy] reject request msg: ' + msg);
-            let err = new Error('Server toobusy!');
-            err.code = 500;
-            next(err);
-        } else {
-            next();
-        }
+  before(msg, session, next) {
+    if (!!toobusy && toobusy()) {
+      conLogger.warn('[toobusy] reject request msg: ' + msg);
+      const err = new Error('Server toobusy!');
+      err.code = 500;
+      next(err);
+    } else {
+      next();
     }
+  }
 
-    after(err, msg, session, resp, next) {
-        next();
-    }
+  after(err, msg, session, resp, next) {
+    next();
+  }
 }
-

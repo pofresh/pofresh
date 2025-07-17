@@ -5,42 +5,40 @@
 const rpcLogger = require('pofresh-logger').getLogger('rpc-log', __filename);
 const utils = require('../../util/utils');
 
-module.exports = function () {
-    return new Filter();
+module.exports = function() {
+  return new Filter();
 };
 
 class Filter {
-    constructor() {
-        this.name = 'rpcLog';
-    }
+  constructor() {
+    this.name = 'rpcLog';
+  }
 
-    /**
+  /**
      * Before filter for rpc
      */
-    before(serverId, msg, opts, next) {
-        opts = opts || {};
-        opts.__start_time__ = Date.now();
-        next();
-    }
+  before(serverId, msg, opts, next) {
+    opts = opts || {};
+    opts.__start_time__ = Date.now();
+    next();
+  }
 
-    /**
+  /**
      * After filter for rpc
      */
-    after(serverId, msg, opts, next) {
-        if (!!opts && !!opts.__start_time__) {
-            let start = opts.__start_time__;
-            let end = Date.now();
-            let timeUsed = end - start;
-            let log = {
-                route: msg.service,
-                args: msg.args,
-                time: utils.format(new Date(start)),
-                timeUsed: timeUsed
-            };
-            rpcLogger.info(JSON.stringify(log));
-        }
-        next();
+  after(serverId, msg, opts, next) {
+    if (!!opts && !!opts.__start_time__) {
+      const start = opts.__start_time__;
+      const end = Date.now();
+      const timeUsed = end - start;
+      const log = {
+        route: msg.service,
+        args: msg.args,
+        time: utils.format(new Date(start)),
+        timeUsed: timeUsed
+      };
+      rpcLogger.info(JSON.stringify(log));
     }
+    next();
+  }
 }
-
-

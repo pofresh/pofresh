@@ -164,14 +164,15 @@ declare module 'astro:content' {
   data: InferEntrySchema<"docs">
 } & { render(): Render[".md"] };
 };
-"tutorials": Record<string, {
-  id: string;
-  slug: string;
+"tutorials": {
+"chat-server.md": {
+	id: "chat-server.md";
+  slug: "chat-server";
   body: string;
   collection: "tutorials";
-  data: InferEntrySchema<"tutorials">;
-  render(): Render[".md"];
-}>;
+  data: InferEntrySchema<"tutorials">
+} & { render(): Render[".md"] };
+};
 
 	};
 

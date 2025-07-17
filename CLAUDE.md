@@ -1,93 +1,93 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code (claude.ai/code) 提供在此代码库中工作的指导。
 
-## Project Overview
+## 项目概述
 
-**pofresh** is a fast, scalable game server framework for Node.js based on pomelo. It provides a distributed multi-process architecture specifically designed for real-time multiplayer games and applications.
+**pofresh** 是一个基于 pomelo 的 Node.js 游戏服务器框架，具有快速、可扩展的特点。它提供了分布式多进程架构，专为实时多人游戏和应用而设计。
 
-## Architecture
+## 架构
 
-### Core Components
-- **pofresh** (main package): Core framework with application lifecycle management
-- **pofresh-cli**: Command-line interface for server management
-- **pofresh-admin**: Administrative console and monitoring
-- **pofresh-rpc**: Remote procedure call system with multiple transport protocols
-- **pofresh-protocol**: Network protocol handling
-- **pofresh-protobuf**: Protocol buffer support
-- **pofresh-logger**: Logging utilities
-- **pofresh-loader**: Dynamic module loading
-- **pofresh-scheduler**: Job scheduling system
-- **pofresh-monitor**: System and process monitoring
+### 核心组件
+- **pofresh** (主包)：核心框架，负责应用生命周期管理
+- **pofresh-cli**：服务器管理命令行界面
+- **pofresh-admin**：管理控制台和监控
+- **pofresh-rpc**：远程过程调用系统，支持多种传输协议
+- **pofresh-protocol**：网络协议处理
+- **pofresh-protobuf**：协议缓冲区支持
+- **pofresh-logger**：日志工具
+- **pofresh-loader**：动态模块加载
+- **pofresh-scheduler**：作业调度系统
+- **pofresh-monitor**：系统和进程监控
 
-### Plugin Architecture
-- **pofresh-http**: HTTP server integration
-- **pofresh-globalchannel-plugin**: Global channel management
-- **pofresh-status-plugin**: Online status management
+### 插件架构
+- **pofresh-http**：HTTP 服务器集成
+- **pofresh-globalchannel-plugin**：全局频道管理
+- **pofresh-status-plugin**：在线状态管理
 
-### Server Types
-- **Master**: Central coordination server
-- **Connector**: Client connection handling
-- **Backend**: Game logic and state management
-- **Gate**: Load balancing and routing
+### 服务器类型
+- **Master**：中央协调服务器
+- **Connector**：客户端连接处理
+- **Backend**：游戏逻辑和状态管理
+- **Gate**：负载均衡和路由
 
-## Development Commands
+## 开发命令
 
-### Package Management
-- `pnpm install` - Install dependencies
-- `pnpm dev` - Start development mode (Turbo)
-- `pnpm build` - Build all packages (Turbo)
-- `pnpm clean` - Clean build artifacts
+### 包管理
+- `pnpm install` - 安装依赖
+- `pnpm dev` - 启动开发模式 (Turbo)
+- `pnpm build` - 构建所有包 (Turbo)
+- `pnpm clean` - 清理构建产物
 
-### Code Quality
-- `pnpm run lint` - Lint all packages and plugins
-- `pnpm run lint:fix` - Auto-fix linting issues
-- `pnpm run format` - Format code with Prettier
-- `pnpm run test` - Run tests (via Gulp)
+### 代码质量
+- `pnpm run lint` - 检查所有包和插件的代码质量
+- `pnpm run lint:fix` - 自动修复代码质量问题
+- `pnpm run format` - 使用 Prettier 格式化代码
+- `pnpm run test` - 运行测试 (通过 Gulp)
 
-### Security
-- `pnpm run security:check` - Run security audit and linting
-- `pnpm run audit` - Check for vulnerable dependencies
+### 安全
+- `pnpm run security:check` - 运行安全审计和代码检查
+- `pnpm run audit` - 检查易受攻击的依赖项
 
-### Testing
-- `npm test` - Run all tests (uses gulp + mocha + nyc)
-- Test files are located in `/test/` directories within each package
+### 测试
+- `npm test` - 运行所有测试 (使用 gulp + mocha + nyc)
+- 测试文件位于每个包的 `/test/` 目录中
 
-## Project Structure
+## 项目结构
 
 ```
-├── packages/           # Core framework packages
-│   ├── pofresh/       # Main framework
-│   ├── pofresh-cli/   # CLI tools
-│   └── ...            # Other core packages
-├── plugin/            # Optional plugins
+├── packages/           # 核心框架包
+│   ├── pofresh/       # 主框架
+│   ├── pofresh-cli/   # CLI 工具
+│   └── ...            # 其他核心包
+├── plugin/            # 可选插件
 │   ├── pofresh-http/
 │   └── ...
-├── template/          # Project templates (game-server, web-server)
-└── turbo.json         # Turbo build configuration
+├── template/          # 项目模板 (游戏服务器、Web服务器)
+└── turbo.json         # Turbo 构建配置
 ```
 
-## Key Files
+## 关键文件
 
-- **packages/pofresh/lib/application.js:39** - Application initialization
-- **packages/pofresh/lib/pofresh.js:72** - Main framework entry point
-- **packages/pofresh/template/game-server/** - Template for new projects
-- **gulpfile.js:21** - Test runner configuration
+- **packages/pofresh/lib/application.js:39** - 应用初始化
+- **packages/pofresh/lib/pofresh.js:72** - 主框架入口点
+- **packages/pofresh/template/game-server/** - 新项目的模板
+- **gulpfile.js:21** - 测试运行器配置
 
-## Environment Requirements
+## 环境要求
 - Node.js >= 16.0.0
 - pnpm >= 8.0.0
 
-## Common Development Tasks
+## 常见开发任务
 
-### Starting a New Project
-1. Use CLI: `pofresh init your-project`
-2. Follow template structure in `template/game-server/`
+### 开始新项目
+1. 使用 CLI: `pofresh init your-project`
+2. 参考 `template/game-server/` 中的模板结构
 
-### Adding Components
-- Components go in `packages/pofresh/lib/components/`
-- Auto-loaded by framework
+### 添加组件
+- 组件放在 `packages/pofresh/lib/components/`
+- 由框架自动加载
 
-### Adding Plugins
-- Plugins go in `plugin/` directory
-- Use existing plugins as templates
+### 添加插件
+- 插件放在 `plugin/` 目录
+- 使用现有插件作为模板

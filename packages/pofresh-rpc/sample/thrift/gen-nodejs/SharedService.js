@@ -3,12 +3,11 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-var thrift = require('thrift');
-var Thrift = thrift.Thrift;
-var Q = thrift.Q;
+const thrift = require('thrift');
+const Thrift = thrift.Thrift;
+const Q = thrift.Q;
 
-
-var ttypes = require('./shared_types');
+const ttypes = require('./shared_types');
 //HELPER FUNCTIONS AND STRUCTURES
 
 SharedService_getStruct_args = function(args) {
@@ -22,29 +21,27 @@ SharedService_getStruct_args = function(args) {
 SharedService_getStruct_args.prototype = {};
 SharedService_getStruct_args.prototype.read = function(input) {
   input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
+  while (true) {
+    const ret = input.readFieldBegin();
+    const fname = ret.fname;
+    const ftype = ret.ftype;
+    const fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    switch (fid)
-    {
-      case 1:
+    switch (fid) {
+    case 1:
       if (ftype == Thrift.Type.I32) {
         this.key = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 0:
-        input.skip(ftype);
-        break;
-      default:
-        input.skip(ftype);
+    case 0:
+      input.skip(ftype);
+      break;
+    default:
+      input.skip(ftype);
     }
     input.readFieldEnd();
   }
@@ -75,18 +72,16 @@ SharedService_getStruct_result = function(args) {
 SharedService_getStruct_result.prototype = {};
 SharedService_getStruct_result.prototype.read = function(input) {
   input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
+  while (true) {
+    const ret = input.readFieldBegin();
+    const fname = ret.fname;
+    const ftype = ret.ftype;
+    const fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    switch (fid)
-    {
-      case 0:
+    switch (fid) {
+    case 0:
       if (ftype == Thrift.Type.STRUCT) {
         this.success = new ttypes.SharedStruct();
         this.success.read(input);
@@ -94,11 +89,11 @@ SharedService_getStruct_result.prototype.read = function(input) {
         input.skip(ftype);
       }
       break;
-      case 0:
-        input.skip(ftype);
-        break;
-      default:
-        input.skip(ftype);
+    case 0:
+      input.skip(ftype);
+      break;
+    default:
+      input.skip(ftype);
     }
     input.readFieldEnd();
   }
@@ -119,18 +114,22 @@ SharedService_getStruct_result.prototype.write = function(output) {
 };
 
 SharedServiceClient = exports.Client = function(output, pClass) {
-    this.output = output;
-    this.pClass = pClass;
-    this._seqid = 0;
-    this._reqs = {};
+  this.output = output;
+  this.pClass = pClass;
+  this._seqid = 0;
+  this._reqs = {};
 };
 SharedServiceClient.prototype = {};
-SharedServiceClient.prototype.seqid = function() { return this._seqid; }
-SharedServiceClient.prototype.new_seqid = function() { return this._seqid += 1; }
+SharedServiceClient.prototype.seqid = function() {
+  return this._seqid;
+};
+SharedServiceClient.prototype.new_seqid = function() {
+  return (this._seqid += 1);
+};
 SharedServiceClient.prototype.getStruct = function(key, callback) {
   this._seqid = this.new_seqid();
   if (callback === undefined) {
-    var _defer = Q.defer();
+    const _defer = Q.defer();
     this._reqs[this.seqid()] = function(error, result) {
       if (error) {
         _defer.reject(error);
@@ -147,25 +146,25 @@ SharedServiceClient.prototype.getStruct = function(key, callback) {
 };
 
 SharedServiceClient.prototype.send_getStruct = function(key) {
-  var output = new this.pClass(this.output);
+  const output = new this.pClass(this.output);
   output.writeMessageBegin('getStruct', Thrift.MessageType.CALL, this.seqid());
-  var args = new SharedService_getStruct_args();
+  const args = new SharedService_getStruct_args();
   args.key = key;
   args.write(output);
   output.writeMessageEnd();
   return this.output.flush();
 };
 
-SharedServiceClient.prototype.recv_getStruct = function(input,mtype,rseqid) {
-  var callback = this._reqs[rseqid] || function() {};
+SharedServiceClient.prototype.recv_getStruct = function(input, mtype, rseqid) {
+  const callback = this._reqs[rseqid] || function() {};
   delete this._reqs[rseqid];
   if (mtype == Thrift.MessageType.EXCEPTION) {
-    var x = new Thrift.TApplicationException();
+    const x = new Thrift.TApplicationException();
     x.read(input);
     input.readMessageEnd();
     return callback(x);
   }
-  var result = new SharedService_getStruct_result();
+  const result = new SharedService_getStruct_result();
   result.read(input);
   input.readMessageEnd();
 
@@ -175,55 +174,59 @@ SharedServiceClient.prototype.recv_getStruct = function(input,mtype,rseqid) {
   return callback('getStruct failed: unknown result');
 };
 SharedServiceProcessor = exports.Processor = function(handler) {
-  this._handler = handler
-}
+  this._handler = handler;
+};
 SharedServiceProcessor.prototype.process = function(input, output) {
-  var r = input.readMessageBegin();
+  const r = input.readMessageBegin();
   if (this['process_' + r.fname]) {
     return this['process_' + r.fname].call(this, r.rseqid, input, output);
   } else {
     input.skip(Thrift.Type.STRUCT);
     input.readMessageEnd();
-    var x = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN_METHOD, 'Unknown function ' + r.fname);
+    const x = new Thrift.TApplicationException(
+      Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
+      'Unknown function ' + r.fname
+    );
     output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
     x.write(output);
     output.writeMessageEnd();
     output.flush();
   }
-}
+};
 
 SharedServiceProcessor.prototype.process_getStruct = function(seqid, input, output) {
-  var args = new SharedService_getStruct_args();
+  const args = new SharedService_getStruct_args();
   args.read(input);
   input.readMessageEnd();
   if (this._handler.getStruct.length === 1) {
-    Q.fcall(this._handler.getStruct, args.key)
-      .then(function(result) {
-        var result = new SharedService_getStruct_result({success: result});
-        output.writeMessageBegin("getStruct", Thrift.MessageType.REPLY, seqid);
+    Q.fcall(this._handler.getStruct, args.key).then(
+      function(result) {
+        var result = new SharedService_getStruct_result({ success: result });
+        output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);
         result.write(output);
         output.writeMessageEnd();
         output.flush();
-      }, function (err) {
-        var result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
-        output.writeMessageBegin("getStruct", Thrift.MessageType.EXCEPTION, seqid);
+      },
+      function(err) {
+        const result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
+        output.writeMessageBegin('getStruct', Thrift.MessageType.EXCEPTION, seqid);
         result.write(output);
         output.writeMessageEnd();
         output.flush();
-      });
+      }
+    );
   } else {
-    this._handler.getStruct(args.key, function (err, result) {
+    this._handler.getStruct(args.key, function(err, result) {
       if (err == null) {
-        var result = new SharedService_getStruct_result((err != null ? err : {success: result}));
-        output.writeMessageBegin("getStruct", Thrift.MessageType.REPLY, seqid);
+        var result = new SharedService_getStruct_result(err != null ? err : { success: result });
+        output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);
       } else {
         var result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
-        output.writeMessageBegin("getStruct", Thrift.MessageType.EXCEPTION, seqid);
+        output.writeMessageBegin('getStruct', Thrift.MessageType.EXCEPTION, seqid);
       }
       result.write(output);
       output.writeMessageEnd();
       output.flush();
     });
   }
-}
-
+};

@@ -2,46 +2,45 @@ const client = require('socket.io-client');
 const BaseMailbox = require('./base-mailbox');
 
 class MailBox extends BaseMailbox {
-    constructor(server, opts) {
-        super(server, opts);
-        this.name = 'sio-mailbox';
+  constructor(server, opts) {
+    super(server, opts);
+    this.name = 'sio-mailbox';
+  }
+
+  connect(tracer, cb) {
+    this.tracer = tracer;
+    this.cb = cb;
+    tracer && tracer.info('client', __filename, 'connect', 'sio-mailbox try to connect');
+    if (this.connected) {
+      tracer && tracer.error('client', __filename, 'connect', 'sio-mailbox has already connected');
+      cb(new Error('sio-mailbox has already connected.'));
+      return;
     }
+    this.socket = client('ws://' + this.host + ':' + this.port, {
+      'force new connection': true,
+      reconnection: false
+    });
+    this.socket.on('message', this.onMessage.bind(this));
 
-    connect(tracer, cb) {
-        this.tracer = tracer;
-        this.cb = cb;
-        tracer && tracer.info('client', __filename, 'connect', 'sio-mailbox try to connect');
-        if (this.connected) {
-            tracer && tracer.error('client', __filename, 'connect', 'sio-mailbox has already connected');
-            cb(new Error('sio-mailbox has already connected.'));
-            return;
-        }
-        this.socket = client('ws://' + this.host + ':' + this.port, {
-            'force new connection': true,
-            'reconnection': false
-        });
-        this.socket.on('message', this.onMessage.bind(this));
+    this.socket.on('connect', this.onConnection.bind(this));
 
-        this.socket.on('connect', this.onConnection.bind(this));
+    this.socket.on('error', this.onError.bind(this));
 
-        this.socket.on('error', this.onError.bind(this));
+    this.socket.on('disconnect', this.onClose.bind(this));
 
-        this.socket.on('disconnect', this.onClose.bind(this));
+    this.socket.on('connect_error', this.onError.bind(this));
+  }
 
-        this.socket.on('connect_error', this.onError.bind(this));
+  close() {
+    if (super.close()) {
+      this.socket.disconnect();
     }
+  }
 
-    close() {
-        if(super.close()) {
-            this.socket.disconnect();
-        }
-    }
-
-    sendMessage(pkg) {
-        this.socket.send(pkg);
-    }
+  sendMessage(pkg) {
+    this.socket.send(pkg);
+  }
 }
-
 
 /**
  * Factory method to create mailbox
@@ -51,6 +50,6 @@ class MailBox extends BaseMailbox {
  *                      opts.bufferMsg {Boolean} msg should be buffered or send immediately.
  *                      opts.interval {Boolean} msg queue flush interval if bufferMsg is true. default is 50 ms
  */
-module.exports.create = function (server, opts) {
-    return new MailBox(server, opts || {});
+module.exports.create = function(server, opts) {
+  return new MailBox(server, opts || {});
 };

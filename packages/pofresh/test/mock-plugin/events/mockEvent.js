@@ -1,8 +1,7 @@
-let Event = function(app) {
-	this.app = app;
+const Event = function(app) {
+  this.app = app;
 };
 
 module.exports = Event;
 
-Event.prototype.bind_session = function(session) {
-};
+Event.prototype.bind_session = function(session) {};

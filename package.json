@@ -12,7 +12,7 @@
     "lint:fix": "eslint packages/ plugin/ --ext .js --fix",
     "format": "prettier --write 'packages/**/*.js' 'plugin/**/*.js'",
     "audit": "pnpm audit --audit-level moderate",
-    "security:check": "pnpm audit && npm run lint",
+    "security:check": "pnpm audit && pnpm run lint",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "clean": "turbo run clean"

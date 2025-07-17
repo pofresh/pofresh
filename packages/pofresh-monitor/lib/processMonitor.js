@@ -2,8 +2,8 @@
  *Module dependencies
  */
 
-const exec = require('child_process').exec
-    , util = require('../utils/util');
+const exec = require('child_process').exec,
+  util = require('../utils/util');
 
 /**
  * Expose 'getPsInfo' constructor
@@ -20,23 +20,23 @@ module.exports.getPsInfo = getPsInfo;
  */
 
 function getPsInfo(param, callback) {
-    if (process.platform === 'win32') return;
-    let pid = param.pid;
-    let cmd = "ps auxw | grep " + pid + " | grep -v 'grep'";
-    //let cmd = "ps auxw | grep -E '.+?\\s+" + pid + "\\s+'"  ;
-    exec(cmd, function (err, output) {
-        if (!!err) {
-            if (err.code === 1) {
-                console.log('the content is null!');
-            } else {
-                console.error('getPsInfo failed! ' + err.stack);
-            }
-            callback(err, null);
-            return;
-        }
-        format(param, output, callback);
-    });
-};
+  if (process.platform === 'win32') return;
+  const pid = param.pid;
+  const cmd = 'ps auxw | grep ' + pid + ' | grep -v \'grep\'';
+  //let cmd = "ps auxw | grep -E '.+?\\s+" + pid + "\\s+'"  ;
+  exec(cmd, function(err, output) {
+    if (err) {
+      if (err.code === 1) {
+        console.log('the content is null!');
+      } else {
+        console.error('getPsInfo failed! ' + err.stack);
+      }
+      callback(err, null);
+      return;
+    }
+    format(param, output, callback);
+  });
+}
 
 /**
  * convert serverInfo to required format, and the callback will handle the serverInfo
@@ -48,47 +48,52 @@ function getPsInfo(param, callback) {
  */
 
 function format(param, data, cb) {
-    let time = util.formatTime(new Date());
-    let outArray = data.toString().replace(/^\s+|\s+$/g, "").split(/\s+/);
-    let outValueArray = [];
+  const time = util.formatTime(new Date());
+  const outArray = data
+    .toString()
+    .replace(/^\s+|\s+$/g, '')
+    .split(/\s+/);
+  let outValueArray = [];
+  for (let i = 0; i < outArray.length; i++) {
+    if (!isNaN(outArray[i])) {
+      outValueArray.push(outArray[i]);
+    }
+  }
+  const ps = {};
+  ps.time = time;
+  ps.serverId = param.serverId;
+  ps.serverType = ps.serverId.split('-')[0];
+  const pid = (ps.pid = param.pid);
+  ps.cpuAvg = outValueArray[1];
+  ps.memAvg = outValueArray[2];
+  ps.vsz = outValueArray[3];
+  ps.rss = outValueArray[4];
+  outValueArray = [];
+  if (process.platform === 'darwin') {
+    ps.usr = 0;
+    ps.sys = 0;
+    ps.gue = 0;
+    cb(null, ps);
+    return;
+  }
+  exec('pidstat -p ' + pid, function(err, output) {
+    if (err) {
+      console.error('the command pidstat failed! ', err.stack);
+      return;
+    }
+    const outArray = output
+      .toString()
+      .replace(/^\s+|\s+$/g, '')
+      .split(/\s+/);
     for (let i = 0; i < outArray.length; i++) {
-        if ((!isNaN(outArray[i]))) {
-            outValueArray.push(outArray[i]);
-        }
+      if (!isNaN(outArray[i])) {
+        outValueArray.push(outArray[i]);
+      }
     }
-    let ps = {};
-    ps.time = time;
-    ps.serverId = param.serverId;
-    ps.serverType = ps.serverId.split('-')[0];
-    let pid = ps.pid = param.pid;
-    ps.cpuAvg = outValueArray[1];
-    ps.memAvg = outValueArray[2];
-    ps.vsz = outValueArray[3];
-    ps.rss = outValueArray[4];
-    outValueArray = [];
-    if (process.platform === 'darwin') {
-        ps.usr = 0;
-        ps.sys = 0;
-        ps.gue = 0;
-        cb(null, ps);
-        return;
-    }
-    exec('pidstat -p ' + pid, function (err, output) {
-        if (!!err) {
-            console.error('the command pidstat failed! ', err.stack);
-            return;
-        }
-        let outArray = output.toString().replace(/^\s+|\s+$/g, "").split(/\s+/);
-        for (let i = 0; i < outArray.length; i++) {
-            if ((!isNaN(outArray[i]))) {
-                outValueArray.push(outArray[i]);
-            }
-        }
-        ps.usr = outValueArray[1];
-        ps.sys = outValueArray[2];
-        ps.gue = outValueArray[3];
+    ps.usr = outValueArray[1];
+    ps.sys = outValueArray[2];
+    ps.gue = outValueArray[3];
 
-        cb(null, ps);
-    });
-};
-
+    cb(null, ps);
+  });
+}

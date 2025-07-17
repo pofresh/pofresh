@@ -20,20 +20,20 @@ const ST_CLOSED = 1;
  * @constructor
  */
 class SessionService {
-    constructor(opts) {
-        opts = opts || {};
-        this.singleSession = opts.singleSession;
-        this.sessions = {};     // sid -> session
-        this.uidMap = {};       // uid -> sessions
-        this.sessionTimeout = opts.sessionTimeout || 30 * 60 * 1000; // 30分钟
-        this.cleanupInterval = opts.cleanupInterval || 5 * 60 * 1000; // 5分钟
-        this.maxSessionsPerUser = opts.maxSessionsPerUser || 10;
-        
-        // 启动会话清理定时器
-        this.startCleanupTimer();
-    }
+  constructor(opts) {
+    opts = opts || {};
+    this.singleSession = opts.singleSession;
+    this.sessions = {}; // sid -> session
+    this.uidMap = {}; // uid -> sessions
+    this.sessionTimeout = opts.sessionTimeout || 30 * 60 * 1000; // 30分钟
+    this.cleanupInterval = opts.cleanupInterval || 5 * 60 * 1000; // 5分钟
+    this.maxSessionsPerUser = opts.maxSessionsPerUser || 10;
 
-    /**
+    // 启动会话清理定时器
+    this.startCleanupTimer();
+  }
+
+  /**
      * Create and return internal session.
      *
      * @param {Integer} sid uniqe id for the internal session
@@ -45,116 +45,117 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    create(sid, frontendId, socket) {
-        const session = new Session(sid, frontendId, socket, this);
-        session.lastActivity = Date.now();
-        this.sessions[session.id] = session;
-        return session;
-    }
+  create(sid, frontendId, socket) {
+    const session = new Session(sid, frontendId, socket, this);
+    session.lastActivity = Date.now();
+    this.sessions[session.id] = session;
+    return session;
+  }
 
-    /**
+  /**
      * Bind the session with a user id.
      *
      * @memberOf SessionService
      * @api private
      */
-    bind(sid, uid, cb) {
-        const session = this.sessions[sid];
-        if (!session) {
-            process.nextTick(function () {
-                cb(new Error('session does not exist, sid: ' + sid));
-            });
-            return;
-        }
-
-        if (session.uid) {
-            if (session.uid === uid) {
-                // already bound with the same uid
-                cb();
-                return;
-            }
-
-            // already bound with other uid
-            process.nextTick(function () {
-                cb(new Error('session has already bind with ' + session.uid));
-            });
-            return;
-        }
-
-        let sessions = this.uidMap[uid];
-
-        if (!!this.singleSession && !!sessions) {
-            process.nextTick(function () {
-                cb(new Error('singleSession is enabled, and session has already bind with uid: ' + uid));
-            });
-            return;
-        }
-
-        if (!sessions) {
-            sessions = this.uidMap[uid] = [];
-        }
-
-        for (let i = 0, l = sessions.length; i < l; i++) {
-            // session has binded with the uid
-            if (sessions[i].id === session.id) {
-                process.nextTick(cb);
-                return;
-            }
-        }
-        sessions.push(session);
-
-        session.bind(uid);
-
-        if (cb) {
-            process.nextTick(cb);
-        }
+  bind(sid, uid, cb) {
+    const session = this.sessions[sid];
+    if (!session) {
+      process.nextTick(function() {
+        cb(new Error('session does not exist, sid: ' + sid));
+      });
+      return;
     }
 
-    /**
+    if (session.uid) {
+      if (session.uid === uid) {
+        // already bound with the same uid
+        cb();
+        return;
+      }
+
+      // already bound with other uid
+      process.nextTick(function() {
+        cb(new Error('session has already bind with ' + session.uid));
+      });
+      return;
+    }
+
+    let sessions = this.uidMap[uid];
+
+    if (!!this.singleSession && !!sessions) {
+      process.nextTick(function() {
+        cb(new Error('singleSession is enabled, and session has already bind with uid: ' + uid));
+      });
+      return;
+    }
+
+    if (!sessions) {
+      sessions = this.uidMap[uid] = [];
+    }
+
+    for (let i = 0, l = sessions.length; i < l; i++) {
+      // session has binded with the uid
+      if (sessions[i].id === session.id) {
+        process.nextTick(cb);
+        return;
+      }
+    }
+    sessions.push(session);
+
+    session.bind(uid);
+
+    if (cb) {
+      process.nextTick(cb);
+    }
+  }
+
+  /**
      * Unbind a session with the user id.
      *
      * @memberOf SessionService
      * @api private
      */
-    unbind(sid, uid, cb) {
-        let session = this.sessions[sid];
+  unbind(sid, uid, cb) {
+    const session = this.sessions[sid];
 
-        if (!session) {
-            process.nextTick(function () {
-                cb(new Error('session does not exist, sid: ' + sid));
-            });
-            return;
-        }
-
-        if (!session.uid || session.uid !== uid) {
-            process.nextTick(function () {
-                cb(new Error('session has not bind with ' + session.uid));
-            });
-            return;
-        }
-
-        let sessions = this.uidMap[uid], sess;
-        if (sessions) {
-            for (let i = 0, l = sessions.length; i < l; i++) {
-                sess = sessions[i];
-                if (sess.id === sid) {
-                    sessions.splice(i, 1);
-                    break;
-                }
-            }
-
-            if (sessions.length === 0) {
-                delete this.uidMap[uid];
-            }
-        }
-        session.unbind(uid);
-
-        if (cb) {
-            process.nextTick(cb);
-        }
+    if (!session) {
+      process.nextTick(function() {
+        cb(new Error('session does not exist, sid: ' + sid));
+      });
+      return;
     }
 
-    /**
+    if (!session.uid || session.uid !== uid) {
+      process.nextTick(function() {
+        cb(new Error('session has not bind with ' + session.uid));
+      });
+      return;
+    }
+
+    let sessions = this.uidMap[uid],
+      sess;
+    if (sessions) {
+      for (let i = 0, l = sessions.length; i < l; i++) {
+        sess = sessions[i];
+        if (sess.id === sid) {
+          sessions.splice(i, 1);
+          break;
+        }
+      }
+
+      if (sessions.length === 0) {
+        delete this.uidMap[uid];
+      }
+    }
+    session.unbind(uid);
+
+    if (cb) {
+      process.nextTick(cb);
+    }
+  }
+
+  /**
      * Get session by id.
      *
      * @param {Number} id The session id
@@ -163,11 +164,11 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    get(sid) {
-        return this.sessions[sid];
-    }
+  get(sid) {
+    return this.sessions[sid];
+  }
 
-    /**
+  /**
      * Get sessions by userId.
      *
      * @param {Number} uid User id associated with the session
@@ -176,11 +177,11 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    getByUid(uid) {
-        return this.uidMap[uid];
-    }
+  getByUid(uid) {
+    return this.uidMap[uid];
+  }
 
-    /**
+  /**
      * Remove session by key.
      *
      * @param {Number} sid The session id
@@ -188,81 +189,81 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    remove(sid) {
-        this.removeSession(sid);
-    }
+  remove(sid) {
+    this.removeSession(sid);
+  }
 
-    /**
+  /**
      * Internal method to remove session and clean up resources
      * @param {String} sid session id
      * @api private
      */
-    removeSession(sid) {
-        const session = this.sessions[sid];
-        if (!session) {
-            return;
-        }
-
-        // Clean up session resources
-        if (session.__socket__) {
-            session.__socket__.removeAllListeners();
-        }
-
-        delete this.sessions[session.id];
-        
-        if (session.uid) {
-            const sessions = this.uidMap[session.uid];
-            if (sessions) {
-                for (let i = 0, l = sessions.length; i < l; i++) {
-                    if (sessions[i].id === session.id) {
-                        sessions.splice(i, 1);
-                        if (sessions.length === 0) {
-                            delete this.uidMap[session.uid];
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        
-        logger.debug('Session removed: %s', sid);
+  removeSession(sid) {
+    const session = this.sessions[sid];
+    if (!session) {
+      return;
     }
 
-    /**
+    // Clean up session resources
+    if (session.__socket__) {
+      session.__socket__.removeAllListeners();
+    }
+
+    delete this.sessions[session.id];
+
+    if (session.uid) {
+      const sessions = this.uidMap[session.uid];
+      if (sessions) {
+        for (let i = 0, l = sessions.length; i < l; i++) {
+          if (sessions[i].id === session.id) {
+            sessions.splice(i, 1);
+            if (sessions.length === 0) {
+              delete this.uidMap[session.uid];
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    logger.debug('Session removed: %s', sid);
+  }
+
+  /**
      * Import the key/value into session.
      *
      * @api private
      */
-    import(sid, key, value, cb) {
-        let session = this.sessions[sid];
-        if (!session) {
-            utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
-            return;
-        }
-        session.set(key, value);
-        utils.invokeCallback(cb);
+  import(sid, key, value, cb) {
+    const session = this.sessions[sid];
+    if (!session) {
+      utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
+      return;
     }
+    session.set(key, value);
+    utils.invokeCallback(cb);
+  }
 
-    /**
+  /**
      * Import new value for the existed session.
      *
      * @memberOf SessionService
      * @api private
      */
-    importAll(sid, settings, cb) {
-        let session = this.sessions[sid];
-        if (!session) {
-            utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
-            return;
-        }
-
-        for (let f in settings) {
-            session.set(f, settings[f]);
-        }
-        utils.invokeCallback(cb);
+  importAll(sid, settings, cb) {
+    const session = this.sessions[sid];
+    if (!session) {
+      utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
+      return;
     }
 
-    /**
+    for (const f in settings) {
+      session.set(f, settings[f]);
+    }
+    utils.invokeCallback(cb);
+  }
+
+  /**
      * Kick all the session offline under the user id.
      *
      * @param {Number}   uid user id asscociated with the session
@@ -270,37 +271,37 @@ class SessionService {
      *
      * @memberOf SessionService
      */
-    kick(uid, reason, cb) {
-        // compatible for old kick(uid, cb);
-        if (typeof reason === 'function') {
-            cb = reason;
-            reason = 'kick';
-        }
-        let sessions = this.getByUid(uid);
-
-        if (sessions) {
-            // notify client
-            let sids = [];
-            let self = this;
-            sessions.forEach(function (session) {
-                sids.push(session.id);
-            });
-
-            sids.forEach(function (sid) {
-                self.sessions[sid].closed(reason);
-            });
-
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
-        } else {
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
-        }
+  kick(uid, reason, cb) {
+    // compatible for old kick(uid, cb);
+    if (typeof reason === 'function') {
+      cb = reason;
+      reason = 'kick';
     }
+    const sessions = this.getByUid(uid);
 
-    /**
+    if (sessions) {
+      // notify client
+      const sids = [];
+      const self = this;
+      sessions.forEach(function(session) {
+        sids.push(session.id);
+      });
+
+      sids.forEach(function(sid) {
+        self.sessions[sid].closed(reason);
+      });
+
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    } else {
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    }
+  }
+
+  /**
      * Kick a user offline by session id.
      *
      * @param {Number}   sid session id
@@ -308,28 +309,28 @@ class SessionService {
      *
      * @memberOf SessionService
      */
-    kickBySessionId(sid, reason, cb) {
-        if (typeof reason === 'function') {
-            cb = reason;
-            reason = 'kick';
-        }
-
-        let session = this.get(sid);
-
-        if (session) {
-            // notify client
-            session.closed(reason);
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
-        } else {
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
-        }
+  kickBySessionId(sid, reason, cb) {
+    if (typeof reason === 'function') {
+      cb = reason;
+      reason = 'kick';
     }
 
-    /**
+    const session = this.get(sid);
+
+    if (session) {
+      // notify client
+      session.closed(reason);
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    } else {
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    }
+  }
+
+  /**
      * Get client remote address by session id.
      *
      * @param {Number}   sid session id
@@ -337,17 +338,17 @@ class SessionService {
      *
      * @memberOf SessionService
      */
-    getClientAddressBySessionId(sid) {
-        let session = this.get(sid);
-        if (session) {
-            let socket = session.__socket__;
-            return socket.remoteAddress;
-        } else {
-            return null;
-        }
+  getClientAddressBySessionId(sid) {
+    const session = this.get(sid);
+    if (session) {
+      const socket = session.__socket__;
+      return socket.remoteAddress;
+    } else {
+      return null;
     }
+  }
 
-    /**
+  /**
      * Send message to the client by session id.
      *
      * @param {String} sid session id
@@ -356,18 +357,18 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    sendMessage(sid, msg) {
-        let session = this.get(sid);
+  sendMessage(sid, msg) {
+    const session = this.get(sid);
 
-        if (!session) {
-            logger.debug('Fail to send message for non-existing session, sid: ' + sid + ' msg: ' + msg);
-            return false;
-        }
-
-        return send(this, session, msg);
+    if (!session) {
+      logger.debug('Fail to send message for non-existing session, sid: ' + sid + ' msg: ' + msg);
+      return false;
     }
 
-    /**
+    return send(this, session, msg);
+  }
+
+  /**
      * Send message to the client by user id.
      *
      * @param {String} uid userId
@@ -376,134 +377,132 @@ class SessionService {
      * @memberOf SessionService
      * @api private
      */
-    sendMessageByUid(uid, msg) {
-        let sessions = this.getByUid(uid);
+  sendMessageByUid(uid, msg) {
+    const sessions = this.getByUid(uid);
 
-        if (!sessions) {
-            logger.debug('fail to send message by uid for non-existing session. uid: %j',
-                uid);
-            return false;
-        }
-
-        for (let i = 0, l = sessions.length; i < l; i++) {
-            send(this, sessions[i], msg);
-        }
-
-        return true;
+    if (!sessions) {
+      logger.debug('fail to send message by uid for non-existing session. uid: %j', uid);
+      return false;
     }
 
-    /**
+    for (let i = 0, l = sessions.length; i < l; i++) {
+      send(this, sessions[i], msg);
+    }
+
+    return true;
+  }
+
+  /**
      * Iterate all the session in the session service.
      *
      * @param  {Function} cb callback function to fetch session
      * @api private
      */
-    forEachSession(cb) {
-        for (let sid in this.sessions) {
-            cb(this.sessions[sid]);
-        }
+  forEachSession(cb) {
+    for (const sid in this.sessions) {
+      cb(this.sessions[sid]);
     }
+  }
 
-    /**
+  /**
      * Start cleanup timer for expired sessions
      * @api private
      */
-    startCleanupTimer() {
-        if (this.cleanupTimer) {
-            clearInterval(this.cleanupTimer);
-        }
-        
-        this.cleanupTimer = setInterval(() => {
-            this.cleanupExpiredSessions();
-        }, this.cleanupInterval);
+  startCleanupTimer() {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
     }
 
-    /**
+    this.cleanupTimer = setInterval(() => {
+      this.cleanupExpiredSessions();
+    }, this.cleanupInterval);
+  }
+
+  /**
      * Clean up expired sessions
      * @api private
      */
-    cleanupExpiredSessions() {
-        const now = Date.now();
-        const expiredSessions = [];
-        
-        for (const sid in this.sessions) {
-            const session = this.sessions[sid];
-            if (session.lastActivity && 
-                (now - session.lastActivity) > this.sessionTimeout) {
-                expiredSessions.push(sid);
-            }
-        }
-        
-        expiredSessions.forEach(sid => {
-            logger.info('Removing expired session: %s', sid);
-            this.removeSession(sid);
-        });
-        
-        if (expiredSessions.length > 0) {
-            logger.info('Cleaned up %d expired sessions', expiredSessions.length);
-        }
+  cleanupExpiredSessions() {
+    const now = Date.now();
+    const expiredSessions = [];
+
+    for (const sid in this.sessions) {
+      const session = this.sessions[sid];
+      if (session.lastActivity && now - session.lastActivity > this.sessionTimeout) {
+        expiredSessions.push(sid);
+      }
     }
 
-    /**
+    expiredSessions.forEach(sid => {
+      logger.info('Removing expired session: %s', sid);
+      this.removeSession(sid);
+    });
+
+    if (expiredSessions.length > 0) {
+      logger.info('Cleaned up %d expired sessions', expiredSessions.length);
+    }
+  }
+
+  /**
      * Stop cleanup timer
      * @api private
      */
-    stopCleanupTimer() {
-        if (this.cleanupTimer) {
-            clearInterval(this.cleanupTimer);
-            this.cleanupTimer = null;
-        }
+  stopCleanupTimer() {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
     }
+  }
 
-    /**
+  /**
      * Update session last activity time
      * @param {String} sid session id
      * @api private
      */
-    updateActivity(sid) {
-        const session = this.sessions[sid];
-        if (session) {
-            session.lastActivity = Date.now();
-        }
+  updateActivity(sid) {
+    const session = this.sessions[sid];
+    if (session) {
+      session.lastActivity = Date.now();
     }
+  }
 
-    /**
+  /**
      * Get session statistics
      * @returns {Object} Session statistics
      * @api public
      */
-    getStats() {
-        return {
-            totalSessions: Object.keys(this.sessions).length,
-            totalUsers: Object.keys(this.uidMap).length,
-            sessionTimeout: this.sessionTimeout,
-            cleanupInterval: this.cleanupInterval
-        };
-    }
+  getStats() {
+    return {
+      totalSessions: Object.keys(this.sessions).length,
+      totalUsers: Object.keys(this.uidMap).length,
+      sessionTimeout: this.sessionTimeout,
+      cleanupInterval: this.cleanupInterval
+    };
+  }
 
-    /**
+  /**
      * Iterate all the binded session in the session service.
      *
      * @param  {Function} cb callback function to fetch session
      * @api private
      */
-    forEachBindedSession(cb) {
-        let i, l, sessions;
-        for (let uid in this.uidMap) {
-            sessions = this.uidMap[uid];
-            for (i = 0, l = sessions.length; i < l; i++) {
-                cb(sessions[i]);
-            }
-        }
+  forEachBindedSession(cb) {
+    let i, l, sessions;
+    for (const uid in this.uidMap) {
+      sessions = this.uidMap[uid];
+      for (i = 0, l = sessions.length; i < l; i++) {
+        cb(sessions[i]);
+      }
     }
+  }
 
-    /**
+  /**
      * Get sessions' quantity in specified server.
      *
      */
-    getSessionsCount() {
-        return utils.size(this.sessions);
-    }
+  getSessionsCount() {
+    return utils.size(this.sessions);
+  }
 }
 
 module.exports = SessionService;
@@ -514,9 +513,9 @@ module.exports = SessionService;
  * @api private
  */
 function send(service, session, msg) {
-    session.send(msg);
+  session.send(msg);
 
-    return true;
+  return true;
 }
 
 /**
@@ -529,210 +528,208 @@ function send(service, session, msg) {
  * in frontend servers.
  */
 class Session extends EventEmitter {
-    constructor(sid, frontendId, socket, service) {
-        super();
-        this.id = sid;          // r
-        this.frontendId = frontendId; // r
-        this.uid = null;        // r
-        this.settings = {};
-        this.lastActivity = Date.now();
-        this.createdAt = Date.now();
+  constructor(sid, frontendId, socket, service) {
+    super();
+    this.id = sid; // r
+    this.frontendId = frontendId; // r
+    this.uid = null; // r
+    this.settings = {};
+    this.lastActivity = Date.now();
+    this.createdAt = Date.now();
 
-        // private
-        this.__socket__ = socket;
-        this.__sessionService__ = service;
-        this.__state__ = ST_INITED;
-    }
+    // private
+    this.__socket__ = socket;
+    this.__sessionService__ = service;
+    this.__state__ = ST_INITED;
+  }
 
-    /*
- * Export current session as frontend session.
- */
-    toFrontendSession() {
-        return new FrontendSession(this);
-    }
+  /*
+     * Export current session as frontend session.
+     */
+  toFrontendSession() {
+    return new FrontendSession(this);
+  }
 
-    /**
+  /**
      * Bind the session with the the uid.
      *
      * @param {Number} uid User id
      * @api public
      */
-    bind(uid) {
-        this.uid = uid;
-        this.emit('bind', uid);
-    }
+  bind(uid) {
+    this.uid = uid;
+    this.emit('bind', uid);
+  }
 
-    /**
+  /**
      * Unbind the session with the the uid.
      *
      * @param {Number} uid User id
      * @api private
      */
-    unbind(uid) {
-        this.uid = null;
-        this.emit('unbind', uid);
-    }
+  unbind(uid) {
+    this.uid = null;
+    this.emit('unbind', uid);
+  }
 
-    /**
+  /**
      * Set values (one or many) for the session.
      *
      * @param {String|Object} key session key
      * @param {Object} value session value
      * @api public
      */
-    set(key, value) {
-        if (utils.isObject(key)) {
-            for (let i in key) {
-                this.settings[i] = key[i];
-            }
-        } else {
-            this.settings[key] = value;
-        }
+  set(key, value) {
+    if (utils.isObject(key)) {
+      for (const i in key) {
+        this.settings[i] = key[i];
+      }
+    } else {
+      this.settings[key] = value;
     }
+  }
 
-    /**
+  /**
      * Remove value from the session.
      *
      * @param {String} key session key
      * @api public
      */
-    remove(key) {
-        delete this[key];
-    }
+  remove(key) {
+    delete this[key];
+  }
 
-    /**
+  /**
      * Get value from the session.
      *
      * @param {String} key session key
      * @return {Object} value associated with session key
      * @api public
      */
-    get(key) {
-        return this.settings[key];
-    }
+  get(key) {
+    return this.settings[key];
+  }
 
-    /**
+  /**
      * Send message to the session.
      *
      * @param  {Object} msg final message sent to client
      */
-    send(msg) {
-        this.lastActivity = Date.now();
-        if (this.__socket__ && typeof this.__socket__.send === 'function') {
-            this.__socket__.send(msg);
-        }
+  send(msg) {
+    this.lastActivity = Date.now();
+    if (this.__socket__ && typeof this.__socket__.send === 'function') {
+      this.__socket__.send(msg);
     }
+  }
 
-    /**
+  /**
      * Send message to the session in batch.
      *
      * @param  {Array} msgs list of message
      */
-    sendBatch(msgs) {
-        this.__socket__.sendBatch(msgs);
-    }
+  sendBatch(msgs) {
+    this.__socket__.sendBatch(msgs);
+  }
 
-    /**
+  /**
      * Closed callback for the session which would disconnect client in next tick.
      *
      * @api public
      */
-    closed(reason) {
-        logger.debug('session on [%s] is closed with session id: %s', this.frontendId, this.id);
-        if (this.__state__ === ST_CLOSED) {
-            return;
-        }
-        this.__state__ = ST_CLOSED;
-        this.__sessionService__.remove(this.id);
-        this.emit('closed', this.toFrontendSession(), reason);
-        this.__socket__.emit('closing', reason);
-
-        // give a chance to send disconnect message to client
-        process.nextTick(() => {
-            this.__socket__.disconnect();
-        });
+  closed(reason) {
+    logger.debug('session on [%s] is closed with session id: %s', this.frontendId, this.id);
+    if (this.__state__ === ST_CLOSED) {
+      return;
     }
+    this.__state__ = ST_CLOSED;
+    this.__sessionService__.remove(this.id);
+    this.emit('closed', this.toFrontendSession(), reason);
+    this.__socket__.emit('closing', reason);
 
+    // give a chance to send disconnect message to client
+    process.nextTick(() => {
+      this.__socket__.disconnect();
+    });
+  }
 }
-
 
 /**
  * Frontend session for frontend server.
  */
 class FrontendSession extends EventEmitter {
-    constructor(session) {
-        super();
-        clone(session, this, FRONTEND_SESSION_FIELDS);
-        // deep copy for settings
-        this.settings = dclone(session.settings);
-        this.__session__ = session;
-    }
+  constructor(session) {
+    super();
+    clone(session, this, FRONTEND_SESSION_FIELDS);
+    // deep copy for settings
+    this.settings = dclone(session.settings);
+    this.__session__ = session;
+  }
 
-    bind(uid, cb) {
-        let self = this;
-        this.__sessionService__.bind(this.id, uid, function (err) {
-            if (!err) {
-                self.uid = uid;
-            }
-            utils.invokeCallback(cb, err);
-        });
-    }
+  bind(uid, cb) {
+    const self = this;
+    this.__sessionService__.bind(this.id, uid, function(err) {
+      if (!err) {
+        self.uid = uid;
+      }
+      utils.invokeCallback(cb, err);
+    });
+  }
 
-    unbind(uid, cb) {
-        let self = this;
-        this.__sessionService__.unbind(this.id, uid, function (err) {
-            if (!err) {
-                self.uid = null;
-            }
-            utils.invokeCallback(cb, err);
-        });
-    }
+  unbind(uid, cb) {
+    const self = this;
+    this.__sessionService__.unbind(this.id, uid, function(err) {
+      if (!err) {
+        self.uid = null;
+      }
+      utils.invokeCallback(cb, err);
+    });
+  }
 
-    set(key, value) {
-        this.settings[key] = value;
-    }
+  set(key, value) {
+    this.settings[key] = value;
+  }
 
-    get(key) {
-        return this.settings[key];
-    }
+  get(key) {
+    return this.settings[key];
+  }
 
-    push(key, cb) {
-        this.__sessionService__.import(this.id, key, this.get(key), cb);
-    }
+  push(key, cb) {
+    this.__sessionService__.import(this.id, key, this.get(key), cb);
+  }
 
-    pushAll(cb) {
-        this.__sessionService__.importAll(this.id, this.settings, cb);
-    }
+  pushAll(cb) {
+    this.__sessionService__.importAll(this.id, this.settings, cb);
+  }
 
-    on(event, listener) {
-        super.on.call(this, event, listener);
-        this.__session__.on(event, listener);
-    }
+  on(event, listener) {
+    super.on.call(this, event, listener);
+    this.__session__.on(event, listener);
+  }
 
-    /**
+  /**
      * Export the key/values for serialization.
      *
      * @api private
      */
-    export() {
-        let res = {};
-        clone(this, res, EXPORTED_SESSION_FIELDS);
-        return res;
-    }
+  export() {
+    const res = {};
+    clone(this, res, EXPORTED_SESSION_FIELDS);
+    return res;
+  }
 }
 
 function clone(src, dest, includes) {
-    let f;
-    for (let i = 0, l = includes.length; i < l; i++) {
-        f = includes[i];
-        dest[f] = src[f];
-    }
+  let f;
+  for (let i = 0, l = includes.length; i < l; i++) {
+    f = includes[i];
+    dest[f] = src[f];
+  }
 }
 
 function dclone(src) {
-    let res = {};
-    for (let f in src) {
-        res[f] = src[f];
-    }
-    return res;
+  const res = {};
+  for (const f in src) {
+    res[f] = src[f];
+  }
+  return res;
 }

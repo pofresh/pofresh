@@ -21,48 +21,48 @@ const appManager = require('./common/manager/appManager');
  *
  * @module
  */
-const Application = module.exports = {};
+const Application = (module.exports = {});
 
 /**
  * Application states
  */
-const STATE_INITED = 1;  // app has inited
-const STATE_START = 2;  // app start
-const STATE_STARTED = 3;  // app has started
-const STATE_STOPED = 4;  // app has stoped
+const STATE_INITED = 1; // app has inited
+const STATE_START = 2; // app start
+const STATE_STARTED = 3; // app has started
+const STATE_STOPED = 4; // app has stoped
 
 /**
  * Initialize the server.
  *
  *   - setup default configuration
  */
-Application.init = function (opts) {
-    opts = opts || {};
-    this.loaded = [];       // loaded component list
-    this.components = {};   // name -> component map
-    this.settings = {};     // collection keep set/get
-    const base = opts.base || path.dirname(require.main.filename);
-    this.set(Constants.RESERVED.BASE, base, true);
-    this.event = new EventEmitter();  // event object to sub/pub events
+Application.init = function(opts) {
+  opts = opts || {};
+  this.loaded = []; // loaded component list
+  this.components = {}; // name -> component map
+  this.settings = {}; // collection keep set/get
+  const base = opts.base || path.dirname(require.main.filename);
+  this.set(Constants.RESERVED.BASE, base, true);
+  this.event = new EventEmitter(); // event object to sub/pub events
 
-    // current server info
-    this.serverId = null;   // current server id
-    this.serverType = null; // current server type
-    this.curServer = null;  // current server info
-    this.startTime = null; // current server start time
+  // current server info
+  this.serverId = null; // current server id
+  this.serverType = null; // current server type
+  this.curServer = null; // current server info
+  this.startTime = null; // current server start time
 
-    // global server infos
-    this.master = null;         // master server info
-    this.servers = {};          // current global server info maps, id -> info
-    this.serverTypeMaps = {};   // current global type maps, type -> [info]
-    this.serverTypes = [];      // current global server type list
-    this.lifecycleCbs = {};     // current server custom lifecycle callbacks
-    this.clusterSeq = {};       // cluster id seqence
+  // global server infos
+  this.master = null; // master server info
+  this.servers = {}; // current global server info maps, id -> info
+  this.serverTypeMaps = {}; // current global type maps, type -> [info]
+  this.serverTypes = []; // current global server type list
+  this.lifecycleCbs = {}; // current server custom lifecycle callbacks
+  this.clusterSeq = {}; // cluster id seqence
 
-    appUtil.defaultConfiguration(this);
+  appUtil.defaultConfiguration(this);
 
-    this.state = STATE_INITED;
-    logger.info('application inited: %j', this.getServerId());
+  this.state = STATE_INITED;
+  logger.info('application inited: %j', this.getServerId());
 };
 
 /**
@@ -76,8 +76,8 @@ Application.init = function (opts) {
  *
  * @memberOf Application
  */
-Application.getBase = function () {
-    return this.get(Constants.RESERVED.BASE);
+Application.getBase = function() {
+  return this.get(Constants.RESERVED.BASE);
 };
 
 /**
@@ -99,15 +99,15 @@ Application.getBase = function () {
  * @return {Server|Mixed} for chaining, or the setting value
  * @memberOf Application
  */
-Application.set = function (setting, val, attach) {
-    if (arguments.length === 1) {
-        return this.settings[setting];
-    }
-    this.settings[setting] = val;
-    if (attach) {
-        this[setting] = val;
-    }
-    return this;
+Application.set = function(setting, val, attach) {
+  if (arguments.length === 1) {
+    return this.settings[setting];
+  }
+  this.settings[setting] = val;
+  if (attach) {
+    this[setting] = val;
+  }
+  return this;
 };
 
 /**
@@ -117,8 +117,8 @@ Application.set = function (setting, val, attach) {
  * @return {String} val
  * @memberOf Application
  */
-Application.get = function (setting) {
-    return this.settings[setting];
+Application.get = function(setting) {
+  return this.settings[setting];
 };
 
 /**
@@ -128,8 +128,8 @@ Application.get = function (setting) {
  * @return {Boolean}
  * @memberOf Application
  */
-Application.enabled = function (setting) {
-    return !!this.get(setting);
+Application.enabled = function(setting) {
+  return !!this.get(setting);
 };
 
 /**
@@ -139,8 +139,8 @@ Application.enabled = function (setting) {
  * @return {Boolean}
  * @memberOf Application
  */
-Application.disabled = function (setting) {
-    return !this.get(setting);
+Application.disabled = function(setting) {
+  return !this.get(setting);
 };
 
 /**
@@ -150,8 +150,8 @@ Application.disabled = function (setting) {
  * @return {app} for chaining
  * @memberOf Application
  */
-Application.enable = function (setting) {
-    return this.set(setting, true);
+Application.enable = function(setting) {
+  return this.set(setting, true);
 };
 
 /**
@@ -161,8 +161,8 @@ Application.enable = function (setting) {
  * @return {app} for chaining
  * @memberOf Application
  */
-Application.disable = function (setting) {
-    return this.set(setting, false);
+Application.disable = function(setting) {
+  return this.set(setting, false);
 };
 
 /**
@@ -172,8 +172,8 @@ Application.disable = function (setting) {
  *
  * @memberOf Application
  */
-Application.require = function (ph) {
-    return require(path.join(Application.getBase(), ph));
+Application.require = function(ph) {
+  return require(path.join(Application.getBase(), ph));
 };
 
 /**
@@ -183,20 +183,20 @@ Application.require = function (ph) {
  *
  * @memberOf Application
  */
-Application.configureLogger = function (logger) {
-    if (process.env.pofresh_LOGGER !== 'off') {
-        const base = this.getBase();
-        const env = this.get(Constants.RESERVED.ENV);
-        const originPath = path.join(base, Constants.FILEPATH.LOG);
-        const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
-        if (fs.existsSync(originPath)) {
-            logger.configure(originPath, {serverId: this.serverId, base: base});
-        } else if (fs.existsSync(presentPath)) {
-            logger.configure(presentPath, {serverId: this.serverId, base: base});
-        } else {
-            logger.error('logger file path configuration is error.');
-        }
+Application.configureLogger = function(logger) {
+  if (process.env.pofresh_LOGGER !== 'off') {
+    const base = this.getBase();
+    const env = this.get(Constants.RESERVED.ENV);
+    const originPath = path.join(base, Constants.FILEPATH.LOG);
+    const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
+    if (fs.existsSync(originPath)) {
+      logger.configure(originPath, { serverId: this.serverId, base: base });
+    } else if (fs.existsSync(presentPath)) {
+      logger.configure(presentPath, { serverId: this.serverId, base: base });
+    } else {
+      logger.error('logger file path configuration is error.');
     }
+  }
 };
 
 /**
@@ -206,9 +206,9 @@ Application.configureLogger = function (logger) {
  *                        A filter should have two methods: before and after.
  * @memberOf Application
  */
-Application.filter = function (filter) {
-    this.before(filter);
-    this.after(filter);
+Application.filter = function(filter) {
+  this.before(filter);
+  this.after(filter);
 };
 
 /**
@@ -217,8 +217,8 @@ Application.filter = function (filter) {
  * @param {Object|Function} bf before fileter, bf(msg, session, next)
  * @memberOf Application
  */
-Application.before = function (bf) {
-    addFilter(this, Constants.KEYWORDS.BEFORE_FILTER, bf);
+Application.before = function(bf) {
+  addFilter(this, Constants.KEYWORDS.BEFORE_FILTER, bf);
 };
 
 /**
@@ -227,8 +227,8 @@ Application.before = function (bf) {
  * @param {Object|Function} af after filter, `af(err, msg, session, resp, next)`
  * @memberOf Application
  */
-Application.after = function (af) {
-    addFilter(this, Constants.KEYWORDS.AFTER_FILTER, af);
+Application.after = function(af) {
+  addFilter(this, Constants.KEYWORDS.AFTER_FILTER, af);
 };
 
 /**
@@ -238,9 +238,9 @@ Application.after = function (af) {
  *                        A filter should have two methods: before and after.
  * @memberOf Application
  */
-Application.globalFilter = function (filter) {
-    this.globalBefore(filter);
-    this.globalAfter(filter);
+Application.globalFilter = function(filter) {
+  this.globalBefore(filter);
+  this.globalAfter(filter);
 };
 
 /**
@@ -249,8 +249,8 @@ Application.globalFilter = function (filter) {
  * @param {Object|Function} bf before fileter, bf(msg, session, next)
  * @memberOf Application
  */
-Application.globalBefore = function (bf) {
-    addFilter(this, Constants.KEYWORDS.GLOBAL_BEFORE_FILTER, bf);
+Application.globalBefore = function(bf) {
+  addFilter(this, Constants.KEYWORDS.GLOBAL_BEFORE_FILTER, bf);
 };
 
 /**
@@ -259,8 +259,8 @@ Application.globalBefore = function (bf) {
  * @param {Object|Function} af after filter, `af(err, msg, session, resp, next)`
  * @memberOf Application
  */
-Application.globalAfter = function (af) {
-    addFilter(this, Constants.KEYWORDS.GLOBAL_AFTER_FILTER, af);
+Application.globalAfter = function(af) {
+  addFilter(this, Constants.KEYWORDS.GLOBAL_AFTER_FILTER, af);
 };
 
 /**
@@ -269,8 +269,8 @@ Application.globalAfter = function (af) {
  * @param {Object|Function} bf before fileter, bf(serverId, msg, opts, next)
  * @memberOf Application
  */
-Application.rpcBefore = function (bf) {
-    addFilter(this, Constants.KEYWORDS.RPC_BEFORE_FILTER, bf);
+Application.rpcBefore = function(bf) {
+  addFilter(this, Constants.KEYWORDS.RPC_BEFORE_FILTER, bf);
 };
 
 /**
@@ -279,8 +279,8 @@ Application.rpcBefore = function (bf) {
  * @param {Object|Function} af after filter, `af(serverId, msg, opts, next)`
  * @memberOf Application
  */
-Application.rpcAfter = function (af) {
-    addFilter(this, Constants.KEYWORDS.RPC_AFTER_FILTER, af);
+Application.rpcAfter = function(af) {
+  addFilter(this, Constants.KEYWORDS.RPC_AFTER_FILTER, af);
 };
 
 /**
@@ -290,9 +290,9 @@ Application.rpcAfter = function (af) {
  *                        A filter should have two methods: before and after.
  * @memberOf Application
  */
-Application.rpcFilter = function (filter) {
-    this.rpcBefore(filter);
-    this.rpcAfter(filter);
+Application.rpcFilter = function(filter) {
+  this.rpcBefore(filter);
+  this.rpcAfter(filter);
 };
 
 /**
@@ -304,42 +304,42 @@ Application.rpcFilter = function (filter) {
  * @return {Object}     app instance for chain invoke
  * @memberOf Application
  */
-Application.load = function (name, component, opts) {
-    let fnName = '';
-    if (typeof name !== 'string') {
-        opts = component;
-        component = name;
-        name = null;
-        if (typeof component.name === 'string') {
-            name = component.name;
-            fnName = name;
-        }
+Application.load = function(name, component, opts) {
+  let fnName = '';
+  if (typeof name !== 'string') {
+    opts = component;
+    component = name;
+    name = null;
+    if (typeof component.name === 'string') {
+      name = component.name;
+      fnName = name;
     }
+  }
 
-    if (typeof component === 'function') {
-        component = component(this, opts);
-        if (fnName && component.name && fnName !== component.name) {
-            name = component.name;
-        }
+  if (typeof component === 'function') {
+    component = component(this, opts);
+    if (fnName && component.name && fnName !== component.name) {
+      name = component.name;
     }
+  }
 
-    if (!name && typeof component.name === 'string') {
-        name = component.name;
-    }
+  if (!name && typeof component.name === 'string') {
+    name = component.name;
+  }
 
-    if (name && this.components[name]) {
-        // ignore duplicat component
-        logger.warn('ignore duplicate component: %j', name);
-        return;
-    }
+  if (name && this.components[name]) {
+    // ignore duplicat component
+    logger.warn('ignore duplicate component: %j', name);
+    return;
+  }
 
-    this.loaded.push(component);
-    if (name) {
-        // components with a name would get by name throught app.components later.
-        this.components[name] = component;
-    }
+  this.loaded.push(component);
+  if (name) {
+    // components with a name would get by name throught app.components later.
+    this.components[name] = component;
+  }
 
-    return this;
+  return this;
 };
 
 /**
@@ -351,34 +351,34 @@ Application.load = function (name, component, opts) {
  * @return {Server|Mixed} for chaining, or the setting value
  * @memberOf Application
  */
-Application.loadConfigBaseApp = function (key, val, reload) {
-    const env = this.get(Constants.RESERVED.ENV);
-    const originPath = path.join(Application.getBase(), val);
-    const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
-    let realPath;
-    if (fs.existsSync(originPath)) {
-        realPath = originPath;
-        let file = require(originPath);
-        if (file[env]) {
-            file = file[env];
-        }
-        this.set(key, file);
-    } else if (fs.existsSync(presentPath)) {
-        realPath = presentPath;
-        const pfile = require(presentPath);
-        this.set(key, pfile);
-    } else {
-        logger.error('invalid configuration with file path: %s', key);
+Application.loadConfigBaseApp = function(key, val, reload) {
+  const env = this.get(Constants.RESERVED.ENV);
+  const originPath = path.join(Application.getBase(), val);
+  const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
+  let realPath;
+  if (fs.existsSync(originPath)) {
+    realPath = originPath;
+    let file = require(originPath);
+    if (file[env]) {
+      file = file[env];
     }
+    this.set(key, file);
+  } else if (fs.existsSync(presentPath)) {
+    realPath = presentPath;
+    const pfile = require(presentPath);
+    this.set(key, pfile);
+  } else {
+    logger.error('invalid configuration with file path: %s', key);
+  }
 
-    if (!!realPath && !!reload) {
-        fs.watch(realPath, (event) => {
-            if (event === 'change') {
-                delete require.cache[require.resolve(realPath)];
-                this.loadConfigBaseApp(key, val);
-            }
-        });
-    }
+  if (!!realPath && !!reload) {
+    fs.watch(realPath, event => {
+      if (event === 'change') {
+        delete require.cache[require.resolve(realPath)];
+        this.loadConfigBaseApp(key, val);
+      }
+    });
+  }
 };
 
 /**
@@ -389,13 +389,13 @@ Application.loadConfigBaseApp = function (key, val, reload) {
  * @return {Server|Mixed} for chaining, or the setting value
  * @memberOf Application
  */
-Application.loadConfig = function (key, val) {
-    const env = this.get(Constants.RESERVED.ENV);
-    val = require(val);
-    if (val[env]) {
-        val = val[env];
-    }
-    this.set(key, val);
+Application.loadConfig = function(key, val) {
+  const env = this.get(Constants.RESERVED.ENV);
+  val = require(val);
+  if (val[env]) {
+    val = val[env];
+  }
+  this.set(key, val);
 };
 
 /**
@@ -416,14 +416,14 @@ Application.loadConfig = function (key, val) {
  * @return {Object}     current application instance for chain invoking
  * @memberOf Application
  */
-Application.route = function (serverType, routeFunc) {
-    let routes = this.get(Constants.KEYWORDS.ROUTE);
-    if (!routes) {
-        routes = {};
-        this.set(Constants.KEYWORDS.ROUTE, routes);
-    }
-    routes[serverType] = routeFunc;
-    return this;
+Application.route = function(serverType, routeFunc) {
+  let routes = this.get(Constants.KEYWORDS.ROUTE);
+  if (!routes) {
+    routes = {};
+    this.set(Constants.KEYWORDS.ROUTE, routes);
+  }
+  routes[serverType] = routeFunc;
+  return this;
 };
 
 /**
@@ -432,34 +432,34 @@ Application.route = function (serverType, routeFunc) {
  * @param  {Function} cb callback function
  * @memberOf Application
  */
-Application.start = function (cb) {
-    this.startTime = Date.now();
-    if (this.state > STATE_INITED) {
-        utils.invokeCallback(cb, new Error('application has already start.'));
-        return;
-    }
+Application.start = function(cb) {
+  this.startTime = Date.now();
+  if (this.state > STATE_INITED) {
+    utils.invokeCallback(cb, new Error('application has already start.'));
+    return;
+  }
 
-    let self = this;
-    appUtil.startByType(this, function () {
-        appUtil.loadDefaultComponents(self);
-        const startUp = function () {
-            appUtil.optComponents(self.loaded, Constants.RESERVED.START, function (err) {
-                self.state = STATE_START;
-                if (err) {
-                    utils.invokeCallback(cb, err);
-                } else {
-                    logger.info('%j enter after start...', self.getServerId());
-                    self.afterStart(cb);
-                }
-            });
-        };
-        const beforeFun = self.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
-        if (!!beforeFun) {
-            beforeFun.call(null, self, startUp);
+  const self = this;
+  appUtil.startByType(this, function() {
+    appUtil.loadDefaultComponents(self);
+    const startUp = function() {
+      appUtil.optComponents(self.loaded, Constants.RESERVED.START, function(err) {
+        self.state = STATE_START;
+        if (err) {
+          utils.invokeCallback(cb, err);
         } else {
-            startUp();
+          logger.info('%j enter after start...', self.getServerId());
+          self.afterStart(cb);
         }
-    });
+      });
+    };
+    const beforeFun = self.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
+    if (beforeFun) {
+      beforeFun.call(null, self, startUp);
+    } else {
+      startUp();
+    }
+  });
 };
 
 /**
@@ -468,30 +468,30 @@ Application.start = function (cb) {
  * @param  {Function} cb callback function
  * @return {Void}
  */
-Application.afterStart = function (cb) {
-    if (this.state !== STATE_START) {
-        utils.invokeCallback(cb, new Error('application is not running now.'));
-        return;
-    }
+Application.afterStart = function(cb) {
+  if (this.state !== STATE_START) {
+    utils.invokeCallback(cb, new Error('application is not running now.'));
+    return;
+  }
 
-    const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
-    appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, (err) => {
-        this.state = STATE_STARTED;
-        const id = this.getServerId();
-        if (!err) {
-            logger.info('%j finish start', id);
-        }
-        if (!!afterFun) {
-            afterFun.call(null, this, () => {
-                utils.invokeCallback(cb, err);
-            });
-        } else {
-            utils.invokeCallback(cb, err);
-        }
-        const usedTime = Date.now() - this.startTime;
-        logger.info('%j startup in %s ms', id, usedTime);
-        this.event.emit(events.START_SERVER, id);
-    });
+  const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
+  appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, err => {
+    this.state = STATE_STARTED;
+    const id = this.getServerId();
+    if (!err) {
+      logger.info('%j finish start', id);
+    }
+    if (afterFun) {
+      afterFun.call(null, this, () => {
+        utils.invokeCallback(cb, err);
+      });
+    } else {
+      utils.invokeCallback(cb, err);
+    }
+    const usedTime = Date.now() - this.startTime;
+    logger.info('%j startup in %s ms', id, usedTime);
+    this.event.emit(events.START_SERVER, id);
+  });
 };
 
 /**
@@ -499,37 +499,37 @@ Application.afterStart = function (cb) {
  *
  * @param  {Boolean} force whether stop the app immediately
  */
-Application.stop = function (force) {
-    if (this.state > STATE_STARTED) {
-        logger.warn('[pofresh application] application is not running now.');
-        return;
-    }
-    this.state = STATE_STOPED;
-    const self = this;
+Application.stop = function(force) {
+  if (this.state > STATE_STARTED) {
+    logger.warn('[pofresh application] application is not running now.');
+    return;
+  }
+  this.state = STATE_STOPED;
+  const self = this;
 
-    this.stopTimer = setTimeout(function () {
+  this.stopTimer = setTimeout(function() {
+    process.exit(0);
+  }, Constants.TIME.TIME_WAIT_STOP);
+
+  const cancelShutDownTimer = function() {
+    if (self.stopTimer) {
+      clearTimeout(self.stopTimer);
+    }
+  };
+  const shutDown = function() {
+    appUtil.stopComps(self.loaded, 0, force, function() {
+      cancelShutDownTimer();
+      if (force) {
         process.exit(0);
-    }, Constants.TIME.TIME_WAIT_STOP);
-
-    const cancelShutDownTimer = function () {
-        if (!!self.stopTimer) {
-            clearTimeout(self.stopTimer);
-        }
-    };
-    const shutDown = function () {
-        appUtil.stopComps(self.loaded, 0, force, function () {
-            cancelShutDownTimer();
-            if (force) {
-                process.exit(0);
-            }
-        });
-    };
-    const stopFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
-    if (!!stopFun) {
-        stopFun.call(null, this, shutDown, cancelShutDownTimer);
-    } else {
-        shutDown();
-    }
+      }
+    });
+  };
+  const stopFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
+  if (stopFun) {
+    stopFun.call(null, this, shutDown, cancelShutDownTimer);
+  } else {
+    shutDown();
+  }
 };
 
 /**
@@ -558,24 +558,24 @@ Application.stop = function (force) {
  * @return {Application} for chaining
  * @memberOf Application
  */
-Application.configure = function (env, type, fn) {
-    const args = [].slice.call(arguments);
-    fn = args.pop();
-    env = type = Constants.RESERVED.ALL;
+Application.configure = function(env, type, fn) {
+  const args = [].slice.call(arguments);
+  fn = args.pop();
+  env = type = Constants.RESERVED.ALL;
 
-    if (args.length > 0) {
-        env = args[0];
-    }
-    if (args.length > 1) {
-        type = args[1];
-    }
+  if (args.length > 0) {
+    env = args[0];
+  }
+  if (args.length > 1) {
+    type = args[1];
+  }
 
-    if (env === Constants.RESERVED.ALL || contains(this.settings.env, env)) {
-        if (type === Constants.RESERVED.ALL || contains(this.settings.serverType, type)) {
-            fn.call(this);
-        }
+  if (env === Constants.RESERVED.ALL || contains(this.settings.env, env)) {
+    if (type === Constants.RESERVED.ALL || contains(this.settings.serverType, type)) {
+      fn.call(this);
     }
-    return this;
+  }
+  return this;
 };
 
 /**
@@ -586,30 +586,30 @@ Application.configure = function (env, type, fn) {
  * @param {Object} opts construct parameter for module
  * @memberOf Application
  */
-Application.registerAdmin = function (moduleId, module, opts) {
-    let modules = this.get(Constants.KEYWORDS.MODULE);
-    if (!modules) {
-        modules = {};
-        this.set(Constants.KEYWORDS.MODULE, modules);
-    }
+Application.registerAdmin = function(moduleId, module, opts) {
+  let modules = this.get(Constants.KEYWORDS.MODULE);
+  if (!modules) {
+    modules = {};
+    this.set(Constants.KEYWORDS.MODULE, modules);
+  }
 
-    if (typeof moduleId !== 'string') {
-        opts = module;
-        module = moduleId;
-        if (module) {
-            moduleId = module.moduleId;
-        }
+  if (typeof moduleId !== 'string') {
+    opts = module;
+    module = moduleId;
+    if (module) {
+      moduleId = module.moduleId;
     }
+  }
 
-    if (!moduleId) {
-        return;
-    }
+  if (!moduleId) {
+    return;
+  }
 
-    modules[moduleId] = {
-        moduleId: moduleId,
-        module: module,
-        opts: opts
-    };
+  modules[moduleId] = {
+    moduleId: moduleId,
+    module: module,
+    opts: opts
+  };
 };
 
 /**
@@ -619,55 +619,55 @@ Application.registerAdmin = function (moduleId, module, opts) {
  * @param  {[type]} opts    (optional) construct parameters for the factory function
  * @memberOf Application
  */
-Application.use = function (plugin, opts) {
-    if (!plugin.components) {
-        logger.error('invalid components, no components exist');
-        return;
+Application.use = function(plugin, opts) {
+  if (!plugin.components) {
+    logger.error('invalid components, no components exist');
+    return;
+  }
+
+  opts = opts || {};
+  const dir = path.dirname(plugin.components);
+
+  if (!fs.existsSync(plugin.components)) {
+    logger.error('fail to find components, find path: %s', plugin.components);
+    return;
+  }
+
+  fs.readdirSync(plugin.components).forEach(filename => {
+    if (!/\.js$/.test(filename)) {
+      return;
     }
-
-    opts = opts || {};
-    const dir = path.dirname(plugin.components);
-
-    if (!fs.existsSync(plugin.components)) {
-        logger.error('fail to find components, find path: %s', plugin.components);
-        return;
-    }
-
-    fs.readdirSync(plugin.components).forEach((filename) => {
-        if (!/\.js$/.test(filename)) {
-            return;
-        }
-        const name = path.basename(filename, '.js');
-        const param = opts[name] || {};
-        const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
-        if (!fs.existsSync(absolutePath)) {
-            logger.error('component %s not exist at %s', name, absolutePath);
-        } else {
-            this.load(require(absolutePath), param);
-        }
-    });
-
-    // load events
-    if (!plugin.events) {
-        return;
+    const name = path.basename(filename, '.js');
+    const param = opts[name] || {};
+    const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
+    if (!fs.existsSync(absolutePath)) {
+      logger.error('component %s not exist at %s', name, absolutePath);
     } else {
-        if (!fs.existsSync(plugin.events)) {
-            logger.error('fail to find events, find path: %s', plugin.events);
-            return;
-        }
-
-        fs.readdirSync(plugin.events).forEach((filename) => {
-            if (!/\.js$/.test(filename)) {
-                return;
-            }
-            const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
-            if (!fs.existsSync(absolutePath)) {
-                logger.error('events %s not exist at %s', filename, absolutePath);
-            } else {
-                bindEvents(require(absolutePath), this);
-            }
-        });
+      this.load(require(absolutePath), param);
     }
+  });
+
+  // load events
+  if (!plugin.events) {
+    return;
+  } else {
+    if (!fs.existsSync(plugin.events)) {
+      logger.error('fail to find events, find path: %s', plugin.events);
+      return;
+    }
+
+    fs.readdirSync(plugin.events).forEach(filename => {
+      if (!/\.js$/.test(filename)) {
+        return;
+      }
+      const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
+      if (!fs.existsSync(absolutePath)) {
+        logger.error('events %s not exist at %s', filename, absolutePath);
+      } else {
+        bindEvents(require(absolutePath), this);
+      }
+    });
+  }
 };
 
 /**
@@ -680,8 +680,8 @@ Application.use = function (plugin, opts) {
  * @param {Number} retry retry times to execute handlers if conditions are successfully executed
  * @memberOf Application
  */
-Application.transaction = function (name, conditions, handlers, retry) {
-    appManager.transaction(name, conditions, handlers, retry);
+Application.transaction = function(name, conditions, handlers, retry) {
+  appManager.transaction(name, conditions, handlers, retry);
 };
 
 /**
@@ -690,8 +690,8 @@ Application.transaction = function (name, conditions, handlers, retry) {
  * @return {Object} master server info, {id, host, port}
  * @memberOf Application
  */
-Application.getMaster = function () {
-    return this.master;
+Application.getMaster = function() {
+  return this.master;
 };
 
 /**
@@ -700,8 +700,8 @@ Application.getMaster = function () {
  * @return {Object} current server info, {id, serverType, host, port}
  * @memberOf Application
  */
-Application.getCurServer = function () {
-    return this.curServer;
+Application.getCurServer = function() {
+  return this.curServer;
 };
 
 /**
@@ -710,8 +710,8 @@ Application.getCurServer = function () {
  * @return {String|Number} current server id from servers.json
  * @memberOf Application
  */
-Application.getServerId = function () {
-    return this.serverId;
+Application.getServerId = function() {
+  return this.serverId;
 };
 
 /**
@@ -720,8 +720,8 @@ Application.getServerId = function () {
  * @return {String|Number} current server type from servers.json
  * @memberOf Application
  */
-Application.getServerType = function () {
-    return this.serverType;
+Application.getServerType = function() {
+  return this.serverType;
 };
 
 /**
@@ -730,8 +730,8 @@ Application.getServerType = function () {
  * @return {Object} server info map, key: server id, value: server info
  * @memberOf Application
  */
-Application.getServers = function () {
-    return this.servers;
+Application.getServers = function() {
+  return this.servers;
 };
 
 /**
@@ -740,8 +740,8 @@ Application.getServers = function () {
  * @return {Object} server info map, key: server id, value: server info
  * @memberOf Application
  */
-Application.getServersFromConfig = function () {
-    return this.get(Constants.KEYWORDS.SERVER_MAP);
+Application.getServersFromConfig = function() {
+  return this.get(Constants.KEYWORDS.SERVER_MAP);
 };
 
 /**
@@ -750,8 +750,8 @@ Application.getServersFromConfig = function () {
  * @return {Array} server type list
  * @memberOf Application
  */
-Application.getServerTypes = function () {
-    return this.serverTypes;
+Application.getServerTypes = function() {
+  return this.serverTypes;
 };
 
 /**
@@ -761,8 +761,8 @@ Application.getServerTypes = function () {
  * @return {Object} server info or undefined
  * @memberOf Application
  */
-Application.getServerById = function (serverId) {
-    return this.servers[serverId];
+Application.getServerById = function(serverId) {
+  return this.servers[serverId];
 };
 
 /**
@@ -773,8 +773,8 @@ Application.getServerById = function (serverId) {
  * @memberOf Application
  */
 
-Application.getServerFromConfig = function (serverId) {
-    return this.get(Constants.KEYWORDS.SERVER_MAP)[serverId];
+Application.getServerFromConfig = function(serverId) {
+  return this.get(Constants.KEYWORDS.SERVER_MAP)[serverId];
 };
 
 /**
@@ -784,8 +784,8 @@ Application.getServerFromConfig = function (serverId) {
  * @return {Array}      server info list
  * @memberOf Application
  */
-Application.getServersByType = function (serverType) {
-    return this.serverTypeMaps[serverType];
+Application.getServersByType = function(serverType) {
+  return this.serverTypeMaps[serverType];
 };
 
 /**
@@ -797,9 +797,9 @@ Application.getServersByType = function (serverType) {
  *
  * @memberOf Application
  */
-Application.isFrontend = function (server) {
-    server = server || this.getCurServer();
-    return !!server && server.frontend === 'true';
+Application.isFrontend = function(server) {
+  server = server || this.getCurServer();
+  return !!server && server.frontend === 'true';
 };
 
 /**
@@ -810,9 +810,9 @@ Application.isFrontend = function (server) {
  * @return {Boolean}
  * @memberOf Application
  */
-Application.isBackend = function (server) {
-    server = server || this.getCurServer();
-    return !!server && !server.frontend;
+Application.isBackend = function(server) {
+  server = server || this.getCurServer();
+  return !!server && !server.frontend;
 };
 
 /**
@@ -821,8 +821,8 @@ Application.isBackend = function (server) {
  * @return {Boolean}
  * @memberOf Application
  */
-Application.isMaster = function () {
-    return this.serverType === Constants.RESERVED.MASTER;
+Application.isMaster = function() {
+  return this.serverType === Constants.RESERVED.MASTER;
 };
 
 /**
@@ -831,30 +831,30 @@ Application.isMaster = function () {
  * @param {Array} servers new server info list
  * @memberOf Application
  */
-Application.addServers = function (servers) {
-    if (!servers || !servers.length) {
-        return;
+Application.addServers = function(servers) {
+  if (!servers || !servers.length) {
+    return;
+  }
+
+  let item, slist;
+  for (let i = 0, l = servers.length; i < l; i++) {
+    item = servers[i];
+    // update global server map
+    this.servers[item.id] = item;
+
+    // update global server type map
+    slist = this.serverTypeMaps[item.serverType];
+    if (!slist) {
+      this.serverTypeMaps[item.serverType] = slist = [];
     }
+    replaceServer(slist, item);
 
-    let item, slist;
-    for (let i = 0, l = servers.length; i < l; i++) {
-        item = servers[i];
-        // update global server map
-        this.servers[item.id] = item;
-
-        // update global server type map
-        slist = this.serverTypeMaps[item.serverType];
-        if (!slist) {
-            this.serverTypeMaps[item.serverType] = slist = [];
-        }
-        replaceServer(slist, item);
-
-        // update global server type list
-        if (this.serverTypes.indexOf(item.serverType) < 0) {
-            this.serverTypes.push(item.serverType);
-        }
+    // update global server type list
+    if (this.serverTypes.indexOf(item.serverType) < 0) {
+      this.serverTypes.push(item.serverType);
     }
-    this.event.emit(events.ADD_SERVERS, servers);
+  }
+  this.event.emit(events.ADD_SERVERS, servers);
 };
 
 /**
@@ -863,27 +863,27 @@ Application.addServers = function (servers) {
  * @param  {Array} ids server id list
  * @memberOf Application
  */
-Application.removeServers = function (ids) {
-    if (!ids || !ids.length) {
-        return;
-    }
+Application.removeServers = function(ids) {
+  if (!ids || !ids.length) {
+    return;
+  }
 
-    let id, item, slist;
-    for (let i = 0, l = ids.length; i < l; i++) {
-        id = ids[i];
-        item = this.servers[id];
-        if (!item) {
-            continue;
-        }
-        // clean global server map
-        delete this.servers[id];
-
-        // clean global server type map
-        slist = this.serverTypeMaps[item.serverType];
-        removeServer(slist, id);
-        // TODO: should remove the server type if the slist is empty?
+  let id, item, slist;
+  for (let i = 0, l = ids.length; i < l; i++) {
+    id = ids[i];
+    item = this.servers[id];
+    if (!item) {
+      continue;
     }
-    this.event.emit(events.REMOVE_SERVERS, ids);
+    // clean global server map
+    delete this.servers[id];
+
+    // clean global server type map
+    slist = this.serverTypeMaps[item.serverType];
+    removeServer(slist, id);
+    // TODO: should remove the server type if the slist is empty?
+  }
+  this.event.emit(events.REMOVE_SERVERS, ids);
 };
 
 /**
@@ -892,30 +892,30 @@ Application.removeServers = function (ids) {
  * @param  {Object} server id map
  * @memberOf Application
  */
-Application.replaceServers = function (servers) {
-    if (!servers) {
-        return;
-    }
+Application.replaceServers = function(servers) {
+  if (!servers) {
+    return;
+  }
 
-    this.servers = servers;
-    this.serverTypeMaps = {};
-    this.serverTypes = [];
-    let serverArray = [];
-    for (let id in servers) {
-        let server = servers[id];
-        let serverType = server[Constants.RESERVED.SERVER_TYPE];
-        let slist = this.serverTypeMaps[serverType];
-        if (!slist) {
-            this.serverTypeMaps[serverType] = slist = [];
-        }
-        this.serverTypeMaps[serverType].push(server);
-        // update global server type list
-        if (this.serverTypes.indexOf(serverType) < 0) {
-            this.serverTypes.push(serverType);
-        }
-        serverArray.push(server);
+  this.servers = servers;
+  this.serverTypeMaps = {};
+  this.serverTypes = [];
+  const serverArray = [];
+  for (const id in servers) {
+    const server = servers[id];
+    const serverType = server[Constants.RESERVED.SERVER_TYPE];
+    let slist = this.serverTypeMaps[serverType];
+    if (!slist) {
+      this.serverTypeMaps[serverType] = slist = [];
     }
-    this.event.emit(events.REPLACE_SERVERS, serverArray);
+    this.serverTypeMaps[serverType].push(server);
+    // update global server type list
+    if (this.serverTypes.indexOf(serverType) < 0) {
+      this.serverTypes.push(serverType);
+    }
+    serverArray.push(server);
+  }
+  this.event.emit(events.REPLACE_SERVERS, serverArray);
 };
 
 /**
@@ -924,12 +924,12 @@ Application.replaceServers = function (servers) {
  * @param  {Array} crons new crons would be added in application
  * @memberOf Application
  */
-Application.addCrons = function (crons) {
-    if (!crons || !crons.length) {
-        logger.warn('crons is not defined.');
-        return;
-    }
-    this.event.emit(events.ADD_CRONS, crons);
+Application.addCrons = function(crons) {
+  if (!crons || !crons.length) {
+    logger.warn('crons is not defined.');
+    return;
+  }
+  this.event.emit(events.ADD_CRONS, crons);
 };
 
 /**
@@ -938,65 +938,65 @@ Application.addCrons = function (crons) {
  * @param  {Array} crons old crons would be removed in application
  * @memberOf Application
  */
-Application.removeCrons = function (crons) {
-    if (!crons || !crons.length) {
-        logger.warn('ids is not defined.');
-        return;
-    }
-    this.event.emit(events.REMOVE_CRONS, crons);
+Application.removeCrons = function(crons) {
+  if (!crons || !crons.length) {
+    logger.warn('ids is not defined.');
+    return;
+  }
+  this.event.emit(events.REMOVE_CRONS, crons);
 };
 
 function replaceServer(slist, serverInfo) {
-    for (let i = 0, l = slist.length; i < l; i++) {
-        if (slist[i].id === serverInfo.id) {
-            slist[i] = serverInfo;
-            return;
-        }
+  for (let i = 0, l = slist.length; i < l; i++) {
+    if (slist[i].id === serverInfo.id) {
+      slist[i] = serverInfo;
+      return;
     }
-    slist.push(serverInfo);
+  }
+  slist.push(serverInfo);
 }
 
 function removeServer(slist, id) {
-    if (!slist || !slist.length) {
-        return;
-    }
+  if (!slist || !slist.length) {
+    return;
+  }
 
-    for (let i = 0, l = slist.length; i < l; i++) {
-        if (slist[i].id === id) {
-            slist.splice(i, 1);
-            return;
-        }
+  for (let i = 0, l = slist.length; i < l; i++) {
+    if (slist[i].id === id) {
+      slist.splice(i, 1);
+      return;
     }
+  }
 }
 
 function contains(str, settings) {
-    if (!settings) {
-        return false;
-    }
-
-    let ts = settings.split("|");
-    for (let i = 0, l = ts.length; i < l; i++) {
-        if (str === ts[i]) {
-            return true;
-        }
-    }
+  if (!settings) {
     return false;
+  }
+
+  const ts = settings.split('|');
+  for (let i = 0, l = ts.length; i < l; i++) {
+    if (str === ts[i]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function bindEvents(Event, app) {
-    const emethods = new Event(app);
-    for (let m in emethods) {
-        if (typeof emethods[m] === 'function') {
-            app.event.on(m, emethods[m].bind(emethods));
-        }
+  const emethods = new Event(app);
+  for (const m in emethods) {
+    if (typeof emethods[m] === 'function') {
+      app.event.on(m, emethods[m].bind(emethods));
     }
+  }
 }
 
 function addFilter(app, type, filter) {
-    let filters = app.get(type);
-    if (!filters) {
-        filters = [];
-        app.set(type, filters);
-    }
-    filters.push(filter);
+  let filters = app.get(type);
+  if (!filters) {
+    filters = [];
+    app.set(type, filters);
+  }
+  filters.push(filter);
 }

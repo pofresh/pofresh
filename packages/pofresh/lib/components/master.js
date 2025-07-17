@@ -9,8 +9,8 @@ const Master = require('../master/master');
  * @param  {Object} app  current application context
  * @return {Object}      component instances
  */
-module.exports = function (app, opts) {
-    return new Component(app, opts);
+module.exports = function(app, opts) {
+  return new Component(app, opts);
 };
 
 /**
@@ -19,30 +19,29 @@ module.exports = function (app, opts) {
  * @param {Object} app  current application context
  */
 class Component {
-    constructor(app, opts) {
-        this.name = '__master__';
-        this.master = new Master(app, opts);
-    }
+  constructor(app, opts) {
+    this.name = '__master__';
+    this.master = new Master(app, opts);
+  }
 
-    /**
+  /**
      * Component lifecycle function
      *
      * @param  {Function} cb
      * @return {Void}
      */
-    start(cb) {
-        this.master.start(cb);
-    }
+  start(cb) {
+    this.master.start(cb);
+  }
 
-    /**
+  /**
      * Component lifecycle function
      *
      * @param  {Boolean}   force whether stop the component immediately
      * @param  {Function}  cb
      * @return {Void}
      */
-    stop(force, cb) {
-        this.master.stop(cb);
-    }
+  stop(force, cb) {
+    this.master.stop(cb);
+  }
 }
-

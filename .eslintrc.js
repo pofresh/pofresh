@@ -14,7 +14,7 @@ module.exports = {
     'quotes': ['error', 'single'],
     'semi': ['error', 'always'],
     'comma-dangle': ['error', 'never'],
-    'no-console': 'warn',
+    'no-console': 0,
     'camelcase': ['error', { properties: 'always' }],
     'max-len': ['error', { code: 120 }],
     'object-curly-spacing': ['error', 'always'],
@@ -32,7 +32,7 @@ module.exports = {
     'no-eval': 'error',
     'no-implied-eval': 'error',
     'no-new-func': 'error',
-    'no-prototype-builtins': 'warn'
+    'no-prototype-builtins': 'warn',
   },
   ignorePatterns: [
     'node_modules/',

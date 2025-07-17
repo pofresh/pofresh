@@ -3,19 +3,18 @@
 //
 // DO NOT EDIT UNLESS YOU ARE SURE THAT YOU KNOW WHAT YOU ARE DOING
 //
-var thrift = require('thrift');
-var Thrift = thrift.Thrift;
-var Q = thrift.Q;
+const thrift = require('thrift');
+const Thrift = thrift.Thrift;
+const Q = thrift.Q;
 
-var shared_ttypes = require('./shared_types')
+const shared_ttypes = require('./shared_types');
 
-
-var ttypes = module.exports = {};
+const ttypes = (module.exports = {});
 ttypes.Operation = {
-  'ADD' : 1,
-  'SUBTRACT' : 2,
-  'MULTIPLY' : 3,
-  'DIVIDE' : 4
+  ADD: 1,
+  SUBTRACT: 2,
+  MULTIPLY: 3,
+  DIVIDE: 4
 };
 Work = module.exports.Work = function(args) {
   this.num1 = 0;
@@ -40,47 +39,45 @@ Work = module.exports.Work = function(args) {
 Work.prototype = {};
 Work.prototype.read = function(input) {
   input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
+  while (true) {
+    const ret = input.readFieldBegin();
+    const fname = ret.fname;
+    const ftype = ret.ftype;
+    const fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    switch (fid)
-    {
-      case 1:
+    switch (fid) {
+    case 1:
       if (ftype == Thrift.Type.I32) {
         this.num1 = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 2:
+    case 2:
       if (ftype == Thrift.Type.I32) {
         this.num2 = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 3:
+    case 3:
       if (ftype == Thrift.Type.I32) {
         this.op = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 4:
+    case 4:
       if (ftype == Thrift.Type.STRING) {
         this.comment = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
-      default:
-        input.skip(ftype);
+    default:
+      input.skip(ftype);
     }
     input.readFieldEnd();
   }
@@ -116,8 +113,8 @@ Work.prototype.write = function(output) {
 };
 
 InvalidOperation = module.exports.InvalidOperation = function(args) {
-  Thrift.TException.call(this, "InvalidOperation")
-  this.name = "InvalidOperation"
+  Thrift.TException.call(this, 'InvalidOperation');
+  this.name = 'InvalidOperation';
   this.whatOp = null;
   this.why = null;
   if (args) {
@@ -133,33 +130,31 @@ Thrift.inherits(InvalidOperation, Thrift.TException);
 InvalidOperation.prototype.name = 'InvalidOperation';
 InvalidOperation.prototype.read = function(input) {
   input.readStructBegin();
-  while (true)
-  {
-    var ret = input.readFieldBegin();
-    var fname = ret.fname;
-    var ftype = ret.ftype;
-    var fid = ret.fid;
+  while (true) {
+    const ret = input.readFieldBegin();
+    const fname = ret.fname;
+    const ftype = ret.ftype;
+    const fid = ret.fid;
     if (ftype == Thrift.Type.STOP) {
       break;
     }
-    switch (fid)
-    {
-      case 1:
+    switch (fid) {
+    case 1:
       if (ftype == Thrift.Type.I32) {
         this.whatOp = input.readI32();
       } else {
         input.skip(ftype);
       }
       break;
-      case 2:
+    case 2:
       if (ftype == Thrift.Type.STRING) {
         this.why = input.readString();
       } else {
         input.skip(ftype);
       }
       break;
-      default:
-        input.skip(ftype);
+    default:
+      input.skip(ftype);
     }
     input.readFieldEnd();
   }
@@ -186,6 +181,6 @@ InvalidOperation.prototype.write = function(output) {
 
 ttypes.INT32CONSTANT = 9853;
 ttypes.MAPCONSTANT = {
-  'hello' : 'world',
-  'goodnight' : 'moon'
+  hello: 'world',
+  goodnight: 'moon'
 };

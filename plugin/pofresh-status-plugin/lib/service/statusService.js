@@ -9,185 +9,189 @@ const ST_STARTED = 1;
 const ST_CLOSED = 2;
 
 class StatusService {
-    constructor(app, opts) {
-        this.app = app;
-        this.opts = opts || {};
-        this.cleanOnStartUp = opts.cleanOnStartUp;
-        this.manager = getStatusManager(app, opts);
-        this.state = ST_INITED;
+  constructor(app, opts) {
+    this.app = app;
+    this.opts = opts || {};
+    this.cleanOnStartUp = opts.cleanOnStartUp;
+    this.manager = getStatusManager(app, opts);
+    this.state = ST_INITED;
+  }
+
+  start(cb) {
+    if (this.state !== ST_INITED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
     }
 
-    start(cb) {
-        if (this.state !== ST_INITED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
-            return;
+    if (typeof this.manager.start === 'function') {
+      const self = this;
+      this.manager.start(function(err) {
+        if (!err) {
+          self.state = ST_STARTED;
         }
-
-        if (typeof this.manager.start === 'function') {
-            var self = this;
-            this.manager.start(function (err) {
-                if (!err) {
-                    self.state = ST_STARTED;
-                }
-                if (!!self.cleanOnStartUp) {
-                    self.manager.clean(function (err) {
-                        utils.invokeCallback(cb, err);
-                    });
-                } else {
-                    utils.invokeCallback(cb, err);
-                }
-            });
+        if (self.cleanOnStartUp) {
+          self.manager.clean(function(err) {
+            utils.invokeCallback(cb, err);
+          });
         } else {
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
+          utils.invokeCallback(cb, err);
         }
+      });
+    } else {
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    }
+  }
 
+  stop(force, cb) {
+    this.state = ST_CLOSED;
+
+    if (typeof this.manager.stop === 'function') {
+      this.manager.stop(force, cb);
+    } else {
+      process.nextTick(function() {
+        utils.invokeCallback(cb);
+      });
+    }
+  }
+
+  add(uid, sid, cb) {
+    if (this.state !== ST_STARTED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
     }
 
-    stop(force, cb) {
-        this.state = ST_CLOSED;
+    this.manager.add(uid, sid, cb);
+  }
 
-        if (typeof this.manager.stop === 'function') {
-            this.manager.stop(force, cb);
+  leave(uid, sid, cb) {
+    if (this.state !== ST_STARTED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
+    }
+
+    this.manager.leave(uid, sid, cb);
+  }
+
+  async getSidsByUid(uid) {
+    if (this.state !== ST_STARTED) {
+      throw new Error('invalid state');
+    }
+
+    return await this.manager.getSidsByUid(uid);
+  }
+
+  getStatusByUid(uid, cb) {
+    if (this.state !== ST_STARTED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
+    }
+
+    this.manager.getSidsByUid(uid, function(err, list) {
+      if (err) {
+        utils.invokeCallback(
+          cb,
+          new Error(util.format('failed to get serverIds by uid: [%s], err: %j', uid, err.stack)),
+          null
+        );
+        return;
+      }
+      const status =
+                list !== undefined && list.length >= 1
+                  ? true // online
+                  : false; // offline
+      utils.invokeCallback(cb, null, status);
+    });
+  }
+
+  getStatusByUids(uids, cb) {
+    if (this.state !== ST_STARTED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
+    }
+
+    this.manager.getSidsByUids(uids, function(err, replies) {
+      if (err) {
+        utils.invokeCallback(
+          cb,
+          new Error(util.format('failed to get serverIds by uids, err: %j', err.stack)),
+          null
+        );
+        return;
+      }
+
+      const statuses = {};
+      for (let i = 0; i < uids.length; i++) {
+        statuses[uids[i]] = replies[i] === 1; // offline
+      }
+
+      utils.invokeCallback(cb, null, statuses);
+    });
+  }
+
+  pushByUids(uids, route, msg, cb) {
+    if (this.state !== ST_STARTED) {
+      utils.invokeCallback(cb, new Error('invalid state'));
+      return;
+    }
+    const channelService = this.app.get('channelService');
+    let successFlag = false;
+    const count = utils.size(uids);
+    const records = [];
+
+    const latch = countDownLatch.createCountDownLatch(count, function() {
+      if (!successFlag) {
+        utils.invokeCallback(cb, new Error(util.format('failed to get sids for uids: %j', uids)), null);
+        return;
+      } else {
+        if (records != null && records.length !== 0) {
+          channelService.pushMessageByUids(route, msg, records, cb);
         } else {
-            process.nextTick(function () {
-                utils.invokeCallback(cb);
-            });
+          utils.invokeCallback(cb, null, null);
         }
-    }
+      }
+    });
 
-
-    add(uid, sid, cb) {
-        if (this.state !== ST_STARTED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
+    for (let i = 0; i < uids.length; i++) {
+      (function(self, arg) {
+        self.getSidsByUid(uids[arg], function(err, list) {
+          if (err) {
+            utils.invokeCallback(
+              cb,
+              new Error(
+                util.format('failed to get serverIds by uid: [%s], err: %j', uids[arg], err.stack)
+              ),
+              null
+            );
             return;
-        }
+          }
+          for (let j = 0, l = list.length; j < l; j++) {
+            records.push({ uid: uids[arg], sid: list[j] });
+          }
 
-        this.manager.add(uid, sid, cb);
-    }
-
-
-    leave(uid, sid, cb) {
-        if (this.state !== ST_STARTED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
-            return;
-        }
-
-        this.manager.leave(uid, sid, cb);
-    }
-
-
-    async getSidsByUid(uid) {
-        if (this.state !== ST_STARTED) {
-            throw new Error('invalid state');
-        }
-
-        return await this.manager.getSidsByUid(uid);
-    }
-
-    getStatusByUid(uid, cb) {
-        if (this.state !== ST_STARTED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
-            return;
-        }
-
-        this.manager.getSidsByUid(uid, function (err, list) {
-            if (!!err) {
-                utils.invokeCallback(cb, new Error(util.format('failed to get serverIds by uid: [%s], err: %j', uid, err.stack)), null);
-                return;
-            }
-            var status = (list !== undefined && list.length >= 1)
-                ? true // online
-                : false; // offline
-            utils.invokeCallback(cb, null, status);
+          successFlag = true;
+          latch.done();
         });
+      })(this, i);
     }
-
-    getStatusByUids(uids, cb) {
-        if (this.state !== ST_STARTED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
-            return;
-        }
-
-        this.manager.getSidsByUids(uids, function (err, replies) {
-            if (!!err) {
-                utils.invokeCallback(cb, new Error(util.format('failed to get serverIds by uids, err: %j', err.stack)), null);
-                return;
-            }
-
-            var statuses = {};
-            for (var i = 0; i < uids.length; i++) {
-                statuses[uids[i]] = (replies[i] == 1)
-                    ? true // online
-                    : false; // offline
-            }
-
-            utils.invokeCallback(cb, null, statuses);
-        });
-    }
-
-
-    pushByUids(uids, route, msg, cb) {
-        if (this.state !== ST_STARTED) {
-            utils.invokeCallback(cb, new Error('invalid state'));
-            return;
-        }
-        var channelService = this.app.get('channelService');
-        var successFlag = false;
-        var count = utils.size(uids);
-        var records = [];
-
-        var latch = countDownLatch.createCountDownLatch(count, function () {
-            if (!successFlag) {
-                utils.invokeCallback(cb, new Error(util.format('failed to get sids for uids: %j', uids)), null);
-                return;
-            } else {
-                if (records != null && records.length != 0) {
-                    channelService.pushMessageByUids(route, msg, records, cb);
-                } else {
-                    utils.invokeCallback(cb, null, null);
-                }
-            }
-        });
-
-        for (var i = 0; i < uids.length; i++) {
-            (function (self, arg) {
-                self.getSidsByUid(uids[arg], function (err, list) {
-                    if (!!err) {
-                        utils.invokeCallback(cb, new Error(util.format('failed to get serverIds by uid: [%s], err: %j', uids[arg], err.stack)), null);
-                        return;
-                    }
-                    for (var j = 0, l = list.length; j < l; j++) {
-                        records.push({uid: uids[arg], sid: list[j]});
-                    }
-
-                    successFlag = true;
-                    latch.done();
-                })
-            })(this, i);
-        }
-    }
-
+  }
 }
 
-const getStatusManager = function (app, opts) {
-    var manager;
+const getStatusManager = function(app, opts) {
+  let manager;
 
-    if (typeof opts.statusManager === 'function') {
-        manager = opts.statusManager(app, opts);
-    } else {
-        manager = opts.statusManager;
-    }
+  if (typeof opts.statusManager === 'function') {
+    manager = opts.statusManager(app, opts);
+  } else {
+    manager = opts.statusManager;
+  }
 
-    if (!manager) {
-        manager = new DefaultStatusManager(app, opts);
-    }
+  if (!manager) {
+    manager = new DefaultStatusManager(app, opts);
+  }
 
-    return manager;
+  return manager;
 };
 
 module.exports = StatusService;
-
-
-

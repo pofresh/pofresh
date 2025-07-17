@@ -30,17 +30,16 @@
 
     // exports to support for components
     module.exports = Protobuf;
-    if (typeof (window) !== "undefined") {
+    if (typeof window !== 'undefined') {
         window.protobuf = Protobuf;
     }
-
-})(typeof (window) === "undefined" ? module.exports : (this.protobuf = {}), this);
+})(typeof window === 'undefined' ? module.exports : (this.protobuf = {}), this);
 
 /**
  * constants
  */
 (function (exports, global) {
-    let constants = exports.constants = {};
+    let constants = (exports.constants = {});
 
     constants.TYPES = {
         uInt32: 0,
@@ -51,34 +50,32 @@
         message: 2,
         float: 5
     };
-
 })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
 
 /**
  * util module
  */
 (function (exports, global) {
-
-    let Util = exports.util = {};
+    let Util = (exports.util = {});
 
     Util.isSimpleType = function (type) {
-        return (type === 'uInt32' ||
+        return (
+            type === 'uInt32' ||
             type === 'sInt32' ||
             type === 'int32' ||
             type === 'uInt64' ||
             type === 'sInt64' ||
             type === 'float' ||
-            type === 'double');
+            type === 'double'
+        );
     };
-
 })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
 
 /**
  * codec module
  */
 (function (exports, global) {
-
-    let Codec = exports.codec = {};
+    let Codec = (exports.codec = {});
 
     let buffer = new ArrayBuffer(8);
     let float32Array = new Float32Array(buffer);
@@ -111,7 +108,7 @@
         if (isNaN(n)) {
             return null;
         }
-        n = n < 0 ? (Math.abs(n) * 2 - 1) : n * 2;
+        n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;
 
         return Codec.encodeUInt32(n);
     };
@@ -121,7 +118,7 @@
 
         for (let i = 0; i < bytes.length; i++) {
             let m = parseInt(bytes[i]);
-            n = n + ((m & 0x7f) * Math.pow(2, (7 * i)));
+            n = n + (m & 0x7f) * Math.pow(2, 7 * i);
             if (m < 128) {
                 return n;
             }
@@ -132,9 +129,9 @@
 
     Codec.decodeSInt32 = function (bytes) {
         let n = this.decodeUInt32(bytes);
-        let flag = ((n % 2) === 1) ? -1 : 1;
+        let flag = n % 2 === 1 ? -1 : 1;
 
-        n = ((n % 2 + n) / 2) * flag;
+        n = (((n % 2) + n) / 2) * flag;
 
         return n;
     };
@@ -145,7 +142,7 @@
     };
 
     Codec.decodeFloat = function (bytes, offset) {
-        if (!bytes || bytes.length < (offset + 4)) {
+        if (!bytes || bytes.length < offset + 4) {
             return null;
         }
 
@@ -162,7 +159,7 @@
     };
 
     Codec.decodeDouble = function (bytes, offset) {
-        if (!bytes || bytes.length < (offset + 8)) {
+        if (!bytes || bytes.length < offset + 8) {
             return null;
         }
 
@@ -210,11 +207,10 @@
             }
 
             array.push(code);
-
         }
 
         let str = '';
-        for (let i = 0; i < array.length;) {
+        for (let i = 0; i < array.length; ) {
             str += String.fromCharCode.apply(null, array.slice(i, i + 10000));
             i += 10000;
         }
@@ -226,7 +222,7 @@
      * Return the byte length of the str use utf8
      */
     Codec.byteLength = function (str) {
-        if (typeof (str) !== 'string') {
+        if (typeof str !== 'string') {
             return -1;
         }
 
@@ -268,9 +264,8 @@
  * encoder module
  */
 (function (exports, global) {
-
     let protobuf = exports;
-    let MsgEncoder = exports.encoder = {};
+    let MsgEncoder = (exports.encoder = {});
 
     let codec = protobuf.codec;
     let constant = protobuf.constants;
@@ -320,13 +315,13 @@
 
             //All required element must exist
             switch (proto.option) {
-                case 'required' :
-                    if (typeof (msg[name]) === 'undefined') {
+                case 'required':
+                    if (typeof msg[name] === 'undefined') {
                         console.warn('no property exist for required! name: %j, proto: %j, msg: %j', name, proto, msg);
                         return false;
                     }
-                case 'optional' :
-                    if (typeof (msg[name]) !== 'undefined') {
+                case 'optional':
+                    if (typeof msg[name] !== 'undefined') {
                         let message = protos.__messages[proto.type] || MsgEncoder.protos['message ' + proto.type];
                         if (!!message && !checkMsg(msg[name], message)) {
                             console.warn('inner proto error! name: %j, proto: %j, msg: %j', name, proto, msg);
@@ -334,7 +329,7 @@
                         }
                     }
                     break;
-                case 'repeated' :
+                case 'repeated':
                     //Check nest message in repeated elements
                     let message = protos.__messages[proto.type] || MsgEncoder.protos['message ' + proto.type];
                     if (!!msg[name] && !!message) {
@@ -357,12 +352,12 @@
                 let proto = protos[name];
 
                 switch (proto.option) {
-                    case 'required' :
-                    case 'optional' :
+                    case 'required':
+                    case 'optional':
                         offset = writeBytes(buffer, offset, encodeTag(proto.type, proto.tag));
                         offset = encodeProp(msg[name], proto.type, offset, buffer, protos);
                         break;
-                    case 'repeated' :
+                    case 'repeated':
                         if (msg[name].length > 0) {
                             offset = encodeArray(msg[name], proto, offset, buffer, protos);
                         }
@@ -379,7 +374,7 @@
             case 'uInt32':
                 offset = writeBytes(buffer, offset, codec.encodeUInt32(value));
                 break;
-            case 'int32' :
+            case 'int32':
             case 'sInt32':
                 offset = writeBytes(buffer, offset, codec.encodeSInt32(value));
                 break;
@@ -400,7 +395,7 @@
                 codec.encodeStr(buffer, offset, value);
                 offset += length;
                 break;
-            default :
+            default:
                 let message = protos.__messages[type] || MsgEncoder.protos['message ' + type];
                 if (!!message) {
                     //Use a tmp buffer to build an internal msg
@@ -464,7 +459,7 @@
  */
 (function (exports, global) {
     let protobuf = exports;
-    let MsgDecoder = exports.decoder = {};
+    let MsgDecoder = (exports.decoder = {});
 
     let codec = protobuf.codec;
     let util = protobuf.util;
@@ -503,11 +498,11 @@
             let name = protos.__tags[tag];
 
             switch (protos[name].option) {
-                case 'optional' :
-                case 'required' :
+                case 'optional':
+                case 'required':
                     msg[name] = decodeProp(protos[name].type, protos);
                     break;
-                case 'repeated' :
+                case 'repeated':
                     if (!msg[name]) {
                         msg[name] = [];
                     }
@@ -523,7 +518,7 @@
      * Test if the given msg is finished
      */
     function isFinish(msg, protos) {
-        return (!protos.__tags[peekHead().tag]);
+        return !protos.__tags[peekHead().tag];
     }
 
     /**
@@ -554,25 +549,25 @@
         switch (type) {
             case 'uInt32':
                 return codec.decodeUInt32(getBytes());
-            case 'int32' :
-            case 'sInt32' :
+            case 'int32':
+            case 'sInt32':
                 return codec.decodeSInt32(getBytes());
-            case 'float' :
+            case 'float':
                 let float = codec.decodeFloat(buffer, offset);
                 offset += 4;
                 return float;
-            case 'double' :
+            case 'double':
                 let double = codec.decodeDouble(buffer, offset);
                 offset += 8;
                 return double;
-            case 'string' :
+            case 'string':
                 let length = codec.decodeUInt32(getBytes());
 
                 let str = codec.decodeStr(buffer, offset, length);
                 offset += length;
 
                 return str;
-            default :
+            default:
                 let message = protos && (protos.__messages[type] || MsgDecoder.protos['message ' + type]);
                 if (!!message) {
                     let length = codec.decodeUInt32(getBytes());
@@ -618,6 +613,4 @@
     function peekBytes() {
         return getBytes(true);
     }
-
 })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
-
