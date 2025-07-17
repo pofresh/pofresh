@@ -43,7 +43,7 @@ describe('gateway', function() {
       let closeCount = 0;
       const gateway = Gateway.create(opts);
 
-      should.exist(gateway);
+      expect(gateway);
       gateway.on('error', function(err) {
         errorCount++;
       });
@@ -55,8 +55,8 @@ describe('gateway', function() {
       gateway.stop();
 
       setTimeout(function() {
-        errorCount.should.equal(0);
-        closeCount.should.equal(1);
+        errorCount).toBe(0);
+        closeCount).toBe(1);
         done();
       }, WAIT_TIME);
     });
@@ -67,9 +67,9 @@ describe('gateway', function() {
     //     let gateway80 = Gateway.create(opts);
     //     let gateway = Gateway.create(opts);
     //
-    //     should.exist(gateway);
+    //     expect(gateway);
     //     gateway.on('error', function (err) {
-    //         should.exist(err);
+    //         expect(err);
     //         errorCount++;
     //     });
     //
@@ -77,7 +77,7 @@ describe('gateway', function() {
     //     gateway.start();
     //
     //     setTimeout(function () {
-    //         errorCount.should.equal(1);
+    //         errorCount).toBe(1);
     //         done();
     //     }, WAIT_TIME);
     // });
@@ -96,7 +96,7 @@ describe('gateway', function() {
 
       const gateway = Gateway.create(opts);
 
-      should.exist(gateway);
+      expect(gateway);
       gateway.start();
 
       const client = Client.create(server);
@@ -108,7 +108,7 @@ describe('gateway', function() {
       });
 
       setTimeout(function() {
-        clientCallbackCount.should.equal(1);
+        clientCallbackCount).toBe(1);
         client.close();
         gateway.stop();
         done();
@@ -127,20 +127,20 @@ describe('gateway', function() {
 
       const gateway = Gateway.create(opts);
 
-      should.exist(gateway);
+      expect(gateway);
       gateway.start();
 
       const client = Client.create(server);
       client.connect(null, function() {
         client.send(null, msg, null, function(tracer, err, result) {
-          should.exist(result[0]);
+          expect(result[0]);
           should.not.exist(result[1]);
           clientCallbackCount++;
         });
       });
 
       setTimeout(function() {
-        clientCallbackCount.should.equal(1);
+        clientCallbackCount).toBe(1);
         client.close();
         gateway.stop();
         done();
@@ -165,7 +165,7 @@ describe('gateway', function() {
 
       const gateway = Gateway.create(opts);
 
-      should.exist(gateway);
+      expect(gateway);
       gateway.start();
 
       const client = Client.create(server);
@@ -182,7 +182,7 @@ describe('gateway', function() {
       });
 
       setTimeout(function() {
-        clientCallbackCount.should.equal(2);
+        clientCallbackCount).toBe(2);
         client.close();
         gateway.stop();
         done();

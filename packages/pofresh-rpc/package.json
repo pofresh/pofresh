@@ -1,6 +1,10 @@
 {
   "name": "pofresh-rpc",
   "version": "2.0.1",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "dependencies": {
     "pofresh-logger": "workspace:*",
     "pofresh-loader": "workspace:*",
@@ -15,7 +19,6 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "mocha": ">=10.7.3",
-    "should": ">=0.0.1"
+    "vitest": "^3.2.4"
   }
 }

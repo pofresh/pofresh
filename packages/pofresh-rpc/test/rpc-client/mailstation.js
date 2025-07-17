@@ -63,7 +63,7 @@ describe('mail station', function() {
   describe('#create', function() {
     it('should be ok for pass an empty opts to the factory method', function(done) {
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       station.start(function(err) {
         should.not.exist(err);
@@ -86,17 +86,17 @@ describe('mail station', function() {
       };
 
       const station = MailStation.create(opts);
-      should.exist(station);
+      expect(station);
 
       station.should.have.property('mailboxFactory');
-      station.mailboxFactory.should.equal(mailboxFactory);
+      station.mailboxFactory).toBe(mailboxFactory);
     });
   });
 
   describe('#addServer', function() {
     it('should add the server info into the mail station', function() {
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       let i, l;
       for (i = 0, l = serverList.length; i < l; i++) {
@@ -109,8 +109,8 @@ describe('mail station', function() {
       for (i = 0, l = serverList.length; i < l; i++) {
         item = serverList[i];
         server = servers[item.id];
-        should.exist(server);
-        server.should.equal(item);
+        expect(server);
+        server).toBe(item);
       }
     });
   });
@@ -120,7 +120,7 @@ describe('mail station', function() {
       let callbackCount = 0;
       let count = 0;
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (let i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
@@ -128,8 +128,8 @@ describe('mail station', function() {
 
       const func = function(id) {
         return function(err, remoteId) {
-          should.exist(remoteId);
-          remoteId.should.equal(id);
+          expect(remoteId);
+          remoteId).toBe(id);
           callbackCount++;
         };
       };
@@ -144,7 +144,7 @@ describe('mail station', function() {
         }
       });
       setTimeout(function() {
-        callbackCount.should.equal(count);
+        callbackCount).toBe(count);
         station.stop();
         done();
       }, WAIT_TIME);
@@ -154,7 +154,7 @@ describe('mail station', function() {
       let callbackCount = 0;
       let count = 0;
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (let i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
@@ -162,8 +162,8 @@ describe('mail station', function() {
 
       const func = function(id) {
         return function(err, remoteId) {
-          should.exist(remoteId);
-          remoteId.should.equal(id);
+          expect(remoteId);
+          remoteId).toBe(id);
           callbackCount++;
         };
       };
@@ -179,7 +179,7 @@ describe('mail station', function() {
         }
       });
       setTimeout(function() {
-        callbackCount.should.equal(count);
+        callbackCount).toBe(count);
         station.stop();
         done();
       }, WAIT_TIME);
@@ -188,7 +188,7 @@ describe('mail station', function() {
     it('should update the mailbox map by add server after start', function(done) {
       let callbackCount = 0;
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (let i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
@@ -201,13 +201,13 @@ describe('mail station', function() {
         const item = serverList[0];
         station.addServer(item);
         station.dispatch(tracer, item.id, msg, null, function(err, remoteId) {
-          should.exist(remoteId);
-          remoteId.should.equal(item.id);
+          expect(remoteId);
+          remoteId).toBe(item.id);
           callbackCount++;
         });
       });
       setTimeout(function() {
-        callbackCount.should.equal(1);
+        callbackCount).toBe(1);
         station.stop();
         done();
       }, WAIT_TIME);
@@ -220,13 +220,13 @@ describe('mail station', function() {
       let callbackCount = 0;
       let eventCount = 0;
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       station.addServer(server);
 
       station.on('error', function(err) {
-        should.exist(err);
-        (1).should.equal(1);
+        expect(err);
+        (1)).toBe(1);
         eventCount++;
       });
 
@@ -235,16 +235,16 @@ describe('mail station', function() {
       const tracer = new Tracer(null, false);
 
       station.start(function(err) {
-        should.exist(station);
+        expect(station);
         station.dispatch(tracer, serverId, msg, null, function(err) {
-          should.exist(err);
-          'rpc failed with error code: 3'.should.equal(err.message);
+          expect(err);
+          'rpc failed with error code: 3').toBe(err.message);
           callbackCount++;
         });
       });
       setTimeout(function() {
-        eventCount.should.equal(1);
-        callbackCount.should.equal(1);
+        eventCount).toBe(1);
+        callbackCount).toBe(1);
         station.stop();
         done();
       }, WAIT_TIME * 3);
@@ -259,7 +259,7 @@ describe('mail station', function() {
       const orgMsg = msg;
       const orgOpts = { something: 'hello' };
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (let i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
@@ -269,41 +269,41 @@ describe('mail station', function() {
 
       station.start(function(err) {
         station.before(function(fsid, fmsg, fopts, next) {
-          preFilterCount.should.equal(0);
-          afterFilterCount.should.equal(0);
-          fsid.should.equal(sid);
-          fmsg.should.equal(msg);
-          fopts.should.equal(orgOpts);
+          preFilterCount).toBe(0);
+          afterFilterCount).toBe(0);
+          fsid).toBe(sid);
+          fmsg).toBe(msg);
+          fopts).toBe(orgOpts);
           preFilterCount++;
           next(fsid, fmsg, fopts);
         });
 
         station.before(function(fsid, fmsg, fopts, next) {
-          preFilterCount.should.equal(1);
-          afterFilterCount.should.equal(0);
-          fsid.should.equal(sid);
-          fmsg.should.equal(msg);
-          fopts.should.equal(orgOpts);
+          preFilterCount).toBe(1);
+          afterFilterCount).toBe(0);
+          fsid).toBe(sid);
+          fmsg).toBe(msg);
+          fopts).toBe(orgOpts);
           preFilterCount++;
           next(fsid, fmsg, fopts);
         });
 
         station.after(function(fsid, fmsg, fopts, next) {
-          preFilterCount.should.equal(2);
-          afterFilterCount.should.equal(0);
-          fsid.should.equal(sid);
-          fmsg.should.equal(msg);
-          fopts.should.equal(orgOpts);
+          preFilterCount).toBe(2);
+          afterFilterCount).toBe(0);
+          fsid).toBe(sid);
+          fmsg).toBe(msg);
+          fopts).toBe(orgOpts);
           afterFilterCount++;
           next(fsid, fmsg, fopts);
         });
 
         station.after(function(fsid, fmsg, fopts, next) {
-          preFilterCount.should.equal(2);
-          afterFilterCount.should.equal(1);
-          fsid.should.equal(sid);
-          fmsg.should.equal(msg);
-          fopts.should.equal(orgOpts);
+          preFilterCount).toBe(2);
+          afterFilterCount).toBe(1);
+          fsid).toBe(sid);
+          fmsg).toBe(msg);
+          fopts).toBe(orgOpts);
           afterFilterCount++;
           next(fsid, fmsg, fopts);
         });
@@ -312,8 +312,8 @@ describe('mail station', function() {
       });
 
       setTimeout(function() {
-        preFilterCount.should.equal(2);
-        afterFilterCount.should.equal(2);
+        preFilterCount).toBe(2);
+        afterFilterCount).toBe(2);
         station.stop();
         done();
       }, WAIT_TIME);
@@ -334,7 +334,7 @@ describe('mail station', function() {
       remoteIds.sort();
 
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
@@ -342,8 +342,8 @@ describe('mail station', function() {
 
       const func = function(id) {
         return function(err, remoteId) {
-          should.exist(remoteId);
-          remoteId.should.equal(id);
+          expect(remoteId);
+          remoteId).toBe(id);
         };
       };
 
@@ -366,7 +366,7 @@ describe('mail station', function() {
       setTimeout(function() {
         station.stop(true);
         setTimeout(function() {
-          closeEventCount.should.equal(remoteIds.length);
+          closeEventCount).toBe(remoteIds.length);
           mailboxIds.sort();
           mailboxIds.should.eql(remoteIds);
           done();
@@ -379,14 +379,14 @@ describe('mail station', function() {
       let i, l;
 
       const station = MailStation.create();
-      should.exist(station);
+      expect(station);
 
       for (i = 0, l = serverList.length; i < l; i++) {
         station.addServer(serverList[i]);
       }
 
       const func = function(err, remoteId, attach) {
-        should.exist(err);
+        expect(err);
         errorEventCount++;
       };
 
@@ -403,7 +403,7 @@ describe('mail station', function() {
         }
       });
       setTimeout(function() {
-        errorEventCount.should.equal(serverList.length);
+        errorEventCount).toBe(serverList.length);
         done();
       }, WAIT_TIME);
     });

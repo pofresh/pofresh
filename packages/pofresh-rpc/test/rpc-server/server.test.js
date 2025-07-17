@@ -1,5 +1,5 @@
-const Server = require('../../').server;
-const should = require('should');
+import { describe, it, expect } from 'vitest';
+import { server as Server } from '../../index.js';
 
 const WAIT_TIME = 100;
 
@@ -10,9 +10,9 @@ const paths = [
 
 const port = 3333;
 
-describe('server', function() {
-  describe('#create', function() {
-    it('should create gateway by providing port and paths parameters', function(done) {
+describe('server', () => {
+  describe('#create', () => {
+    it('should create gateway by providing port and paths parameters', (done) => {
       const opts = {
         paths: paths,
         port: port
@@ -22,7 +22,7 @@ describe('server', function() {
       let closeCount = 0;
       const gateway = Server.create(opts);
 
-      expect(gateway);
+      expect(gateway).toBeDefined();
       gateway.on('error', err => {
         errorCount++;
       });
@@ -34,13 +34,13 @@ describe('server', function() {
       gateway.stop();
 
       setTimeout(() => {
-        errorCount.should.be.exactly(0);
-        closeCount.should.be.exactly(1);
+        expect(errorCount).toBe(0);
+        expect(closeCount).toBe(1);
         done();
       }, WAIT_TIME);
     });
 
-    it('should change the default acceptor by pass the acceptorFactory to the create function', function(done) {
+    it('should change the default acceptor by pass the acceptorFactory to the create function', (done) => {
       const oport = 3333;
       let constructCount = 0,
         listenCount = 0,
@@ -52,7 +52,7 @@ describe('server', function() {
         }
 
         listen(port) {
-          oport.should.be.exactly(port);
+          expect(port).toBe(oport);
           listenCount++;
         }
 
@@ -79,15 +79,15 @@ describe('server', function() {
 
       const gateway = Server.create(opts);
 
-      expect(gateway);
+      expect(gateway).toBeDefined();
 
       gateway.start();
       gateway.stop();
 
       setTimeout(() => {
-        constructCount.should.be.exactly(1);
-        listenCount.should.be.exactly(1);
-        closeCount.should.be.exactly(1);
+        expect(constructCount).toBe(1);
+        expect(listenCount).toBe(1);
+        expect(closeCount).toBe(1);
         done();
       }, WAIT_TIME);
     });

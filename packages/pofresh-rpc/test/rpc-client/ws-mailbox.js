@@ -56,7 +56,7 @@ describe('ws mailbox test', function() {
   describe('#create', function() {
     it('should be ok for creating a mailbox and connect to the right remote server', function(done) {
       const mailbox = Mailbox.create(server);
-      should.exist(mailbox);
+      expect(mailbox);
       mailbox.connect(tracer, function(err) {
         should.not.exist(err);
         mailbox.close();
@@ -72,9 +72,9 @@ describe('ws mailbox test', function() {
       };
 
       const mailbox = Mailbox.create(server);
-      should.exist(mailbox);
+      expect(mailbox);
       mailbox.connect(tracer, function(err) {
-        should.exist(err);
+        expect(err);
         done();
       });
     }).timeout(5000);
@@ -86,8 +86,8 @@ describe('ws mailbox test', function() {
       mailbox.connect(tracer, function(err) {
         should.not.exist(err);
         mailbox.send(tracer, msg, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(msg.args[0] + 1);
+          expect(res);
+          res[1]).toBe(msg.args[0] + 1);
           mailbox.close();
           done();
         });
@@ -124,26 +124,26 @@ describe('ws mailbox test', function() {
         should.not.exist(err);
 
         mailbox.send(tracer, msg1, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 1);
+          expect(res);
+          res[1]).toBe(value + 1);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg2, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 2);
+          expect(res);
+          res[1]).toBe(value + 2);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg3, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 3);
+          expect(res);
+          res[1]).toBe(value + 3);
           callbackCount++;
         });
       });
 
       setTimeout(function() {
-        callbackCount.should.equal(3);
+        callbackCount).toBe(3);
         if (mailbox) {
           mailbox.close();
         }
@@ -181,26 +181,26 @@ describe('ws mailbox test', function() {
         should.not.exist(err);
 
         mailbox.send(tracer, msg1, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 1);
+          expect(res);
+          res[1]).toBe(value + 1);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg2, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 2);
+          expect(res);
+          res[1]).toBe(value + 2);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg3, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 3);
+          expect(res);
+          res[1]).toBe(value + 3);
           callbackCount++;
         });
       });
 
       setTimeout(function() {
-        callbackCount.should.equal(3);
+        callbackCount).toBe(3);
         if (mailbox) {
           mailbox.close();
         }
@@ -247,26 +247,26 @@ describe('ws mailbox test', function() {
         should.not.exist(err);
 
         mailbox.send(tracer, msg1, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 1);
+          expect(res);
+          res[1]).toBe(value + 1);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg2, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 2);
+          expect(res);
+          res[1]).toBe(value + 2);
           callbackCount++;
         });
 
         mailbox.send(tracer, msg3, null, function(tracer, err, res) {
-          should.exist(res);
-          res[1].should.equal(value + 3);
+          expect(res);
+          res[1]).toBe(value + 3);
           callbackCount++;
         });
       });
 
       setTimeout(function() {
-        callbackCount.should.equal(3);
+        callbackCount).toBe(3);
         if (mailbox) {
           mailbox.close();
         }
@@ -292,7 +292,7 @@ describe('ws mailbox test', function() {
       });
 
       setTimeout(function() {
-        closeEventCount.should.equal(1);
+        closeEventCount).toBe(1);
         done();
       }, WAIT_TIME);
     });
@@ -303,7 +303,7 @@ describe('ws mailbox test', function() {
         should.not.exist(err);
         mailbox.close();
         mailbox.send(tracer, msg, null, function(tracer, err) {
-          should.exist(err);
+          expect(err);
           done();
         });
       });

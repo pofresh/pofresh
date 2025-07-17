@@ -32,17 +32,17 @@ describe('router', function() {
       let firstRoute, secondRoute;
 
       route(session, msg, servers, function(err, sid) {
-        should.exist(sid);
+        expect(sid);
         firstRoute = sid;
       });
 
       route(session, msg, servers, function(err, sid) {
-        should.exist(sid);
+        expect(sid);
         secondRoute = sid;
       });
 
       setTimeout(function() {
-        firstRoute.should.equal(secondRoute);
+        firstRoute).toBe(secondRoute);
         done();
       }, WAIT_TIME);
     });
@@ -56,7 +56,7 @@ describe('router', function() {
       };
 
       route(session, invalidMsg, servers, function(err, sid) {
-        should.exist(err);
+        expect(err);
         done();
       });
     });
@@ -64,7 +64,7 @@ describe('router', function() {
     it('should be ok when session or session.uid is null', function(done) {
       let okCount = 0;
       route(null, msg, servers, function(err, sid) {
-        should.exist(sid);
+        expect(sid);
         okCount++;
       });
 
@@ -73,12 +73,12 @@ describe('router', function() {
       };
 
       route(session, msg, servers, function(err, sid) {
-        should.exist(sid);
+        expect(sid);
         okCount++;
       });
 
       setTimeout(function() {
-        okCount.should.equal(2);
+        okCount).toBe(2);
         done();
       }, WAIT_TIME);
     });

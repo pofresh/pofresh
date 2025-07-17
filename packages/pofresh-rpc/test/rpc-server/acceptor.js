@@ -25,7 +25,7 @@ describe('acceptor', function() {
       let closeCount = 0;
       const acceptor = Acceptor.create(null, function(tracer, msg, cb) {});
 
-      should.exist(acceptor);
+      expect(acceptor);
       acceptor.on('error', function() {
         errorCount++;
       });
@@ -37,8 +37,8 @@ describe('acceptor', function() {
       acceptor.close();
 
       setTimeout(function() {
-        errorCount.should.equal(0);
-        closeCount.should.equal(1);
+        errorCount).toBe(0);
+        closeCount).toBe(1);
         done();
       }, WAIT_TIME);
     });
@@ -51,9 +51,9 @@ describe('acceptor', function() {
     //     let acceptor = Acceptor.create(null, function (tracer, msg, cb) {
     //     });
     //
-    //     should.exist(acceptor);
+    //     expect(acceptor);
     //     acceptor.on('error', function (err) {
-    //         should.exist(err);
+    //         expect(err);
     //         errorCount++;
     //     });
     //
@@ -61,7 +61,7 @@ describe('acceptor', function() {
     //     acceptor.listen(80);
     //
     //     setTimeout(function () {
-    //         errorCount.should.equal(1);
+    //         errorCount).toBe(1);
     //         acceptor.close();
     //         acceptor80.close();
     //         done();
@@ -85,7 +85,7 @@ describe('acceptor', function() {
         cb(null, msg);
       });
 
-      should.exist(acceptor);
+      expect(acceptor);
       acceptor.listen(port);
 
       const client = Client.create(server);
@@ -97,8 +97,8 @@ describe('acceptor', function() {
       });
 
       setTimeout(function() {
-        callbackCount.should.equal(1);
-        clientCallbackCount.should.equal(1);
+        callbackCount).toBe(1);
+        clientCallbackCount).toBe(1);
         client.close();
         acceptor.close();
         done();
@@ -123,7 +123,7 @@ describe('acceptor', function() {
         callbackCount++;
         cb(null, msg);
       });
-      should.exist(acceptor);
+      expect(acceptor);
       acceptor.listen(port);
 
       const client = Client.create(server);
@@ -139,8 +139,8 @@ describe('acceptor', function() {
       });
 
       setTimeout(function() {
-        callbackCount.should.equal(2);
-        clientCallbackCount.should.equal(2);
+        callbackCount).toBe(2);
+        clientCallbackCount).toBe(2);
         client.close();
         acceptor.close();
         done();

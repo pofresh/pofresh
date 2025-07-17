@@ -39,22 +39,22 @@ describe('dispatcher', function() {
     const msg1 = { namespace: namespace1, service: serviceStr1, method: methodStr, args: [value] };
     dispatcher.route(tracer, msg1, function(err, result) {
       should.not.exist(err);
-      should.exist(result);
-      result.should.equal(value + 1);
+      expect(result);
+      result).toBe(value + 1);
       callbackCount++;
     });
 
     const msg2 = { namespace: namespace2, service: serviceStr2, method: methodStr, args: [value] };
     dispatcher.route(tracer, msg2, function(err, result) {
       should.not.exist(err);
-      should.exist(result);
-      result.should.equal(value + 2);
+      expect(result);
+      result).toBe(value + 2);
       callbackCount++;
     });
 
     //wait for all finished
     setTimeout(function() {
-      callbackCount.should.equal(2);
+      callbackCount).toBe(2);
       done();
     }, WAIT_TIME);
   });
@@ -70,21 +70,21 @@ describe('dispatcher', function() {
 
     const msg1 = { namespace: namespace, service: serviceStr1, method: methodStr1, args: [value] };
     dispatcher.route(tracer, msg1, function(err, result) {
-      should.exist(err);
+      expect(err);
       should.not.exist(result);
       callbackCount++;
     });
 
     const msg2 = { namespace: namespace, service: serviceStr2, method: methodStr2, args: [value] };
     dispatcher.route(tracer, msg2, function(err, result) {
-      should.exist(err);
+      expect(err);
       should.not.exist(result);
       callbackCount++;
     });
 
     //wait for all finished
     setTimeout(function() {
-      callbackCount.should.equal(2);
+      callbackCount).toBe(2);
       done();
     }, WAIT_TIME);
   });

@@ -42,7 +42,7 @@ describe('proxy', function() {
         proxyCB: cb
       });
       proxy.add(1);
-      callbackCount.should.equal(1);
+      callbackCount).toBe(1);
     });
 
     it('should invoke the origin function if the proxy function not set', function() {
@@ -53,7 +53,7 @@ describe('proxy', function() {
         origin: a
       });
       proxy.add(1);
-      a.value.should.equal(value + 1);
+      a.value).toBe(value + 1);
     });
 
     it('should invoke the origin function if the invoke callback had been called in proxy function', function() {
@@ -82,9 +82,9 @@ describe('proxy', function() {
       console.log('callbackCount', callbackCount);
       console.log('a', a.value);
 
-      callbackCount.should.equal(1);
-      originCallCount.should.equal(1);
-      a.value.should.equal(value + 1);
+      callbackCount).toBe(1);
+      originCallCount).toBe(1);
+      a.value).toBe(value + 1);
     });
 
     // it('should not invoke the origin function if the invoke callback not called', function () {
@@ -108,9 +108,9 @@ describe('proxy', function() {
     //     });
     //     proxy.add(1);
     //
-    //     callbackCount.should.equal(1);
-    //     originCallCount.should.equal(0);
-    //     a.value.should.equal(value);
+    //     callbackCount).toBe(1);
+    //     originCallCount).toBe(0);
+    //     a.value).toBe(value);
     // });
     //
     // it('should flush the operation result on fields to the origin object', function () {
@@ -123,8 +123,8 @@ describe('proxy', function() {
     //
     //     proxy.value++;
     //
-    //     proxy.value.should.equal(value + 1);
-    //     a.value.should.equal(value + 1);
+    //     proxy.value).toBe(value + 1);
+    //     a.value).toBe(value + 1);
     // });
     //
     // it('should be ok if create proxies for two objects that references each other', function () {
@@ -152,9 +152,9 @@ describe('proxy', function() {
     //     proxyA.addB();
     //     proxyB.addA();
     //
-    //     callbackCount.should.equal(2);
-    //     a.value.should.equal(valueA + 1);
-    //     b.value.should.equal(valueB + 1);
+    //     callbackCount).toBe(2);
+    //     a.value).toBe(valueA + 1);
+    //     b.value).toBe(valueB + 1);
     // });
     //
     // it('should not proxy the internal invoking', function () {
@@ -173,8 +173,8 @@ describe('proxy', function() {
     //     });
     //     proxy.addInternal(1);
     //
-    //     callbackCount.should.equal(1);
-    //     a.value.should.equal(value + 1);
+    //     callbackCount).toBe(1);
+    //     a.value).toBe(value + 1);
     // });
     //
     // it('should has the same class info with origin object', function () {
@@ -193,8 +193,8 @@ describe('proxy', function() {
     //
     //     var cb = function (namespace, method, args, attach, invoke) {
     //         callbackCount++;
-    //         should.exist(attach);
-    //         attach.should.equal(expectAttach);
+    //         expect(attach);
+    //         attach).toBe(expectAttach);
     //     };
     //     var a = new A(1);
     //
@@ -205,7 +205,7 @@ describe('proxy', function() {
     //     });
     //     proxy.addInternal(1);
     //
-    //     callbackCount.should.equal(1);
+    //     callbackCount).toBe(1);
     // });
   });
 });

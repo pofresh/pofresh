@@ -60,7 +60,7 @@ describe('client', function() {
     it('should be ok for creating client with an empty opts', function(done) {
       const client = Client.create();
 
-      should.exist(client);
+      expect(client);
 
       client.start(function(err) {
         should.not.exist(err);
@@ -72,7 +72,7 @@ describe('client', function() {
     it('should add proxy instances by addProxies method', function() {
       const client = Client.create();
 
-      should.exist(client);
+      expect(client);
 
       client.addProxies(records);
 
@@ -111,13 +111,13 @@ describe('client', function() {
         should.not.exist(err);
         client.proxies.sys.connector.whoAmIRemote.doService(null, function(err, sid) {
           callbackCount++;
-          serverId.should.equal(sid);
+          serverId).toBe(sid);
         });
       });
 
       setTimeout(function() {
-        routeCount.should.equal(1);
-        callbackCount.should.equal(1);
+        routeCount).toBe(1);
+        callbackCount).toBe(1);
         client.stop();
         done();
       }, WAIT_TIME);
@@ -130,7 +130,7 @@ describe('client', function() {
       client.start(function(err) {
         should.not.exist(err);
         client.start(function(err) {
-          should.exist(err);
+          expect(err);
           done();
         });
       });
@@ -150,7 +150,7 @@ describe('client', function() {
       const sid = serverList[0].id;
 
       client.rpcInvoke(sid, msg, function(err) {
-        should.exist(err);
+        expect(err);
         done();
       });
     });
@@ -167,7 +167,7 @@ describe('client', function() {
           client.stop(true);
           setTimeout(() => {
             client.rpcInvoke(sid, msg, function(err) {
-              should.exist(err);
+              expect(err);
               done();
             });
           }, WAIT_TIME);
