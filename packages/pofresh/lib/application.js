@@ -837,23 +837,23 @@ Application.addServers = function(servers) {
   }
 
   let item, slist;
-  for (let i = 0, l = servers.length; i < l; i++) {
-    item = servers[i];
+  // 使用现代数组方法优化循环
+  servers.forEach(server => {
     // update global server map
-    this.servers[item.id] = item;
+    this.servers[server.id] = server;
 
     // update global server type map
-    slist = this.serverTypeMaps[item.serverType];
+    let slist = this.serverTypeMaps[server.serverType];
     if (!slist) {
-      this.serverTypeMaps[item.serverType] = slist = [];
+      this.serverTypeMaps[server.serverType] = slist = [];
     }
-    replaceServer(slist, item);
+    replaceServer(slist, server);
 
     // update global server type list
-    if (this.serverTypes.indexOf(item.serverType) < 0) {
-      this.serverTypes.push(item.serverType);
+    if (!this.serverTypes.includes(server.serverType)) {
+      this.serverTypes.push(server.serverType);
     }
-  }
+  });
   this.event.emit(events.ADD_SERVERS, servers);
 };
 
@@ -868,21 +868,19 @@ Application.removeServers = function(ids) {
     return;
   }
 
-  let id, item, slist;
-  for (let i = 0, l = ids.length; i < l; i++) {
-    id = ids[i];
-    item = this.servers[id];
-    if (!item) {
-      continue;
-    }
+  // 使用现代数组方法优化循环
+  ids.forEach(id => {
+    const item = this.servers[id];
+    if (!item) return;
+    
     // clean global server map
     delete this.servers[id];
 
     // clean global server type map
-    slist = this.serverTypeMaps[item.serverType];
+    const slist = this.serverTypeMaps[item.serverType];
     removeServer(slist, id);
     // TODO: should remove the server type if the slist is empty?
-  }
+  });
   this.event.emit(events.REMOVE_SERVERS, ids);
 };
 
@@ -947,25 +945,20 @@ Application.removeCrons = function(crons) {
 };
 
 function replaceServer(slist, serverInfo) {
-  for (let i = 0, l = slist.length; i < l; i++) {
-    if (slist[i].id === serverInfo.id) {
-      slist[i] = serverInfo;
-      return;
-    }
+  const existingIndex = slist.findIndex(s => s.id === serverInfo.id);
+  if (existingIndex !== -1) {
+    slist[existingIndex] = serverInfo;
+  } else {
+    slist.push(serverInfo);
   }
-  slist.push(serverInfo);
 }
 
 function removeServer(slist, id) {
-  if (!slist || !slist.length) {
-    return;
-  }
-
-  for (let i = 0, l = slist.length; i < l; i++) {
-    if (slist[i].id === id) {
-      slist.splice(i, 1);
-      return;
-    }
+  if (!slist?.length) return;
+  
+  const index = slist.findIndex(s => s.id === id);
+  if (index !== -1) {
+    slist.splice(index, 1);
   }
 }
 

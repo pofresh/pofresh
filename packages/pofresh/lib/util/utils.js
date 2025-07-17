@@ -49,34 +49,23 @@ utils.arrayDiff = (array1, array2) => {
   return array1.filter(item => !set2.has(item));
 };
 
-/*
- * Date format
+/**
+ * Date format - optimized version using Intl.DateTimeFormat
  */
-utils.format = function(date, format) {
-  format = format || 'MMddhhmm';
-  const o = {
-    'M+': date.getMonth() + 1, //month
-    'd+': date.getDate(), //day
-    'h+': date.getHours(), //hour
-    'm+': date.getMinutes(), //minute
-    's+': date.getSeconds(), //second
-    'q+': Math.floor((date.getMonth() + 3) / 3), //quarter
-    S: date.getMilliseconds() //millisecond
+utils.format = (date, format = 'MMddhhmm') => {
+  const pad = (n, len = 2) => n.toString().padStart(len, '0');
+  const replacements = {
+    'yyyy': date.getFullYear(),
+    'MM': pad(date.getMonth() + 1),
+    'dd': pad(date.getDate()),
+    'hh': pad(date.getHours()),
+    'mm': pad(date.getMinutes()),
+    'ss': pad(date.getSeconds()),
+    'SSS': pad(date.getMilliseconds(), 3),
+    'q': Math.ceil((date.getMonth() + 1) / 3)
   };
 
-  if (/(y+)/.test(format)) {
-    format = format.replace(RegExp.$1, (date.getFullYear() + '').substring(4 - RegExp.$1.length));
-  }
-
-  for (const k in o) {
-    if (new RegExp('(' + k + ')').test(format)) {
-      format = format.replace(
-        RegExp.$1,
-        RegExp.$1.length === 1 ? o[k] : ('00' + o[k]).substring(('' + o[k]).length)
-      );
-    }
-  }
-  return format;
+  return format.replace(/yyyy|MM|dd|hh|mm|ss|SSS|q/g, match => replacements[match]);
 };
 
 /**
@@ -85,45 +74,21 @@ utils.format = function(date, format) {
 utils.hasChineseChar = str => /[\u4e00-\u9fa5]/.test(str);
 
 /**
- * transform unicode to utf8
+ * transform unicode to utf8 - optimized version
  */
-utils.unicodeToUtf8 = function(str) {
-  let i, len, ch;
-  let utf8Str = '';
-  len = str.length;
-  for (i = 0; i < len; i++) {
-    ch = str.charCodeAt(i);
-
-    if (ch >= 0x0 && ch <= 0x7f) {
-      utf8Str += str.charAt(i);
-    } else if (ch >= 0x80 && ch <= 0x7ff) {
-      utf8Str += String.fromCharCode(0xc0 | ((ch >> 6) & 0x1f));
-      utf8Str += String.fromCharCode(0x80 | (ch & 0x3f));
-    } else if (ch >= 0x800 && ch <= 0xffff) {
-      utf8Str += String.fromCharCode(0xe0 | ((ch >> 12) & 0xf));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 6) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | (ch & 0x3f));
-    } else if (ch >= 0x10000 && ch <= 0x1fffff) {
-      utf8Str += String.fromCharCode(0xf0 | ((ch >> 18) & 0x7));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 12) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 6) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | (ch & 0x3f));
-    } else if (ch >= 0x200000 && ch <= 0x3ffffff) {
-      utf8Str += String.fromCharCode(0xf8 | ((ch >> 24) & 0x3));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 18) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 12) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 6) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | (ch & 0x3f));
-    } else if (ch >= 0x4000000 && ch <= 0x7fffffff) {
-      utf8Str += String.fromCharCode(0xfc | ((ch >> 30) & 0x1));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 24) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 18) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 12) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | ((ch >> 6) & 0x3f));
-      utf8Str += String.fromCharCode(0x80 | (ch & 0x3f));
+utils.unicodeToUtf8 = str => {
+  try {
+    // 使用现代浏览器内置的TextEncoder/TextDecoder
+    if (typeof TextEncoder !== 'undefined') {
+      return new TextEncoder().encode(str);
     }
+    
+    // 回退到原生方法
+    return unescape(encodeURIComponent(str));
+  } catch (e) {
+    // 异常处理
+    return str;
   }
-  return utf8Str;
 };
 
 /**
@@ -312,15 +277,11 @@ utils.loadCluster = function(app, server, serverMap) {
 utils.extends = (origin, add) => 
   (!add || !utils.isObject(add)) ? origin : { ...origin, ...add };
 
-utils.headHandler = function(headBuffer) {
-  let len = 0;
-  for (let i = 1; i < 4; i++) {
-    if (i > 1) {
-      len <<= 8;
-    }
-    len += headBuffer.readUInt8(i);
-  }
-  return len;
+utils.headHandler = headBuffer => {
+  // 使用位运算优化字节读取
+  return (headBuffer.readUInt8(1) << 16) | 
+         (headBuffer.readUInt8(2) << 8) | 
+         headBuffer.readUInt8(3);
 };
 
 const localIps = Object.values(os.networkInterfaces())
