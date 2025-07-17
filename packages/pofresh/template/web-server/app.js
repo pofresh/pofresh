@@ -9,6 +9,4 @@ if ('development' === env) {
   app.use(serveStatic(__dirname + '/public', { maxAge: oneYear }));
 }
 
-app.listen(3001, function() {
-  console.log('Web server has started.\nPlease log on http://127.0.0.1:3001');
-});
+app.listen(3001);

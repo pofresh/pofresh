@@ -33,7 +33,6 @@ class Socket extends Stream {
     }
 
     // stream style interfaces.
-    // TODO: need to port to stream2 after node 0.9
     Stream.call(this);
     this.readable = true;
     this.writeable = true;

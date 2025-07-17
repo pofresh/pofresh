@@ -877,9 +877,7 @@ Application.removeServers = function(ids) {
     delete this.servers[id];
 
     // clean global server type map
-    const slist = this.serverTypeMaps[item.serverType];
-    removeServer(slist, id);
-    // TODO: should remove the server type if the slist is empty?
+    removeServer(this.serverTypeMaps[item.serverType], id);
   });
   this.event.emit(events.REMOVE_SERVERS, ids);
 };

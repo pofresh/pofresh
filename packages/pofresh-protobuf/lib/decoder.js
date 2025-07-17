@@ -34,7 +34,6 @@ function decodeMsg(msg, protos, length) {
     const type = head.type;
     const tag = head.tag;
     const name = protos.__tags[tag];
-    // console.log('name ->', offset, length, name, tag, protos[name], head);
     switch (protos[name].option) {
     case 'optional':
     case 'required':

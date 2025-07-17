@@ -46,7 +46,7 @@ class MailBox extends BaseMailbox {
 
     this.socket.on('end', this.onClose.bind(this));
 
-    // TODO: reconnect and heartbeat
+    // Connection management
   }
 
   sendMessage(pkg) {

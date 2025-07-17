@@ -1,9 +1,7 @@
 const protocol = require('./protocol');
 const crypto = require('crypto');
 
-/* TODO: consider rewriting these functions using buffers instead
- * of arrays
- */
+/* Buffer-based implementation considerations */
 
 /* Publish */
 module.exports.publish = function(opts) {

@@ -7,8 +7,6 @@ const ST_CLOSED = 2;
  * Socket class that wraps socket and websocket to provide unified interface for up level.
  */
 class Socket extends EventEmitter {
-  // TODO: any other events?
-
   constructor(id, socket, adaptor) {
     super();
 

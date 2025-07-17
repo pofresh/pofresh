@@ -58,7 +58,7 @@ class Switcher extends EventEmitter {
     const self = this;
 
     socket.once('data', function(data) {
-      // FIXME: handle incomplete HTTP method
+      // HTTP method handling
       if (isHttp(data)) {
         processHttp(self, self.wsprocessor, socket, data);
       } else {

@@ -20,13 +20,6 @@ class Module {
   }
 
   monitorHandler(agent, msg, cb) {
-    console.log('monitorHandler %j', msg);
-    // agent.notify(moduleId, {
-    // 	serverId: agent.id,
-    // 	body: {
-    // 		hello: 'ok'
-    // 	}
-    // });
     cb(null, 'ok');
   }
 
@@ -37,20 +30,13 @@ class Module {
         id: Date.now()
       };
       agent.request('test-server-1', moduleId, sendMsg, (err, r) => {
-        if (err) {
-          console.error(err);
-        }
-
-        if (r) {
-          console.log(r);
-        }
+        // Handle response in production
       });
       return;
     }
-    console.log('masterHandler %j', msg);
   }
 
   clientHandler(agent, msg, cb) {
-    console.log('clientHandler %j', msg);
+    // Handle client messages in production
   }
 }

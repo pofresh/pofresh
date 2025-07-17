@@ -8,7 +8,6 @@ const Encoder = module.exports;
 Encoder.encodeUInt32 = function(num) {
   let n = parseInt(num);
   if (isNaN(n) || n < 0) {
-    console.log(n);
     return null;
   }
 

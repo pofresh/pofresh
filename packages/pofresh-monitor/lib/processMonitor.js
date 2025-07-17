@@ -23,7 +23,6 @@ function getPsInfo(param, callback) {
   if (process.platform === 'win32') return;
   const pid = param.pid;
   const cmd = 'ps auxw | grep ' + pid + ' | grep -v \'grep\'';
-  //let cmd = "ps auxw | grep -E '.+?\\s+" + pid + "\\s+'"  ;
   exec(cmd, function(err, output) {
     if (err) {
       if (err.code === 1) {

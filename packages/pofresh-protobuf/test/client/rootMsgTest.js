@@ -16,18 +16,8 @@ describe('msgEncoderTest', function() {
     for (const route in tc) {
       const msg = tc[route];
 
-      console.log('====================');
-      console.log(route);
-
       const buffer = protobuf.encode(route, msg);
-
-      console.log(msg);
-      console.log(buffer.length);
-
       const decodeMsg = protobuf.decode(route, buffer);
-
-      console.log(decodeMsg);
-      console.log('====================');
 
       util.equal(msg, decodeMsg).should.equal(true);
     }

@@ -16,9 +16,6 @@ class GlobalChannelManager {
 
   start(cb) {
     this.redis = redis.createClient(this.port, this.host, this.opts);
-    // if (this.opts.auth_pass) {
-    //     this.redis.auth(this.opts.auth_pass);
-    // }
     this.redis.on('error', err => {
       console.error('[globalchannel-plugin][redis]' + err.stack);
     });

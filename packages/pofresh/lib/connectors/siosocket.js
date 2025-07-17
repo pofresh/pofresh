@@ -30,7 +30,6 @@ class Socket extends EventEmitter {
 
     this.state = ST_INITED;
 
-    // TODO: any other events?
   }
 
   send(msg) {

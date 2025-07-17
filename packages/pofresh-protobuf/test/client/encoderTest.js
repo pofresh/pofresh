@@ -10,7 +10,6 @@ describe('client encoder test', function() {
       const result = encoder.decodeFloat(bytes, 0);
 
       const diff = Math.abs(float - result);
-      //console.log('float : %j, result : %j, diff : %j', float, result, diff);
       diff.should.below(0.0000001);
     }
   });
@@ -39,15 +38,11 @@ describe('client encoder test', function() {
 
       const str = String.fromCharCode.apply(null, arr);
 
-      //console.log('old arr : %j', arr);
-
       const length = encoder.byteLength(str);
       const buffer = new ArrayBuffer(length);
       const bytes = new Uint8Array(buffer);
 
       const offset = encoder.encodeStr(bytes, 0, str);
-      //console.log('encode over, offset : %j, length : %j, str length : %j', offset, length, str.length);
-      //console.log(bytes);
       length.should.equal.offset;
 
       const result = encoder.decodeStr(bytes, 0, length);
@@ -55,21 +50,13 @@ describe('client encoder test', function() {
       str.length.should.equal(result.length);
       let flag = true;
       for (let m = 0; m < str.length; m++) {
-        if (str.charCodeAt(m) != result.charCodeAt(m)) {
-          console.log(
-            'error ! origin : %j, result : %j, code : %j, code 1 : %j',
-            str,
-            result,
-            str.charCodeAt(m),
-            result.charCodeAt(m)
-          );
-          console.log(arr);
+        if (str.charCodeAt(m) !== result.charCodeAt(m)) {
+          // Debug output for test failures
           flag = false;
         }
       }
 
       if (!flag) return;
-      //console.log('str : %j, bytes : %j, result : %j', str, bytes, result);
     }
   });
 
@@ -86,7 +73,6 @@ describe('client encoder test', function() {
     //let str = String.fromCharCode.apply(null, array);
     let end = Date.now();
 
-    console.log('cost time with fromCharCode method : %j, length : %j', end - start, str.length);
 
     start = Date.now();
     str = '';
@@ -95,6 +81,5 @@ describe('client encoder test', function() {
     }
     end = Date.now();
 
-    console.log('cost time by add string: %j, length : %j', end - start, str.length);
   });
 });
