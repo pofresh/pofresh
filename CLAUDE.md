@@ -43,15 +43,19 @@
 - `pnpm run lint` - 检查所有包和插件的代码质量
 - `pnpm run lint:fix` - 自动修复代码质量问题
 - `pnpm run format` - 使用 Prettier 格式化代码
-- `pnpm run test` - 运行测试 (通过 Gulp)
+- `pnpm run test` - 运行所有测试 (使用 Vitest)
+- `pnpm run test:watch` - 运行测试并监听文件变化
+- `pnpm run test:coverage` - 运行测试并生成覆盖率报告
 
 ### 安全
 - `pnpm run security:check` - 运行安全审计和代码检查
 - `pnpm run audit` - 检查易受攻击的依赖项
 
 ### 测试
-- `npm test` - 运行所有测试 (使用 gulp + mocha + nyc)
+- `pnpm test` - 运行所有测试 (使用 Vitest)
 - 测试文件位于每个包的 `/test/` 目录中
+- 使用根目录共享的 Vitest 配置，子项目无需单独安装测试依赖
+- 支持多项目工作区配置，统一管理所有包的测试
 
 ## 项目结构
 
