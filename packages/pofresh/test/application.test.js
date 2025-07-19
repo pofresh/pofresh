@@ -2,9 +2,8 @@ import path from 'path';
 import { createRequire } from 'module';
 import { expect, describe, it, afterEach, afterAll } from 'vitest';
 
-const require = createRequire(import.meta.url);
-const app = require('../lib/application.js');
-const pofresh = require('../lib/pofresh.js');
+import app from '../lib/application.js';
+import pofresh from '../lib/pofresh.js';
 
 const WAIT_TIME = 1000;
 const mockBase = path.join(process.cwd(), 'test');
