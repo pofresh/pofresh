@@ -1,0 +1,47 @@
+{
+  "onMove": {
+    "entityId": {
+      "option": "required",
+      "type": "uInt32",
+      "tag": 1
+    },
+    "path": {
+      "option": "repeated",
+      "type": "Path",
+      "tag": 2
+    },
+    "speed": {
+      "option": "required",
+      "type": "float",
+      "tag": 3
+    },
+    "__messages": {
+      "Path": {
+        "x": {
+          "option": "required",
+          "type": "double",
+          "tag": 1
+        },
+        "y": {
+          "option": "required",
+          "type": "double",
+          "tag": 2
+        },
+        "__messages": {},
+        "__tags": {
+          "1": "x",
+          "2": "y"
+        }
+      }
+    },
+    "__tags": {
+      "1": "entityId",
+      "2": "path",
+      "3": "speed"
+    }
+  },
+  "area.playerHandler.enterScene": {
+    "__messages": {},
+    "__tags": {}
+  }
+}
