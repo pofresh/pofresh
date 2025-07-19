@@ -8,6 +8,12 @@
       "name": "gitig"
     }
   ],
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
+  },
   "dependencies": {
     "pofresh-logger": "^2.0.3",
     "redis": "^4.6.7"

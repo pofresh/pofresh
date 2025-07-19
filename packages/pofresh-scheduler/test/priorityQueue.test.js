@@ -1,4 +1,4 @@
-const PriorityQueue = require('../lib/priorityQueue');
+import PriorityQueue from '../lib/priorityQueue.js';
 
 describe('PriorityQueue', () => {
   describe('createPriorityQueue', () => {

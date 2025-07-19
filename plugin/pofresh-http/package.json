@@ -27,6 +27,12 @@
   ],
   "author": "ljhsai",
   "license": "MIT",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
+  },
   "dependencies": {
     "assert": "^2.0.0",
     "body-parser": "^1.20.1",

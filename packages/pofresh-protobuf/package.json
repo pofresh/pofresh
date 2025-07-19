@@ -2,6 +2,12 @@
   "name": "pofresh-protobuf",
   "version": "2.0.0",
   "main": "./lib/protobuf",
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest --run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage"
+  },
   "dependencies": {},
   "author": {
     "name": "luson",

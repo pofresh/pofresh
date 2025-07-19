@@ -1,5 +1,5 @@
-const cronTrigger = require('../lib/cronTrigger');
-const decoder = require('../lib/cronTriggerDecoder');
+import cronTrigger from '../lib/cronTrigger.js';
+import decoder from '../lib/cronTriggerDecoder.js';
 
 const SECOND = 0;
 const MIN = 1;

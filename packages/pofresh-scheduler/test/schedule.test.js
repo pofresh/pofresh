@@ -1,5 +1,6 @@
-const schedule = require('../lib/schedule');
-const cronTrigger = require('../lib/cronTrigger');
+import { vi } from 'vitest';
+import schedule from '../lib/schedule.js';
+import cronTrigger from '../lib/cronTrigger.js';
 
 describe('Schedule', () => {
   let jobId;
@@ -28,7 +29,7 @@ describe('Schedule', () => {
         expect(jobId).toBeDefined();
         expect(typeof jobId).toBe('number');
       });
-    });
+    }, 5000); // Add 5 second timeout
 
     test('should schedule periodic job', () => {
       return new Promise((resolve) => {
@@ -45,7 +46,7 @@ describe('Schedule', () => {
           }
         });
       });
-    });
+    }, 5000);
 
     test('should schedule cron job', () => {
       return new Promise((resolve) => {
@@ -59,7 +60,7 @@ describe('Schedule', () => {
         
         expect(jobId).toBeDefined();
       });
-    });
+    }, 5000);
 
     test('should pass data to job function', () => {
       return new Promise((resolve) => {
@@ -70,7 +71,7 @@ describe('Schedule', () => {
           resolve();
         }, testData);
       });
-    });
+    }, 5000);
 
     test('should throw error for invalid cron expression', () => {
       expect(() => {
@@ -93,7 +94,7 @@ describe('Schedule', () => {
           resolve();
         }, 300);
       });
-    });
+    }, 5000);
 
     test('should throw error for non-existent job', () => {
       expect(() => {
@@ -125,6 +126,6 @@ describe('Schedule', () => {
           expect(typeof id).toBe('number');
         });
       });
-    });
+    }, 5000);
   });
 });

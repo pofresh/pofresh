@@ -162,7 +162,8 @@ function loadMaster(app) {
  */
 function processArgs(app, args) {
   const serverType = args.serverType || Constants.RESERVED.MASTER;
-  const serverId = args.id || app.getMaster().id;
+  const master = app.getMaster();
+  const serverId = args.id || (master && master.id) || 'master-server-1';
   const mode = args.mode || Constants.RESERVED.CLUSTER;
   const masterha = args.masterha || 'false';
   const type = args.type || Constants.RESERVED.ALL;

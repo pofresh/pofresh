@@ -23,10 +23,10 @@ export default defineConfig({
         '**/templates/**'
       ]
     },
-    // RPC包需要更长的超时时间，因为涉及网络通信和连接建立
+    // 主框架包需要更长的超时时间，因为有复杂的应用启动和关闭流程
     testTimeout: 15000,
     hookTimeout: 15000,
-    // 使用独立进程运行测试，避免网络连接冲突
+    // 允许测试文件中的process.exit调用
     pool: 'forks',
     poolOptions: {
       forks: {

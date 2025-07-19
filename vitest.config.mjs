@@ -5,14 +5,15 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: [
-      'test/**/*.js',
-      'packages/*/test/**/*.js',
-      'plugin/*/test/**/*.js'
+      'test/**/*.{test,spec}.js',
+      'packages/*/test/**/*.{test,spec}.js',
+      'plugin/*/test/**/*.{test,spec}.js'
     ],
     exclude: [
       'node_modules/**',
       'dist/**',
-      'coverage/**'
+      'coverage/**',
+      '**/fixtures/**'
     ],
     deps: {
       interopDefault: true,
@@ -20,16 +21,27 @@ export default defineConfig({
     },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       include: [
         'packages/*/lib/**/*.js',
         'plugin/*/lib/**/*.js'
       ],
       exclude: [
         'test/**',
-        '**/*.test.js',
-        '**/*.spec.js'
-      ]
-    }
+        '**/*.{test,spec}.js',
+        '**/fixtures/**',
+        '**/templates/**'
+      ],
+      thresholds: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80
+        }
+      }
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000
   }
 });

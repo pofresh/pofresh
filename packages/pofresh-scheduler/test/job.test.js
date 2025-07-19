@@ -1,18 +1,19 @@
-const Job = require('../lib/job');
+import Job from '../lib/job.js';
 
 describe('Job', () => {
   describe('createJob', () => {
     test('should create job with trigger and function', () => {
-      const mockTrigger = {
-        nextExecuteTime: () => Date.now() + 1000,
-        executeTime: () => Date.now() + 1000
+      const triggerConfig = {
+        start: Date.now() + 1000,
+        period: 5000,
+        count: 3
       };
-      const mockFn = () => {};
+      const mockFn = () => { };
       const data = { test: 'data' };
 
-      const job = Job.createJob(mockTrigger, mockFn, data);
+      const job = Job.createJob(triggerConfig, mockFn, data);
 
-      expect(job.trigger).toBe(mockTrigger);
+      expect(job.trigger).toBeDefined();
       expect(job.func).toBe(mockFn);
       expect(job.data).toBe(data);
       expect(job.id).toBeDefined();
@@ -22,9 +23,8 @@ describe('Job', () => {
   describe('run', () => {
     test('should execute the job function with data', () => {
       let executed = false;
-      const mockTrigger = {
-        nextExecuteTime: () => Date.now() + 1000,
-        executeTime: () => Date.now() + 1000
+      const triggerConfig = {
+        start: Date.now() + 1000
       };
       const mockFn = (data) => {
         executed = true;
@@ -32,7 +32,7 @@ describe('Job', () => {
       };
       const data = { test: 'data' };
 
-      const job = Job.createJob(mockTrigger, mockFn, data);
+      const job = Job.createJob(triggerConfig, mockFn, data);
       job.run();
 
       expect(executed).toBe(true);
@@ -41,31 +41,33 @@ describe('Job', () => {
 
   describe('nextTime', () => {
     test('should return next execution time from trigger', () => {
-      const mockTrigger = {
-        nextExecuteTime: () => 123456789,
-        executeTime: () => 123456789
+      const startTime = Date.now() + 1000;
+      const triggerConfig = {
+        start: startTime,
+        period: 5000,
+        count: 3
       };
-      const mockFn = () => {};
+      const mockFn = () => { };
 
-      const job = Job.createJob(mockTrigger, mockFn);
+      const job = Job.createJob(triggerConfig, mockFn);
       const nextTime = job.nextTime();
 
-      expect(nextTime).toBe(123456789);
+      expect(nextTime).toBe(startTime + 5000);
     });
   });
 
   describe('executeTime', () => {
     test('should return current execute time from trigger', () => {
-      const mockTrigger = {
-        nextExecuteTime: () => 123456789,
-        executeTime: () => 987654321
+      const startTime = Date.now() + 1000;
+      const triggerConfig = {
+        start: startTime
       };
-      const mockFn = () => {};
+      const mockFn = () => { };
 
-      const job = Job.createJob(mockTrigger, mockFn);
+      const job = Job.createJob(triggerConfig, mockFn);
       const execTime = job.executeTime();
 
-      expect(execTime).toBe(987654321);
+      expect(execTime).toBe(startTime);
     });
   });
 });

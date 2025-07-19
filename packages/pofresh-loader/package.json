@@ -1,6 +1,12 @@
 {
 	"name": "pofresh-loader",
 	"version": "2.0.1",
+	"scripts": {
+		"test": "vitest",
+		"test:run": "vitest --run",
+		"test:watch": "vitest --watch",
+		"test:coverage": "vitest --coverage"
+	},
 	"dependencies": {},
 	"devDependencies": {
 		"mocha": ">=10.7.3",
