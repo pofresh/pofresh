@@ -1,5 +1,4 @@
 import path from 'path';
-import { createRequire } from 'module';
 import { expect, describe, it, afterEach, afterAll } from 'vitest';
 
 import app from '../lib/application.js';
@@ -86,7 +85,7 @@ describe('application test', function() {
 
       app.init({ base: mockBase });
       app.load(mockComponent);
-      
+
       await new Promise((resolve, reject) => {
         app.start(function(err) {
           if (err) {
@@ -99,7 +98,7 @@ describe('application test', function() {
 
       // wait for after start
       await new Promise(resolve => setTimeout(resolve, WAIT_TIME));
-      
+
       await new Promise(resolve => {
         app.stop(false);
         setTimeout(resolve, WAIT_TIME);

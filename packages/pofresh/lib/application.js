@@ -21,7 +21,7 @@ const appManager = require('./common/manager/appManager');
  *
  * @module
  */
-const Application = (module.exports = {});
+const Application = {};
 
 /**
  * Application states
@@ -991,3 +991,5 @@ function addFilter(app, type, filter) {
   }
   filters.push(filter);
 }
+
+module.exports = Application;
