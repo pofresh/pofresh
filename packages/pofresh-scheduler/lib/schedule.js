@@ -80,7 +80,7 @@ function executeJob() {
 
     const nextTime = job.nextTime();
 
-    if (nextTime === null) {
+    if (!nextTime) {
       delete map[job.id];
     } else {
       queue.offer({ id: job.id, time: nextTime });
