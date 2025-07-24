@@ -1,9 +1,14 @@
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
 import schedule from '../lib/schedule.js';
 import cronTrigger from '../lib/cronTrigger.js';
 
 describe('Schedule', () => {
   let jobId;
+
+  beforeEach(() => {
+    // 使用模拟时间
+    vi.useFakeTimers();
+  });
 
   afterEach(() => {
     if (jobId) {
@@ -13,88 +18,101 @@ describe('Schedule', () => {
         // Ignore cleanup errors
       }
     }
+    // 恢复真实时间
+    vi.useRealTimers();
   });
 
   describe('scheduleJob', () => {
-    test('should schedule simple job with delay', () => {
-      return new Promise((resolve) => {
-        const startTime = Date.now();
-        const delay = 100;
-        
-        jobId = schedule.scheduleJob({ start: Date.now() + delay }, (data) => {
-          expect(Date.now() - startTime).toBeGreaterThanOrEqual(delay);
-          resolve();
-        });
-        
-        expect(jobId).toBeDefined();
-        expect(typeof jobId).toBe('number');
-      });
-    }, 5000); // Add 5 second timeout
+    test('should schedule simple job with delay', async () => {
+      const mockJob = vi.fn();
+      const delay = 100;
 
-    test('should schedule periodic job', () => {
-      return new Promise((resolve) => {
-        const startTime = Date.now();
-        const period = 50;
-        const count = 3;
-        let executions = 0;
-        
-        jobId = schedule.scheduleJob({ start: Date.now(), period, count }, (data) => {
-          executions++;
-          if (executions === count) {
-            expect(executions).toBe(count);
-            resolve();
-          }
-        });
-      });
-    }, 5000);
+      jobId = schedule.scheduleJob({ start: Date.now() + delay }, mockJob);
 
-    test('should schedule cron job', () => {
-      return new Promise((resolve) => {
-        // Schedule for next second
-        const date = new Date(Date.now() + 1100);
-        const cronExpr = `${date.getSeconds()} ${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${date.getMonth()} ${date.getDay()}`;
-        
-        jobId = schedule.scheduleJob(cronExpr, (data) => {
-          resolve();
-        });
-        
-        expect(jobId).toBeDefined();
-      });
-    }, 5000);
+      expect(jobId).toBeDefined();
+      expect(typeof jobId).toBe('number');
+      expect(mockJob).not.toHaveBeenCalled();
 
-    test('should pass data to job function', () => {
-      return new Promise((resolve) => {
-        const testData = { message: 'test', value: 42 };
-        
-        jobId = schedule.scheduleJob({ start: Date.now() + 50 }, (data) => {
-          expect(data).toEqual(testData);
-          resolve();
-        }, testData);
-      });
-    }, 5000);
+      // 快进时间到延迟时间
+      await vi.advanceTimersByTimeAsync(delay);
+
+      expect(mockJob).toHaveBeenCalledOnce();
+    });
+
+    test('should schedule periodic job', async () => {
+      const mockJob = vi.fn();
+      const period = 50;
+      const count = 3;
+
+      jobId = schedule.scheduleJob({ start: Date.now(), period, count }, mockJob);
+
+      // 验证初始状态
+      expect(mockJob).not.toHaveBeenCalled();
+
+      // 快进时间，验证每次执行
+      for (let i = 1; i <= count; i++) {
+        await vi.advanceTimersByTimeAsync(period);
+        expect(mockJob).toHaveBeenCalledTimes(i);
+      }
+
+      // 再次快进，确保不会再执行
+      await vi.advanceTimersByTimeAsync(period);
+      expect(mockJob).toHaveBeenCalledTimes(count);
+    });
+
+    test('should schedule cron job', async () => {
+      const mockJob = vi.fn();
+
+      // 设置一个固定的时间点进行测试
+      const baseTime = new Date('2024-01-01 12:00:00');
+      vi.setSystemTime(baseTime);
+
+      // 创建一个在下一分钟执行的 cron 表达式
+      const nextMinute = new Date(baseTime.getTime() + 60000);
+      const cronExpr = `0 ${nextMinute.getMinutes()} ${nextMinute.getHours()} ${nextMinute.getDate()} ${nextMinute.getMonth()} *`;
+
+      jobId = schedule.scheduleJob(cronExpr, mockJob);
+
+      expect(jobId).toBeDefined();
+      expect(mockJob).not.toHaveBeenCalled();
+
+      // 快进到下一分钟
+      await vi.advanceTimersByTimeAsync(60000);
+
+      expect(mockJob).toHaveBeenCalledOnce();
+    });
+
+    test('should pass data to job function', async () => {
+      const testData = { message: 'test', value: 42 };
+      const mockJob = vi.fn();
+
+      jobId = schedule.scheduleJob({ start: Date.now() + 50 }, mockJob, testData);
+
+      await vi.advanceTimersByTimeAsync(50);
+
+      expect(mockJob).toHaveBeenCalledOnce();
+      expect(mockJob).toHaveBeenCalledWith(testData);
+    });
 
     test('should throw error for invalid cron expression', () => {
       expect(() => {
-        schedule.scheduleJob('invalid cron', () => {});
+        schedule.scheduleJob('invalid cron', () => { });
       }).toThrow();
     });
   });
 
   describe('cancelJob', () => {
-    test('should cancel scheduled job', () => {
-      return new Promise((resolve, reject) => {
-        const mockJob = vi.fn();
-        
-        jobId = schedule.scheduleJob({ start: Date.now() + 200 }, mockJob);
-        schedule.cancelJob(jobId);
-        
-        // Wait to ensure job doesn't run
-        setTimeout(() => {
-          expect(mockJob).not.toHaveBeenCalled();
-          resolve();
-        }, 300);
-      });
-    }, 5000);
+    test('should cancel scheduled job', async () => {
+      const mockJob = vi.fn();
+
+      jobId = schedule.scheduleJob({ start: Date.now() + 200 }, mockJob);
+      schedule.cancelJob(jobId);
+
+      // 快进时间，确保任务不会执行
+      await vi.advanceTimersByTimeAsync(300);
+
+      expect(mockJob).not.toHaveBeenCalled();
+    });
 
     test('should throw error for non-existent job', () => {
       expect(() => {
@@ -104,28 +122,37 @@ describe('Schedule', () => {
   });
 
   describe('job management', () => {
-    test('should handle multiple jobs', () => {
-      return new Promise((resolve) => {
-        let completedJobs = 0;
-        const totalJobs = 3;
-        const jobIds = [];
-        
-        for (let i = 0; i < totalJobs; i++) {
-          const id = schedule.scheduleJob({ start: Date.now() + 50 }, (data) => {
-            completedJobs++;
-            if (completedJobs === totalJobs) {
-              expect(completedJobs).toBe(totalJobs);
-              resolve();
-            }
-          });
-          jobIds.push(id);
-        }
-        
-        expect(jobIds).toHaveLength(totalJobs);
-        jobIds.forEach(id => {
-          expect(typeof id).toBe('number');
-        });
+    test('should handle multiple jobs', async () => {
+      const totalJobs = 3;
+      const jobIds = [];
+      const mockJobs = [];
+
+      // 创建多个任务
+      for (let i = 0; i < totalJobs; i++) {
+        const mockJob = vi.fn();
+        mockJobs.push(mockJob);
+
+        const id = schedule.scheduleJob({ start: Date.now() + 50 }, mockJob);
+        jobIds.push(id);
+      }
+
+      expect(jobIds).toHaveLength(totalJobs);
+      jobIds.forEach(id => {
+        expect(typeof id).toBe('number');
       });
-    }, 5000);
+
+      // 验证初始状态
+      mockJobs.forEach(mockJob => {
+        expect(mockJob).not.toHaveBeenCalled();
+      });
+
+      // 快进时间
+      await vi.advanceTimersByTimeAsync(50);
+
+      // 验证所有任务都执行了
+      mockJobs.forEach(mockJob => {
+        expect(mockJob).toHaveBeenCalledOnce();
+      });
+    });
   });
 });

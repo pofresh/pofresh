@@ -1,10 +1,6 @@
 const logger = require('log4js').getLogger(__filename);
 
-const decoder = module.exports;
-decoder.decodeCronTime = decodeCronTime;
-decoder.nextCronTime = nextCronTime;
-decoder.timeMatch = timeMatch;
-decoder.getDomLimit = getDomLimit;
+const decoder = {};
 
 const Limit = [
   [0, 59],
@@ -35,10 +31,10 @@ function decodeCronTime(cronTimeStr) {
     if (!checkNum(cronTimes[i], Limit[i][0], Limit[i][1])) {
       logger.error(
         'Decode cronTime error, value exceed limit!' +
-                    JSON.stringify({
-                      cronTime: cronTimes[i],
-                      limit: Limit[i]
-                    })
+        JSON.stringify({
+          cronTime: cronTimes[i],
+          limit: Limit[i]
+        })
       );
       return null;
     }
@@ -87,7 +83,7 @@ function decodeTimeStr(timeStr, type) {
     arr.push(result[key]);
   }
 
-  arr.sort(function(a, b) {
+  arr.sort(function (a, b) {
     return a - b;
   });
 
@@ -201,3 +197,10 @@ function checkNum(nums, min, max) {
 
   return true;
 }
+
+decoder.decodeCronTime = decodeCronTime;
+decoder.nextCronTime = nextCronTime;
+decoder.timeMatch = timeMatch;
+decoder.getDomLimit = getDomLimit;
+
+module.exports = decoder;
