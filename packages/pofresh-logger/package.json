@@ -12,8 +12,5 @@
     "dependencies": {
         "log4js": "^6.9.1"
     },
-    "devDependencies": {
-        "mocha": ">=10.7.3",
-        "should": ">=0.0.1"
-    }
+    "devDependencies": {}
 }

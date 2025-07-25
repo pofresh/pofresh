@@ -204,7 +204,7 @@ function createApplicationAt(ph, type) {
                 'web-server/public/js/lib/pofreshclient.js',
                 'web-server/public/js/lib/pofreshclient.js.wss',
                 'web-server/public/js/lib/build/build.js.wss',
-                'web-server/public/js/lib/socket.io.js'];
+                'web-server/public/js/lib/socket.io.min.js'];
             for (let i = 0; i < unlinkFiles.length; ++i) {
                 fs.unlinkSync(path.resolve(ph, unlinkFiles[i]));
             }
@@ -242,7 +242,7 @@ function createApplicationAt(ph, type) {
                 'web-server/public/js/lib/pofreshclient.js',
                 'web-server/public/js/lib/pofreshclient.js.wss',
                 'web-server/public/js/lib/build/build.js',
-                'web-server/public/js/lib/socket.io.js'];
+                'web-server/public/js/lib/socket.io.min.js'];
             for (let i = 0; i < unlinkFiles.length; ++i) {
                 fs.unlinkSync(path.resolve(ph, unlinkFiles[i]));
             }

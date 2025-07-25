@@ -21,8 +21,6 @@
     "pofresh-logger": "workspace:*"
   },
   "devDependencies": {
-    "mocha": ">=10.7.3",
-    "should": ">=0.0.1",
     "flow": ">=0.0.1"
   }
 }

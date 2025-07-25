@@ -235,7 +235,7 @@
 
 (function (exports, global) {
 
-  let Protocol = exports;
+  let ProtocolTest = exports;
 
   let HEADER = 5;
 
@@ -254,7 +254,7 @@
  * socketio current support string
  *
  */
-Protocol.encode = function(id,route,msg){
+ProtocolTest.encode = function(id,route,msg){
     let msgStr = JSON.stringify(msg);
     if (route.length>255) { throw new Error('route maxlength is overflow'); }
     let byteArray = new Uint16Array(HEADER + route.length + msgStr.length);
@@ -282,7 +282,7 @@ Protocol.encode = function(id,route,msg){
  *msg String data
  *return Message Object
  */
-Protocol.decode = function(msg){
+ProtocolTest.decode = function(msg){
     let idx, len = msg.length, arr = new Array( len );
     for ( idx = 0 ; idx < len ; ++idx ) {
         arr[idx] = msg.charCodeAt(idx);
@@ -304,7 +304,7 @@ let bt2Str = function(byteArray,start,end) {
     return result;
 }
 
-})('object' === typeof module ? module.exports : (this.Protocol = {}), this);
+})('object' === typeof module ? module.exports : (this.ProtocolTest = {}), this);
 
 (function() {
   if (typeof Object.create !== 'function') {
@@ -388,7 +388,7 @@ let bt2Str = function(byteArray,start,end) {
     msg = filter(msg,route);
   id++;
   callbacks[id] = cb;
-  let sg = Protocol.encode(id,route,msg);
+  let sg = ProtocolTest.encode(id,route,msg);
     socket.send(sg);
   };
 

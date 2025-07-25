@@ -1,31 +1,31 @@
 const net = require('net'),
-  mqttCon = require('mqtt-connection'),
-  server = new net.Server();
+    mqttCon = require('mqtt-connection'),
+    server = new net.Server();
 const num = 300;
 const len = num * num;
 const i = 1;
 
 const start = 0;
-server.on('connection', function(stream) {
-  const conn = mqttCon(stream);
+server.on('connection', function (stream) {
+    const conn = mqttCon(stream);
 
-  conn.on('connect', function() {
-    console.log('connected');
-  });
-
-  conn.on('publish', function(packet) {
-    // console.log(packet);
-    conn.puback({
-      messageId: packet.messageId
+    conn.on('connect', function () {
+        console.log('connected');
     });
-  });
 
-  conn.on('pingreq', function() {
-    conn.pingresp();
-  });
+    conn.on('publish', function (packet) {
+        // console.log(packet);
+        conn.puback({
+            messageId: packet.messageId
+        });
+    });
 
-  conn.on('error', err => console.log(err));
-  // conn is your MQTT connection!
+    conn.on('pingreq', function () {
+        conn.pingresp();
+    });
+
+    conn.on('error', err => console.log(err));
+    // conn is your MQTT connection!
 });
 
 server.listen(1883);

@@ -7,19 +7,19 @@ const util = require('../../lib/util');
 const should = require('should');
 const tc = require('../rootMsgTC');
 
-describe('msgEncoderTest', function() {
-  const protos = parser.parse(require('../rootMsg.json'));
+describe('msgEncoderTest', function () {
+    const protos = parser.parse(require('../rootMsg.json'));
 
-  protobuf.init({ encoderProtos: protos, decoderProtos: protos });
+    protobuf.init({ encoderProtos: protos, decoderProtos: protos });
 
-  describe('protobufTest', function() {
-    for (const route in tc) {
-      const msg = tc[route];
+    describe('protobufTest', function () {
+        for (const route in tc) {
+            const msg = tc[route];
 
-      const buffer = protobuf.encode(route, msg);
-      const decodeMsg = protobuf.decode(route, buffer);
+            const buffer = protobuf.encode(route, msg);
+            const decodeMsg = protobuf.decode(route, buffer);
 
-      util.equal(msg, decodeMsg).should.equal(true);
-    }
-  });
+            util.equal(msg, decodeMsg).should.equal(true);
+        }
+    });
 });

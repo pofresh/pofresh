@@ -89,7 +89,7 @@ pnpm run audit          # 检查依赖漏洞
 - **pofresh-admin**: 管理控制台和监控
 - **pofresh-rpc**: 远程过程调用系统
 - **pofresh-protocol**: 网络协议处理
-- **pofresh-protobuf**: Protocol Buffer支持
+- **pofresh-protobuf**: ProtocolTest Buffer支持
 
 ### 插件系统
 - **pofresh-http**: HTTP服务器集成

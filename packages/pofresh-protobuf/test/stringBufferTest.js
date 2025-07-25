@@ -1,29 +1,29 @@
 function joinTest(num) {
-  let arr = [];
-  for (let i = 0; i < num; i++) {
-    arr.push(i + '');
-  }
+    let arr = [];
+    for (let i = 0; i < num; i++) {
+        arr.push(i + '');
+    }
 
-  let start = Date.now();
-  let str = '';
+    let start = Date.now();
+    let str = '';
 
-  for (let i = 0; i < num; i++) {
-    str += arr[i];
-  }
+    for (let i = 0; i < num; i++) {
+        str += arr[i];
+    }
 
-  let end = Date.now();
-  const time1 = end - start;
+    let end = Date.now();
+    const time1 = end - start;
 
-  start = Date.now();
-  arr = [];
-  for (let i = 0; i < num; i++) {
-    arr.push(arr[i]);
-  }
-  const str1 = arr.join();
-  end = Date.now();
-  const time2 = end - start;
+    start = Date.now();
+    arr = [];
+    for (let i = 0; i < num; i++) {
+        arr.push(arr[i]);
+    }
+    const str1 = arr.join();
+    end = Date.now();
+    const time2 = end - start;
 
-  console.log('test count : %j, \ncost 1 : %j, \ncost 2 : %j', num, time1, time2);
+    console.log('test count : %j, \ncost 1 : %j, \ncost 2 : %j', num, time1, time2);
 }
 
 joinTest(100);

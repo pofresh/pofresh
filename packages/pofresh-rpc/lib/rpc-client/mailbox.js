@@ -10,6 +10,6 @@ const socketIoMailbox = require('./mailboxes/sio-mailbox');
  * @param {Object} opts construct parameters
  * @return {Object} mailbox instancef
  */
-module.exports.create = function(serverInfo, opts) {
-  return socketIoMailbox.create(serverInfo, opts);
+module.exports.create = function (serverInfo, opts) {
+    return socketIoMailbox.create(serverInfo, opts);
 };

@@ -8,66 +8,66 @@ const Thrift = thrift.Thrift;
 const Q = thrift.Q;
 
 const ttypes = (module.exports = {});
-SharedStruct = module.exports.SharedStruct = function(args) {
-  this.key = null;
-  this.value = null;
-  if (args) {
-    if (args.key !== undefined && args.key !== null) {
-      this.key = args.key;
+SharedStruct = module.exports.SharedStruct = function (args) {
+    this.key = null;
+    this.value = null;
+    if (args) {
+        if (args.key !== undefined && args.key !== null) {
+            this.key = args.key;
+        }
+        if (args.value !== undefined && args.value !== null) {
+            this.value = args.value;
+        }
     }
-    if (args.value !== undefined && args.value !== null) {
-      this.value = args.value;
-    }
-  }
 };
 SharedStruct.prototype = {};
-SharedStruct.prototype.read = function(input) {
-  input.readStructBegin();
-  while (true) {
-    const ret = input.readFieldBegin();
-    const fname = ret.fname;
-    const ftype = ret.ftype;
-    const fid = ret.fid;
-    if (ftype == Thrift.Type.STOP) {
-      break;
+SharedStruct.prototype.read = function (input) {
+    input.readStructBegin();
+    while (true) {
+        const ret = input.readFieldBegin();
+        const fname = ret.fname;
+        const ftype = ret.ftype;
+        const fid = ret.fid;
+        if (ftype == Thrift.Type.STOP) {
+            break;
+        }
+        switch (fid) {
+        case 1:
+            if (ftype == Thrift.Type.I32) {
+                this.key = input.readI32();
+            } else {
+                input.skip(ftype);
+            }
+            break;
+        case 2:
+            if (ftype == Thrift.Type.STRING) {
+                this.value = input.readString();
+            } else {
+                input.skip(ftype);
+            }
+            break;
+        default:
+            input.skip(ftype);
+        }
+        input.readFieldEnd();
     }
-    switch (fid) {
-    case 1:
-      if (ftype == Thrift.Type.I32) {
-        this.key = input.readI32();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-    case 2:
-      if (ftype == Thrift.Type.STRING) {
-        this.value = input.readString();
-      } else {
-        input.skip(ftype);
-      }
-      break;
-    default:
-      input.skip(ftype);
-    }
-    input.readFieldEnd();
-  }
-  input.readStructEnd();
-  return;
+    input.readStructEnd();
+    return;
 };
 
-SharedStruct.prototype.write = function(output) {
-  output.writeStructBegin('SharedStruct');
-  if (this.key !== null && this.key !== undefined) {
-    output.writeFieldBegin('key', Thrift.Type.I32, 1);
-    output.writeI32(this.key);
-    output.writeFieldEnd();
-  }
-  if (this.value !== null && this.value !== undefined) {
-    output.writeFieldBegin('value', Thrift.Type.STRING, 2);
-    output.writeString(this.value);
-    output.writeFieldEnd();
-  }
-  output.writeFieldStop();
-  output.writeStructEnd();
-  return;
+SharedStruct.prototype.write = function (output) {
+    output.writeStructBegin('SharedStruct');
+    if (this.key !== null && this.key !== undefined) {
+        output.writeFieldBegin('key', Thrift.Type.I32, 1);
+        output.writeI32(this.key);
+        output.writeFieldEnd();
+    }
+    if (this.value !== null && this.value !== undefined) {
+        output.writeFieldBegin('value', Thrift.Type.STRING, 2);
+        output.writeString(this.value);
+        output.writeFieldEnd();
+    }
+    output.writeFieldStop();
+    output.writeStructEnd();
+    return;
 };

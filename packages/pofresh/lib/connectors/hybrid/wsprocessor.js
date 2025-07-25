@@ -9,43 +9,43 @@ const ST_CLOSED = 2;
  * websocket protocol processor
  */
 class Processor extends EventEmitter {
-  constructor() {
-    super();
-    this.httpServer = new HttpServer();
+    constructor() {
+        super();
+        this.httpServer = new HttpServer();
 
-    this.wsServer = new WebSocketServer({ server: this.httpServer });
+        this.wsServer = new WebSocketServer({ server: this.httpServer });
 
-    this.wsServer.on('connection', socket => {
-      // emit socket to outside
-      this.emit('connection', socket);
-    });
+        this.wsServer.on('connection', socket => {
+            // emit socket to outside
+            this.emit('connection', socket);
+        });
 
-    this.state = ST_STARTED;
-  }
-
-  add(socket, data) {
-    if (this.state !== ST_STARTED) {
-      return;
+        this.state = ST_STARTED;
     }
-    this.httpServer.emit('connection', socket);
-    if (typeof socket.ondata === 'function') {
-      // compatible with stream2
-      socket.ondata(data, 0, data.length);
-    } else {
-      // compatible with old stream
-      socket.emit('data', data);
-    }
-  }
 
-  close() {
-    if (this.state !== ST_STARTED) {
-      return;
+    add(socket, data) {
+        if (this.state !== ST_STARTED) {
+            return;
+        }
+        this.httpServer.emit('connection', socket);
+        if (typeof socket.ondata === 'function') {
+            // compatible with stream2
+            socket.ondata(data, 0, data.length);
+        } else {
+            // compatible with old stream
+            socket.emit('data', data);
+        }
     }
-    this.state = ST_CLOSED;
-    this.wsServer.close();
-    this.wsServer = null;
-    this.httpServer = null;
-  }
+
+    close() {
+        if (this.state !== ST_STARTED) {
+            return;
+        }
+        this.state = ST_CLOSED;
+        this.wsServer.close();
+        this.wsServer = null;
+        this.httpServer = null;
+    }
 }
 
 module.exports = Processor;

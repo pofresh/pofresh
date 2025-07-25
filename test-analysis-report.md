@@ -65,7 +65,7 @@
 - **测试文件数量**: 1个测试文件
 - **测试框架**: Mocha + Should.js (需要迁移)
 - **文件格式**: `.js` (需要重命名为 `.test.js`)
-- **主要测试文件**: `protocol.js`
+- **主要测试文件**: `protocol.test.js`
 - **状态**: 🔄 需要迁移
 
 #### 7. packages/pofresh-rpc

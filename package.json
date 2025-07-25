@@ -10,9 +10,9 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "lint": "eslint packages/ plugin/ --ext .js",
+    "lint": "eslint --ext .js",
     "lint:fix": "eslint packages/ plugin/ --ext .js --fix",
-    "format": "prettier --write 'packages/**/*.js' 'plugin/**/*.js'",
+    "format": "prettier --write \"packages/**/*.js\" \"plugin/**/*.js\"",
     "audit": "pnpm audit --audit-level moderate",
     "security:check": "pnpm audit && pnpm run lint",
     "dev": "turbo run dev",
@@ -38,11 +38,13 @@
   ],
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
-    "vitest": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=16.0.0",

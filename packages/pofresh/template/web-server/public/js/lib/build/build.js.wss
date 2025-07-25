@@ -383,9 +383,9 @@ Emitter.prototype.hasListeners = function(event){
 };
 
 });
-require.register("pofresh-protocol/lib/protocol.js", function(exports, require, module){
+require.register("pofresh-protocol/lib/protocol.test.js", function(exports, require, module){
 (function (exports, ByteArray, global) {
-  let Protocol = exports;
+  let ProtocolTest = exports;
 
   let PKG_HEAD_BYTES = 4;
   let MSG_FLAG_BYTES = 1;
@@ -398,8 +398,8 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
   let MSG_COMPRESS_ROUTE_MASK = 0x1;
   let MSG_TYPE_MASK = 0x7;
 
-  let Package = Protocol.Package = {};
-  let Message = Protocol.Message = {};
+  let Package = ProtocolTest.Package = {};
+  let Message = ProtocolTest.Message = {};
 
   Package.TYPE_HANDSHAKE = 1;
   Package.TYPE_HANDSHAKE_ACK = 2;
@@ -419,7 +419,7 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
    * msg message body
    * socketio current support string
    */
-  Protocol.strencode = function(str) {
+  ProtocolTest.strencode = function(str) {
     let byteArray = new ByteArray(str.length * 3);
     let offset = 0;
     for(let i = 0; i < str.length; i++){
@@ -447,7 +447,7 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
    * msg String data
    * return Message Object
    */
-  Protocol.strdecode = function(buffer) {
+  ProtocolTest.strdecode = function(buffer) {
     let bytes = new ByteArray(buffer);
     let array = [];
     let offset = 0;
@@ -546,7 +546,7 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
       } else {
         msgLen += MSG_ROUTE_LEN_BYTES;
         if(route) {
-          route = Protocol.strencode(route);
+          route = ProtocolTest.strencode(route);
           if(route.length>255) {
             throw new Error('route maxlength is overflow');
           }
@@ -621,7 +621,7 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
         if(routeLen) {
           route = new ByteArray(routeLen);
           copyArray(route, 0, bytes, offset, routeLen);
-          route = Protocol.strdecode(route);
+          route = ProtocolTest.strdecode(route);
         } else {
           route = '';
         }
@@ -716,8 +716,8 @@ require.register("pofresh-protocol/lib/protocol.js", function(exports, require, 
     return offset + msg.length;
   };
 
-  module.exports = Protocol;
-})('object' === typeof module ? module.exports : (this.Protocol = {}),'object' === typeof module ? Buffer : Uint8Array, this);
+  module.exports = ProtocolTest;
+})('object' === typeof module ? module.exports : (this.ProtocolTest = {}),'object' === typeof module ? Buffer : Uint8Array, this);
 
 });
 require.register("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", function(exports, require, module){
@@ -729,7 +729,7 @@ require.register("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", function
  */
 
 /**
- * Protocol buffer root
+ * ProtocolTest buffer root
  * In browser, it will be window.protbuf
  */
 (function (exports, global){
@@ -1340,9 +1340,9 @@ require.register("pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js",
   let JS_WS_CLIENT_TYPE = 'js-websocket';
   let JS_WS_CLIENT_VERSION = '0.0.1';
 
-  let Protocol = window.Protocol;
-  let Package = Protocol.Package;
-  let Message = Protocol.Message;
+  let ProtocolTest = window.ProtocolTest;
+  let Package = ProtocolTest.Package;
+  let Message = ProtocolTest.Message;
   let EventEmitter = window.EventEmitter;
 
   let RES_OK = 200;
@@ -1405,7 +1405,7 @@ require.register("pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js",
   let initWebSocket = function(url,cb) {
     console.log('connect to ' + url);
     let onopen = function(event){
-      let obj = Package.encode(Package.TYPE_HANDSHAKE, Protocol.strencode(JSON.stringify(handshakeBuffer)));
+      let obj = Package.encode(Package.TYPE_HANDSHAKE, ProtocolTest.strencode(JSON.stringify(handshakeBuffer)));
       send(obj);
     };
     let onmessage = function(event) {
@@ -1481,7 +1481,7 @@ require.register("pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js",
     if(!!protos[route]){
       msg = protobuf.encode(route, msg);
     }else{
-      msg = Protocol.strencode(JSON.stringify(msg));
+      msg = ProtocolTest.strencode(JSON.stringify(msg));
     }
 
 
@@ -1541,7 +1541,7 @@ require.register("pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js",
   };
 
   let handshake = function(data){
-    data = JSON.parse(Protocol.strdecode(data));
+    data = JSON.parse(ProtocolTest.strdecode(data));
     if(data.code === RES_OLD_CLIENT) {
       pofresh.emit('error', 'client version not fullfill');
       return;
@@ -1633,7 +1633,7 @@ require.register("pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js",
     if(!!protos[route]){
       return protobuf.decode(route, msg.body);
     }else{
-      return JSON.parse(Protocol.strdecode(msg.body));
+      return JSON.parse(ProtocolTest.strdecode(msg.body));
     }
 
     return msg;
@@ -1695,7 +1695,7 @@ require.register("boot/index.js", function(exports, require, module){
   window.EventEmitter = Emitter;
 
   let protocol = require('pofresh-protocol');
-  window.Protocol = protocol;
+  window.ProtocolTest = protocol;
 
   let protobuf = require('pofresh-protobuf');
   window.protobuf = protobuf;
@@ -1708,9 +1708,9 @@ require.alias("boot/index.js", "pofresh-client/deps/boot/index.js");
 require.alias("component-emitter/index.js", "boot/deps/emitter/index.js");
 require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
-require.alias("pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/lib/protocol.js");
-require.alias("pofresh-protocol/lib/protocol.js", "boot/deps/pofresh-protocol/index.js");
-require.alias("pofresh-protocol/lib/protocol.js", "pofresh-protocol/index.js");
+require.alias("pofresh-protocol/lib/protocol.test.js", "boot/deps/pofresh-protocol/lib/protocol.test.js");
+require.alias("pofresh-protocol/lib/protocol.test.js", "boot/deps/pofresh-protocol/index.js");
+require.alias("pofresh-protocol/lib/protocol.test.js", "pofresh-protocol/index.js");
 
 require.alias("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", "boot/deps/pofresh-protobuf/lib/client/protobuf.js");
 require.alias("pofreshnode-pofresh-protobuf/lib/client/protobuf.js", "boot/deps/pofresh-protobuf/index.js");

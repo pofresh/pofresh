@@ -12,7 +12,7 @@
   <meta name="version" content="1.0" />
   <meta name="keywords" content="pofresh" />
   <link type="text/css" rel="stylesheet" href="css/base.css" />
-  <script src="js/lib/socket.io.js">
+  <script src="js/lib/socket.io.min.js">
   </script>
   <script src="js/lib/pofresh.js">
   </script>

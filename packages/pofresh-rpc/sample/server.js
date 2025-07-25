@@ -13,6 +13,6 @@ server.on('closed', () => console.info('closed'));
 server.start();
 console.log('rpc server started.');
 
-process.on('uncaughtException', function(err) {
-  console.error(err);
+process.on('uncaughtException', function (err) {
+    console.error(err);
 });

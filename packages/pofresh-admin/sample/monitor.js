@@ -5,15 +5,15 @@ const port = 3005;
 const host = '127.0.0.1';
 
 const opts = {
-  id: 'test-server-1',
-  type: 'test',
-  host: host,
-  port: port,
-  info: {
     id: 'test-server-1',
+    type: 'test',
     host: host,
-    port: 4300
-  }
+    port: port,
+    info: {
+        id: 'test-server-1',
+        host: host,
+        port: 4300
+    }
 };
 
 const monitorConsole = MonitorConsole.createMonitorConsole(opts);

@@ -37,9 +37,7 @@
     "crc": "^4.3.2",
     "mkdirp": "^3.0.1",
     "mqtt": "^5.13.1",
-    "muk": "^0.5.3",
     "node-bignumber": "^1.2.2",
-    "nyc": "^17.1.0",
     "pofresh-admin": "workspace:*",
     "pofresh-loader": "workspace:*",
     "pofresh-logger": "workspace:*",
@@ -56,15 +54,5 @@
   "bin": {
     "pofresh": "./bin/pofresh"
   },
-  "devDependencies": {
-    "gulp": "^5.0.1",
-    "gulp-clean": "^0.4.0",
-    "gulp-jshint": "^2.1.0",
-    "gulp-shell": "^0.8.0",
-    "jshint": "^2.13.6",
-    "mocha": "^10.8.2",
-    "muk": ">=0.5.3",
-    "nyc": "^17.0.0",
-    "should": "^13.2.3"
-  }
+  "devDependencies": {}
 }

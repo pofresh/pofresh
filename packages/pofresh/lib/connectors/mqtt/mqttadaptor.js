@@ -1,71 +1,71 @@
 class Adaptor {
-  constructor(opts) {
-    opts = opts || {};
-    this.subReqs = {};
-    this.publishRoute = opts.publishRoute;
-    this.subscribeRoute = opts.subscribeRoute;
-  }
-
-  onPublish(client, packet) {
-    const route = this.publishRoute;
-
-    if (!route) {
-      throw new Error('unspecified publish route.');
+    constructor(opts) {
+        opts = opts || {};
+        this.subReqs = {};
+        this.publishRoute = opts.publishRoute;
+        this.subscribeRoute = opts.subscribeRoute;
     }
 
-    let payload = packet.payload;
-    if (payload instanceof Buffer) {
-      payload = payload.toString('utf8');
+    onPublish(client, packet) {
+        const route = this.publishRoute;
+
+        if (!route) {
+            throw new Error('unspecified publish route.');
+        }
+
+        let payload = packet.payload;
+        if (payload instanceof Buffer) {
+            payload = payload.toString('utf8');
+        }
+
+        const req = {
+            id: packet.messageId,
+            route: route,
+            body: packet
+        };
+
+        client.emit('message', req);
+
+        if (packet.qos === 1) {
+            client.socket.puback({ messageId: packet.messageId });
+        }
     }
 
-    const req = {
-      id: packet.messageId,
-      route: route,
-      body: packet
-    };
+    onSubscribe(client, packet) {
+        const route = this.subscribeRoute;
 
-    client.emit('message', req);
+        if (!route) {
+            throw new Error('unspecified subscribe route.');
+        }
 
-    if (packet.qos === 1) {
-      client.socket.puback({ messageId: packet.messageId });
+        const req = {
+            id: packet.messageId,
+            route: route,
+            body: {
+                subscriptions: packet.subscriptions
+            }
+        };
+
+        this.subReqs[packet.messageId] = packet;
+
+        client.emit('message', req);
     }
-  }
 
-  onSubscribe(client, packet) {
-    const route = this.subscribeRoute;
+    onPubAck(client, packet) {
+        const req = {
+            id: packet.messageId,
+            route: 'connector.mqttHandler.pubAck',
+            body: {
+                mid: packet.messageId
+            }
+        };
 
-    if (!route) {
-      throw new Error('unspecified subscribe route.');
+        this.subReqs[packet.messageId] = packet;
+
+        client.emit('message', req);
     }
 
-    const req = {
-      id: packet.messageId,
-      route: route,
-      body: {
-        subscriptions: packet.subscriptions
-      }
-    };
-
-    this.subReqs[packet.messageId] = packet;
-
-    client.emit('message', req);
-  }
-
-  onPubAck(client, packet) {
-    const req = {
-      id: packet.messageId,
-      route: 'connector.mqttHandler.pubAck',
-      body: {
-        mid: packet.messageId
-      }
-    };
-
-    this.subReqs[packet.messageId] = packet;
-
-    client.emit('message', req);
-  }
-
-  /**
+    /**
      * Publish message or subscription ack.
      *
      * if packet.id exist and this.subReqs[packet.id] exist then packet is a suback.
@@ -77,18 +77,18 @@ class Adaptor {
      *
      * otherwise packet is a illegal packet.
      */
-  publish(client, packet) {
-    const mid = packet.id;
-    const subreq = this.subReqs[mid];
-    if (subreq) {
-      // is suback
-      client.socket.suback({ messageId: mid, granted: packet.body });
-      delete this.subReqs[mid];
-      return;
-    }
+    publish(client, packet) {
+        const mid = packet.id;
+        const subreq = this.subReqs[mid];
+        if (subreq) {
+            // is suback
+            client.socket.suback({ messageId: mid, granted: packet.body });
+            delete this.subReqs[mid];
+            return;
+        }
 
-    client.socket.publish(packet.body);
-  }
+        client.socket.publish(packet.body);
+    }
 }
 
 module.exports = Adaptor;

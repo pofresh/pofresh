@@ -6,12 +6,11 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write \"lib/**/*.js\" \"test/**/*.js\""
   },
   "dependencies": {},
-  "devDependencies": {
-    "should": ">=0.0.1",
-    "mocha": ">=10.7.3",
-    "jscoverage": ">=0.6.0"
-  }
+  "devDependencies": {}
 }

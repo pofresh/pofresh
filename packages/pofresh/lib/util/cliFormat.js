@@ -2,8 +2,8 @@ const { table, getBorderCharacters } = require('table');
 const chalk = require('chalk');
 
 const config = {
-  border: getBorderCharacters('void'),
-  drawHorizontalLine: () => false
+    border: getBorderCharacters('void'),
+    drawHorizontalLine: () => false
 };
 
 const exp = module.exports;
@@ -15,12 +15,12 @@ const exp = module.exports;
  * @colors {Array} Set of colors to use for the headers
  * @return {String}
  */
-exp.stringifyRows = function(rows, colors = []) {
-  if (!rows || !rows.length || !rows[0].length) {
-    return '';
-  }
-  rows[0].forEach((header, index) => {
-    rows[0][index] = colors[index] ? chalk[colors[index]](header) : header;
-  });
-  return table(rows, config);
+exp.stringifyRows = function (rows, colors = []) {
+    if (!rows || !rows.length || !rows[0].length) {
+        return '';
+    }
+    rows[0].forEach((header, index) => {
+        rows[0][index] = colors[index] ? chalk[colors[index]](header) : header;
+    });
+    return table(rows, config);
 };

@@ -1,5 +1,5 @@
 (function () {
-    let isArray = Array.isArray;
+    const isArray = Array.isArray;
 
     let root = this;
 
@@ -18,19 +18,19 @@
     //
     // Obviously not all Emitters should be limited to 10. This function allows
     // that to be increased. Set to zero for unlimited.
-    let defaultMaxListeners = 10;
+    const defaultMaxListeners = 10;
     EventEmitter.prototype.setMaxListeners = function (n) {
         if (!this._events) this._events = {};
         this._maxListeners = n;
     };
 
     EventEmitter.prototype.emit = function () {
-        let type = arguments[0];
+        const type = arguments[0];
         // If there is no 'error' event listener then throw.
         if (type === 'error') {
             if (!this._events || !this._events.error || (isArray(this._events.error) && !this._events.error.length)) {
                 if (this.domain) {
-                    let er = arguments[1];
+                    const er = arguments[1];
                     er.domain_emitter = this;
                     er.domain = this.domain;
                     er.domain_thrown = false;
@@ -41,37 +41,37 @@
                 if (arguments[1] instanceof Error) {
                     throw arguments[1]; // Unhandled 'error' event
                 } else {
-                    throw new Error("Uncaught, unspecified 'error' event.");
+                    throw new Error('Uncaught, unspecified \'error\' event.');
                 }
                 return false;
             }
         }
 
         if (!this._events) return false;
-        let handler = this._events[type];
+        const handler = this._events[type];
         if (!handler) return false;
 
-        if (typeof handler == 'function') {
+        if (typeof handler === 'function') {
             if (this.domain) {
                 this.domain.enter();
             }
             switch (arguments.length) {
-                // fast cases
-                case 1:
-                    handler.call(this);
-                    break;
-                case 2:
-                    handler.call(this, arguments[1]);
-                    break;
-                case 3:
-                    handler.call(this, arguments[1], arguments[2]);
-                    break;
+            // fast cases
+            case 1:
+                handler.call(this);
+                break;
+            case 2:
+                handler.call(this, arguments[1]);
+                break;
+            case 3:
+                handler.call(this, arguments[1], arguments[2]);
+                break;
                 // slower
-                default:
-                    let l = arguments.length;
-                    let args = new Array(l - 1);
-                    for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
-                    handler.apply(this, args);
+            default:
+                const l = arguments.length;
+                const args = new Array(l - 1);
+                for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
+                handler.apply(this, args);
             }
             if (this.domain) {
                 this.domain.exit();
@@ -81,11 +81,11 @@
             if (this.domain) {
                 this.domain.enter();
             }
-            let l = arguments.length;
-            let args = new Array(l - 1);
+            const l = arguments.length;
+            const args = new Array(l - 1);
             for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
 
-            let listeners = handler.slice();
+            const listeners = handler.slice();
             for (let i = 0, l = listeners.length; i < l; i++) {
                 listeners[i].apply(this, args);
             }
@@ -151,7 +151,7 @@
             throw new Error('.once only takes instances of Function');
         }
 
-        let self = this;
+        const self = this;
         function g() {
             self.removeListener(type, g);
             listener.apply(this, arguments);
@@ -171,7 +171,7 @@
         // does not use listeners(), so no side effect of creating _events[type]
         if (!this._events || !this._events[type]) return this;
 
-        let list = this._events[type];
+        const list = this._events[type];
 
         if (isArray(list)) {
             let position = -1;
@@ -197,7 +197,7 @@
             return this;
         }
 
-        let events = this._events && this._events[type];
+        const events = this._events && this._events[type];
         if (!events) return this;
 
         if (isArray(events)) {
@@ -220,11 +220,11 @@
 })();
 
 (function (exports, global) {
-    let Protocol = exports;
+    const Protocol = exports;
 
-    let HEADER = 5;
+    const HEADER = 5;
 
-    let Message = function (id, route, body) {
+    const Message = function (id, route, body) {
         this.id = id;
         this.route = route;
         this.body = body;
@@ -240,11 +240,11 @@
      *
      */
     Protocol.encode = function (id, route, msg) {
-        let msgStr = JSON.stringify(msg);
+        const msgStr = JSON.stringify(msg);
         if (route.length > 255) {
             throw new Error('route maxlength is overflow');
         }
-        let byteArray = new Uint16Array(HEADER + route.length + msgStr.length);
+        const byteArray = new Uint16Array(HEADER + route.length + msgStr.length);
         let index = 0;
         byteArray[index++] = (id >> 24) & 0xff;
         byteArray[index++] = (id >> 16) & 0xff;
@@ -274,15 +274,15 @@
             arr[idx] = msg.charCodeAt(idx);
         }
         let index = 0;
-        let buf = new Uint16Array(arr);
-        let id = ((buf[index++] << 24) | (buf[index++] << 16) | (buf[index++] << 8) | buf[index++]) >>> 0;
-        let routeLen = buf[HEADER - 1];
-        let route = bt2Str(buf, HEADER, routeLen + HEADER);
-        let body = bt2Str(buf, routeLen + HEADER, buf.length);
+        const buf = new Uint16Array(arr);
+        const id = ((buf[index++] << 24) | (buf[index++] << 16) | (buf[index++] << 8) | buf[index++]) >>> 0;
+        const routeLen = buf[HEADER - 1];
+        const route = bt2Str(buf, HEADER, routeLen + HEADER);
+        const body = bt2Str(buf, routeLen + HEADER, buf.length);
         return new Message(id, route, body);
     };
 
-    let bt2Str = function (byteArray, start, end) {
+    const bt2Str = function (byteArray, start, end) {
         let result = '';
         for (let i = start; i < byteArray.length && i < end; i++) {
             result = result + String.fromCharCode(byteArray[i]);
@@ -300,18 +300,18 @@
         };
     }
 
-    let root = window;
-    let pofresh = Object.create(EventEmitter.prototype); // object extend from object
+    const root = window;
+    const pofresh = Object.create(EventEmitter.prototype); // object extend from object
     root.pofresh = pofresh;
     let socket = null;
     let id = 1;
-    let callbacks = {};
+    const callbacks = {};
 
     pofresh.init = function (params, cb) {
         pofresh.params = params;
         params.debug = true;
-        let host = params.host;
-        let port = params.port;
+        const host = params.host;
+        const port = params.port;
 
         let url = 'ws://' + host;
         if (port) {
@@ -378,7 +378,7 @@
         msg = filter(msg, route);
         id++;
         callbacks[id] = cb;
-        let sg = Protocol.encode(id, route, msg);
+        const sg = Protocol.encode(id, route, msg);
         socket.send(sg);
     };
 
@@ -386,11 +386,11 @@
         this.request(route, msg);
     };
 
-    let processMessage = function (pofresh, msg) {
+    const processMessage = function (pofresh, msg) {
         let route;
         if (msg.id) {
             //if have a id then find the callback function with the request
-            let cb = callbacks[msg.id];
+            const cb = callbacks[msg.id];
 
             delete callbacks[msg.id];
             if (typeof cb !== 'function') {
@@ -407,9 +407,9 @@
 
         //if no id then it should be a server push message
         function processCall(msg) {
-            let route = msg.route;
-            if (!!route) {
-                if (!!msg.body) {
+            const route = msg.route;
+            if (route) {
+                if (msg.body) {
                     let body = msg.body.body;
                     if (!body) {
                         body = msg.body;
@@ -424,7 +424,7 @@
         }
     };
 
-    let processMessageBatch = function (pofresh, msgs) {
+    const processMessageBatch = function (pofresh, msgs) {
         for (let i = 0, l = msgs.length; i < l; i++) {
             processMessage(pofresh, msgs[i]);
         }

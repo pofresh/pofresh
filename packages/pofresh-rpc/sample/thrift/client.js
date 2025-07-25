@@ -27,12 +27,12 @@ const transport = thrift.TBufferedTransport();
 const protocol = thrift.TBinaryProtocol();
 
 const connection = thrift.createConnection('localhost', 9090, {
-  transport: transport,
-  protocol: protocol
+    transport: transport,
+    protocol: protocol
 });
 
-connection.on('error', function(err) {
-  assert(false, err);
+connection.on('error', function (err) {
+    assert(false, err);
 });
 
 // Create a Calculator client with the connection
@@ -42,36 +42,36 @@ const num_requests = 20000;
 let times = 0;
 let start = Date.now();
 
-const rpcRequest = function(msg, cb) {
-  client.ping(function(err, response) {
-    cb();
-  });
+const rpcRequest = function (msg, cb) {
+    client.ping(function (err, response) {
+        cb();
+    });
 };
 
 function run() {
-  if (times > num_requests) {
-    return;
-  }
+    if (times > num_requests) {
+        return;
+    }
 
-  if (times == num_requests) {
-    const now = Date.now();
-    const cost = now - start;
-    console.log(
-      'run %d num requests cost: %d ops/sec',
-      num_requests,
-      cost,
-      (num_requests / (cost / 1000)).toFixed(2)
-    );
-    times = 0;
-    start = now;
-    // return;
-    return run();
-  }
+    if (times == num_requests) {
+        const now = Date.now();
+        const cost = now - start;
+        console.log(
+            'run %d num requests cost: %d ops/sec',
+            num_requests,
+            cost,
+            (num_requests / (cost / 1000)).toFixed(2)
+        );
+        times = 0;
+        start = now;
+        // return;
+        return run();
+    }
 
-  times++;
-  rpcRequest({}, function() {
-    run();
-  });
+    times++;
+    rpcRequest({}, function () {
+        run();
+    });
 }
 
 run();

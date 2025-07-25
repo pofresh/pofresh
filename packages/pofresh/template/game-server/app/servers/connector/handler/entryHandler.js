@@ -1,13 +1,13 @@
-module.exports = function(app) {
-  return new Handler(app);
+module.exports = function (app) {
+    return new Handler(app);
 };
 
 class Handler {
-  constructor(app) {
-    this.app = app;
-  }
+    constructor(app) {
+        this.app = app;
+    }
 
-  /**
+    /**
      * New client entry.
      *
      * @param  {Object}   msg     request message
@@ -15,11 +15,11 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-  entry(msg, session, next) {
-    next(null, { code: 200, msg: 'game server is ok.' });
-  }
+    entry(msg, session, next) {
+        next(null, { code: 200, msg: 'game server is ok.' });
+    }
 
-  /**
+    /**
      * Publish route for mqtt connector.
      *
      * @param  {Object}   msg     request message
@@ -27,15 +27,15 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-  publish(msg, session, next) {
-    const result = {
-      topic: 'publish',
-      payload: JSON.stringify({ code: 200, msg: 'publish message is ok.' })
-    };
-    next(null, result);
-  }
+    publish(msg, session, next) {
+        const result = {
+            topic: 'publish',
+            payload: JSON.stringify({ code: 200, msg: 'publish message is ok.' })
+        };
+        next(null, result);
+    }
 
-  /**
+    /**
      * Subscribe route for mqtt connector.
      *
      * @param  {Object}   msg     request message
@@ -43,11 +43,11 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-  subscribe(msg, session, next) {
-    const result = {
-      topic: 'subscribe',
-      payload: JSON.stringify({ code: 200, msg: 'subscribe message is ok.' })
-    };
-    next(null, result);
-  }
+    subscribe(msg, session, next) {
+        const result = {
+            topic: 'subscribe',
+            payload: JSON.stringify({ code: 200, msg: 'subscribe message is ok.' })
+        };
+        next(null, result);
+    }
 }

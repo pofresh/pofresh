@@ -70,59 +70,59 @@ pofresh.pushSchedulers.__defineGetter__('buffer', load.bind(null, './pushSchedul
  * @api public
  */
 pofresh.createApp = opts => {
-  const app = application;
-  app.init(opts);
-  this.app = app;
-  return app;
+    const app = application;
+    app.init(opts);
+    this.app = app;
+    return app;
 };
 
 /**
  * Get application
  */
 Object.defineProperty(pofresh, 'app', {
-  get: () => {
-    return this.app;
-  }
+    get: () => {
+        return this.app;
+    }
 });
 
 /**
  * Auto-load bundled components with getters.
  */
 fs.readdirSync(__dirname + '/components').forEach(filename => {
-  if (!/\.js$/.test(filename)) {
-    return;
-  }
-  const name = path.basename(filename, '.js');
-  const _load = load.bind(null, './components/', name);
+    if (!/\.js$/.test(filename)) {
+        return;
+    }
+    const name = path.basename(filename, '.js');
+    const _load = load.bind(null, './components/', name);
 
-  pofresh.components.__defineGetter__(name, _load);
-  pofresh.__defineGetter__(name, _load);
+    pofresh.components.__defineGetter__(name, _load);
+    pofresh.__defineGetter__(name, _load);
 });
 
 fs.readdirSync(__dirname + '/filters/handler').forEach(filename => {
-  if (!/\.js$/.test(filename)) {
-    return;
-  }
-  const name = path.basename(filename, '.js');
-  const _load = load.bind(null, './filters/handler/', name);
+    if (!/\.js$/.test(filename)) {
+        return;
+    }
+    const name = path.basename(filename, '.js');
+    const _load = load.bind(null, './filters/handler/', name);
 
-  pofresh.filters.__defineGetter__(name, _load);
-  pofresh.__defineGetter__(name, _load);
+    pofresh.filters.__defineGetter__(name, _load);
+    pofresh.__defineGetter__(name, _load);
 });
 
 fs.readdirSync(__dirname + '/filters/rpc').forEach(filename => {
-  if (!/\.js$/.test(filename)) {
-    return;
-  }
-  const name = path.basename(filename, '.js');
-  const _load = load.bind(null, './filters/rpc/', name);
+    if (!/\.js$/.test(filename)) {
+        return;
+    }
+    const name = path.basename(filename, '.js');
+    const _load = load.bind(null, './filters/rpc/', name);
 
-  pofresh.rpcFilters.__defineGetter__(name, _load);
+    pofresh.rpcFilters.__defineGetter__(name, _load);
 });
 
 function load(path, name) {
-  if (name) {
-    return require(path + name);
-  }
-  return require(path);
+    if (name) {
+        return require(path + name);
+    }
+    return require(path);
 }

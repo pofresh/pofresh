@@ -5,16 +5,16 @@
 const utils = require('../../../util/utils');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
-module.exports = function(app) {
-  return new Remote(app);
+module.exports = function (app) {
+    return new Remote(app);
 };
 
 class Remote {
-  constructor(app) {
-    this.app = app;
-  }
+    constructor(app) {
+        this.app = app;
+    }
 
-  /**
+    /**
      * Push message to client by uids.
      *
      * @param  {String}   route route string of message
@@ -23,38 +23,38 @@ class Remote {
      * @param  {Object}   opts  push options
      * @param  {Function} cb    callback function
      */
-  pushMessage(route, msg, uids, opts, cb) {
-    if (!msg) {
-      logger.error('Can not send empty message! route : %j, compressed msg : %j', route, msg);
-      utils.invokeCallback(cb, new Error('can not send empty message.'));
-      return;
-    }
-
-    const connector = this.app.components.__connector__;
-
-    const sessionService = this.app.get('sessionService');
-    let fails = [],
-      sids = [],
-      sessions,
-      j,
-      k;
-    for (let i = 0, l = uids.length; i < l; i++) {
-      sessions = sessionService.getByUid(uids[i]);
-      if (!sessions) {
-        fails.push(uids[i]);
-      } else {
-        for (j = 0, k = sessions.length; j < k; j++) {
-          sids.push(sessions[j].id);
+    pushMessage(route, msg, uids, opts, cb) {
+        if (!msg) {
+            logger.error('Can not send empty message! route : %j, compressed msg : %j', route, msg);
+            utils.invokeCallback(cb, new Error('can not send empty message.'));
+            return;
         }
-      }
-    }
-    logger.debug('[%s] pushMessage uids: %j, msg: %j, sids: %j', this.app.serverId, uids, msg, sids);
-    connector.send(null, route, msg, sids, opts, function(err) {
-      utils.invokeCallback(cb, err, fails);
-    });
-  }
 
-  /**
+        const connector = this.app.components.__connector__;
+
+        const sessionService = this.app.get('sessionService');
+        let fails = [],
+            sids = [],
+            sessions,
+            j,
+            k;
+        for (let i = 0, l = uids.length; i < l; i++) {
+            sessions = sessionService.getByUid(uids[i]);
+            if (!sessions) {
+                fails.push(uids[i]);
+            } else {
+                for (j = 0, k = sessions.length; j < k; j++) {
+                    sids.push(sessions[j].id);
+                }
+            }
+        }
+        logger.debug('[%s] pushMessage uids: %j, msg: %j, sids: %j', this.app.serverId, uids, msg, sids);
+        connector.send(null, route, msg, sids, opts, function (err) {
+            utils.invokeCallback(cb, err, fails);
+        });
+    }
+
+    /**
      * Broadcast to all the client connectd with current frontend server.
      *
      * @param  {String}    route  route string
@@ -62,8 +62,8 @@ class Remote {
      * @param  {Boolean}   opts   broadcast options.
      * @param  {Function}  cb     callback function
      */
-  broadcast(route, msg, opts, cb) {
-    const connector = this.app.components.__connector__;
-    connector.send(null, route, msg, null, opts, cb);
-  }
+    broadcast(route, msg, opts, cb) {
+        const connector = this.app.components.__connector__;
+        connector.send(null, route, msg, null, opts, cb);
+    }
 }

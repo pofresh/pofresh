@@ -2,8 +2,8 @@
 
 Encode and decode binary protocol for Pofresh framework.
 
-More details about Pofresh Protocol, please refer
-[Pofresh Protocol](https://github.com/pofresh/pofresh/wiki/Pofresh-%E5%8D%8F%E8%AE%AE)
+More details about Pofresh ProtocolTest, please refer
+[Pofresh ProtocolTest](https://github.com/pofresh/pofresh/wiki/Pofresh-%E5%8D%8F%E8%AE%AE)
 and
 [Pofresh data compression](https://github.com/pofresh/pofresh/wiki/Pofresh-%E6%95%B0%E6%8D%AE%E5%8E%8B%E7%BC%A9%E5%8D%8F%E8%AE%AE).
 

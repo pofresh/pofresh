@@ -10,47 +10,47 @@ const DEFAULT_DELAY = 10; // in second
 
 const moduleId = 'nodeInfo';
 
-module.exports = function(opts) {
-  return new Module(opts);
+module.exports = function (opts) {
+    return new Module(opts);
 };
 
 module.exports.moduleId = moduleId;
 
 class Module {
-  constructor(opts) {
-    opts = opts || {};
-    this.type = opts.type || 'pull';
-    this.interval = opts.interval || DEFAULT_INTERVAL;
-    this.delay = opts.delay || DEFAULT_DELAY;
-  }
-
-  monitorHandler(agent) {
-    const params = {
-      serverId: agent.id,
-      pid: process.pid
-    };
-    monitor.psmonitor.getPsInfo(params, (err, data) => {
-      agent.notify(moduleId, { serverId: agent.id, body: data });
-    });
-  }
-
-  masterHandler(agent, msg) {
-    if (!msg) {
-      agent.notifyAll(moduleId);
-      return;
+    constructor(opts) {
+        opts = opts || {};
+        this.type = opts.type || 'pull';
+        this.interval = opts.interval || DEFAULT_INTERVAL;
+        this.delay = opts.delay || DEFAULT_DELAY;
     }
 
-    const body = msg.body;
-    let data = agent.get(moduleId);
-    if (!data) {
-      data = {};
-      agent.set(moduleId, data);
+    monitorHandler(agent) {
+        const params = {
+            serverId: agent.id,
+            pid: process.pid
+        };
+        monitor.psmonitor.getPsInfo(params, (err, data) => {
+            agent.notify(moduleId, { serverId: agent.id, body: data });
+        });
     }
 
-    data[msg.serverId] = body;
-  }
+    masterHandler(agent, msg) {
+        if (!msg) {
+            agent.notifyAll(moduleId);
+            return;
+        }
 
-  clientHandler(agent, msg, cb) {
-    cb(null, agent.get(moduleId) || {});
-  }
+        const body = msg.body;
+        let data = agent.get(moduleId);
+        if (!data) {
+            data = {};
+            agent.set(moduleId, data);
+        }
+
+        data[msg.serverId] = body;
+    }
+
+    clientHandler(agent, msg, cb) {
+        cb(null, agent.get(moduleId) || {});
+    }
 }

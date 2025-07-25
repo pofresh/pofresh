@@ -21,7 +21,7 @@
 - **pofresh-loader**: 模块加载工具
 - **pofresh-logger**: 日志框架
 - **pofresh-monitor**: 服务器监控工具
-- **pofresh-protobuf**: Protocol buffer 支持
+- **pofresh-protobuf**: ProtocolTest buffer 支持
 - **pofresh-protocol**: 通信协议实现
 - **pofresh-rpc**: 远程过程调用框架
 - **pofresh-scheduler**: 任务调度工具
