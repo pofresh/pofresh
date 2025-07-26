@@ -33,7 +33,7 @@ class Acceptor extends BaseAcceptor {
         });
 
         socket.on('error', this.emit.bind(this, 'error'));
-        socket.on('disconnect', reason => this.onSocketClose(socket));
+        socket.on('disconnect', _reason => this.onSocketClose(socket));
     }
 
     send(socket, msg) {

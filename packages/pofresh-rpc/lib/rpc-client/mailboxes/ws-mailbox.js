@@ -10,8 +10,8 @@ class MailBox extends BaseMailbox {
         super(server, opts);
         this.name = 'ws-mailbox';
         this._KPinterval = null;
-        this._KP_last_ping_time = -1;
-        this._KP_last_pong_time = -1;
+        this._kpLastPingTime = -1;
+        this._kpLastPongTime = -1;
     }
 
     connect(tracer, cb) {
@@ -25,7 +25,6 @@ class MailBox extends BaseMailbox {
 
         try {
             this.socket = new WSClient('ws://' + this.host + ':' + this.port);
-            //this.socket = wsClient.connect(this.host + ':' + this.port, {'force new connection': true, 'reconnect': false});
         } catch (e) {
             this.onError(e);
         }
@@ -39,8 +38,8 @@ class MailBox extends BaseMailbox {
         this.socket.on('close', this.onClose.bind(this));
         //  this.socket.on('ping', function (data, flags) {
         //  });
-        this.socket.on('pong', (data, flags) => {
-            this._KP_last_pong_time = Date.now();
+        this.socket.on('pong', (_data, _flags) => {
+            this._kpLastPongTime = Date.now();
         });
     }
 
@@ -72,9 +71,9 @@ class MailBox extends BaseMailbox {
             return;
         }
         const now = Date.now();
-        if (this._KP_last_ping_time > 0) {
-            if (this._KP_last_pong_time < this._KP_last_ping_time) {
-                if (now - this._KP_last_ping_time > KEEP_ALIVE_TIMEOUT) {
+        if (this._kpLastPingTime > 0) {
+            if (this._kpLastPongTime < this._kpLastPingTime) {
+                if (now - this._kpLastPingTime > KEEP_ALIVE_TIMEOUT) {
                     console.error('ws-mailbox rpc client checkKeepAlive error because > KEEP_ALIVE_TIMEOUT');
                     this.close();
                     return;
@@ -82,13 +81,13 @@ class MailBox extends BaseMailbox {
                     return;
                 }
             }
-            if (this._KP_last_pong_time >= this._KP_last_ping_time) {
+            if (this._kpLastPongTime >= this._kpLastPingTime) {
                 this.socket.ping();
-                this._KP_last_ping_time = Date.now();
+                this._kpLastPingTime = Date.now();
             }
         } else {
             this.socket.ping();
-            this._KP_last_ping_time = Date.now();
+            this._kpLastPingTime = Date.now();
         }
     }
 
@@ -106,8 +105,8 @@ class MailBox extends BaseMailbox {
             this._KPinterval = null;
         }
         this.socket.close();
-        this._KP_last_ping_time = -1;
-        this._KP_last_pong_time = -1;
+        this._kpLastPingTime = -1;
+        this._kpLastPongTime = -1;
     }
 
     sendMessage(dataObj) {

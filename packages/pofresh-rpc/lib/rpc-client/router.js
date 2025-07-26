@@ -190,7 +190,7 @@ function chRoute(client, serverType, msg, cb) {
         return cb(new Error('rpc servers not exist with serverType: ' + serverType));
     }
 
-    let index, con;
+    let con;
     if (!client.chParam) {
         client.chParam = {};
     }

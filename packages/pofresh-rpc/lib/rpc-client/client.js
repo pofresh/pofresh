@@ -299,6 +299,7 @@ function proxyCB(client, serviceName, methodName, args, attach, isToSpecifiedSer
     }
     if (args.length < 2) {
         logger.error(
+            // eslint-disable-next-line max-len
             '[pofresh-rpc] invalid rpc invoke, arguments length less than 2, namespace: %j, serverType, %j, serviceName: %j, methodName: %j',
             attach.namespace,
             attach.serverType,

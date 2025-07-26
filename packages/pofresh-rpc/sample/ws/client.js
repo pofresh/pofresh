@@ -6,29 +6,29 @@ ws.on('open', function open() {
     run();
 });
 
-ws.on('message', function (data, flags) {
+ws.on('message', function (data, _flags) {
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
     run();
 });
 
-const num_requests = 20000;
+const numRequests = 20000;
 let start = null;
 let times = 0;
 
 function run() {
-    if (times > num_requests) {
+    if (times > numRequests) {
         return;
     }
 
-    if (times == num_requests) {
+    if (times === numRequests) {
         const now = Date.now();
         const cost = now - start;
         console.log(
             'run %d num requests cost: %d ops/sec',
-            num_requests,
+            numRequests,
             cost,
-            (num_requests / (cost / 1000)).toFixed(2)
+            (numRequests / (cost / 1000)).toFixed(2)
         );
         times = 0;
         start = now;

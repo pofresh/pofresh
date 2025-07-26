@@ -32,13 +32,13 @@ Utils.getObjectClass = function (obj) {
     }
 
     let arr = null;
-    if (str.charAt(0) == '[') {
+    if (str.charAt(0) === '[') {
         arr = str.match(/\[\w+\s*(\w+)\]/);
     } else {
         arr = str.match(/function\s*(\w+)/);
     }
 
-    if (arr && arr.length == 2) {
+    if (arr && arr.length === 2) {
         return arr[1];
     }
 };
@@ -64,7 +64,7 @@ Utils.checkFloat = function (v) {
  */
 Utils.isType = function (type) {
     return function (obj) {
-        return {}.toString.call(obj) == '[object ' + type + ']';
+        return {}.toString.call(obj) === '[object ' + type + ']';
     };
 };
 
@@ -143,7 +143,7 @@ Utils.checkNull = function (obj) {
  * @return {Array}   array
  * @api public
  */
-Utils.to_array = function (args) {
+Utils.toArray = function (args) {
     const len = args.length;
     const arr = new Array(len);
 

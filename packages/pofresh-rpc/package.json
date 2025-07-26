@@ -5,7 +5,8 @@
     "test": "vitest",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint --fix"
   },
   "dependencies": {
     "pofresh-logger": "workspace:*",

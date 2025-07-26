@@ -23,14 +23,11 @@ const servers = [
     }
 ];
 
-// route parameter passed to route function
-const routeParam = null;
-
 // route context passed to route function
 const routeContext = servers;
 
 // route function to caculate the remote server id
-const routeFunc = function (routeParam, msg, routeContext, cb) {
+const routeFunc = function (_routeParam, _msg, routeContext, cb) {
     cb(null, routeContext[0].id);
 };
 
@@ -41,7 +38,7 @@ const client = Client.create({
 });
 
 let start = null;
-client.start(function (err) {
+client.start(function (_err) {
     console.log('rpc client start ok.');
 
     client.addProxies(records);
@@ -51,41 +48,41 @@ client.start(function (err) {
     run();
 });
 
-const num_requests = 100000;
+const numRequests = 100000;
 let times = 0;
-const mock_data_1 = 'hello';
-let mock_data_2 = 'hello';
+const mockData1 = 'hello';
+let mockData2 = 'hello';
 
-const num_repeat = 200; // 100 200 300 400 800
+const numRepeat = 200; // 100 200 300 400 800
 
-for (let i = 0; i < num_repeat; i++) {
-    mock_data_2 += mock_data_1;
+for (let i = 0; i < numRepeat; i++) {
+    mockData2 += mockData1;
 }
 
-const mock_data_3 = {
+const mockData3 = {
     a: 'run',
-    b: mock_data_2 + Date.now() + '_',
+    b: mockData2 + Date.now() + '_',
     time: Date.now()
 };
 
-const payload = mock_data_3;
+const payload = mockData3;
 
 // console.log(new Buffer(payload).length / 1024 + 'k');
 console.log(Buffer.from(JSON.stringify(payload)).length / 1024 + 'k');
 
 function run() {
-    if (times > num_requests) {
+    if (times > numRequests) {
         return;
     }
 
-    if (times == num_requests) {
+    if (times === numRequests) {
         const now = Date.now();
         const cost = now - start;
         console.log(
             'run %d num requests cost: %d ops/sec',
-            num_requests,
+            numRequests,
             cost,
-            (num_requests / (cost / 1000)).toFixed(2)
+            (numRequests / (cost / 1000)).toFixed(2)
         );
         times = 0;
         start = now;
@@ -100,9 +97,9 @@ function run() {
 }
 
 function rpcRequest(param, cb) {
-    client.proxies.user.test.service.echo(routeParam, param, 123, function (err, resp) {
-        if (err) {
-            console.error(err.stack);
+    client.proxies.user.test.service.echo(null, param, 123, function (_err, _resp) {
+        if (_err) {
+            console.error(_err.stack);
         }
         // console.log(resp);
         cb();

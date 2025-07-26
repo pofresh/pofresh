@@ -1,6 +1,6 @@
 // remote service
 
-module.exports = function (context) {
+module.exports = function (_context) {
     return {
         echo: function (msg, data, cb) {
             // setTimeout(function() {

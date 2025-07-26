@@ -14,7 +14,7 @@ class Acceptor extends BaseAcceptor {
         socket.id = curId++;
         this.sockets[socket.id] = socket;
 
-        socket.on('connect', pkg => {
+        socket.on('connect', _pkg => {
             // console.log('connected', stream);
             // this.emit('connection', {
             //     id: socket.id,
@@ -48,7 +48,7 @@ class Acceptor extends BaseAcceptor {
             socket.pingresp();
         });
 
-        socket.on('subscribe', function (packet) {
+        socket.on('subscribe', function (_packet) {
             // send a suback with messageId and granted QoS level
             // socket.suback({ granted: [packet.qos], messageId: packet.messageId });
         });
@@ -61,7 +61,7 @@ class Acceptor extends BaseAcceptor {
             this.onSocketClose(socket);
         });
 
-        socket.on('disconnect', reason => {
+        socket.on('disconnect', _reason => {
             this.onSocketClose(socket);
         });
     }

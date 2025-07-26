@@ -253,19 +253,19 @@ class MailStation extends EventEmitter {
                 self.emit('error', constants.RPC_ERROR.FAIL_FIND_MAILBOX, tracer, serverId, msg, opts);
                 return;
             }
-            mailbox.send(tracer, msg, opts, function (tracer_send, send_err, args) {
-                // let tracer_send = arguments[0];
-                // let send_err = arguments[1];
-                if (send_err) {
-                    logger.error('[pofresh-rpc] fail to send message %s', send_err.stack || send_err.message);
+            mailbox.send(tracer, msg, opts, function (tracerSend, sendErr, args) {
+                // let tracerSend = arguments[0];
+                // let sendErr = arguments[1];
+                if (sendErr) {
+                    logger.error('[pofresh-rpc] fail to send message %s', sendErr.stack || sendErr.message);
                     self.emit('error', constants.RPC_ERROR.FAIL_SEND_MESSAGE, tracer, serverId, msg, opts);
-                    cb(send_err);
-                    // utils.applyCallback(cb, send_err);
+                    cb(sendErr);
+                    // utils.applyCallback(cb, sendErr);
                     return;
                 }
                 // let args = arguments[2];
                 doFilter(
-                    tracer_send,
+                    tracerSend,
                     null,
                     serverId,
                     msg,

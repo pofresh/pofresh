@@ -1,4 +1,3 @@
-const Tracer = require('../../util/tracer');
 const utils = require('../../util/utils');
 const Composer = require('stream-pkg');
 const net = require('net');

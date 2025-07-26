@@ -1,8 +1,7 @@
 const logger = require('pofresh-logger').getLogger('pofresh-rpc', 'mqtt-mailbox');
 const constants = require('../../util/constants');
-const Tracer = require('../../util/tracer');
+require('../../util/tracer');
 const MqttCon = require('mqtt-connection');
-const util = require('util');
 const net = require('net');
 const BaseMailbox = require('./base-mailbox');
 
@@ -109,6 +108,7 @@ class MailBox extends BaseMailbox {
             if (this.lastPong < this.lastPing) {
                 if (now - this.lastPing > KEEP_ALIVE_TIMEOUT) {
                     logger.error(
+                        // eslint-disable-next-line max-len
                         'mqtt-mailbox rpc client %s checkKeepAlive timeout from remote server %s for %d lastPing: %s lastPong: %s',
                         this.serverId,
                         this.id,

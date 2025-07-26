@@ -23,7 +23,7 @@ describe('server', () => {
             const gateway = Server.create(opts);
 
             expect(gateway).toBeDefined();
-            gateway.on('error', err => {
+            gateway.on('error', _err => {
                 errorCount++;
             });
             gateway.on('closed', () => {
@@ -42,12 +42,12 @@ describe('server', () => {
 
         it('should change the default acceptor by pass the acceptorFactory to the create function', done => {
             const oport = 3333;
-            let constructCount = 0,
-                listenCount = 0,
-                closeCount = 0;
+            let constructCount = 0;
+            let listenCount = 0;
+            let closeCount = 0;
 
             class MockAcceptor {
-                constructor(opts, cb) {
+                constructor() {
                     constructCount++;
                 }
 

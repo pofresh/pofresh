@@ -1,4 +1,4 @@
-const logger = require('pofresh-logger').getLogger('pofresh-rpc', 'Coder');
+// const logger = require('pofresh-logger').getLogger('pofresh-rpc', 'Coder');
 // const OutBuffer = require('./buffer/outputBuffer');
 // const InBuffer = require('./buffer/inputBuffer');
 const bBuffer = require('bearcat-buffer');
@@ -12,7 +12,7 @@ Coder.encodeClient = function (id, msg, servicesMap) {
     const outBuf = new OutBuffer();
     outBuf.writeUInt(id);
     const namespace = msg.namespace;
-    const serverType = msg.serverType;
+    // const serverType = msg.serverType;
     const service = msg.service;
     const method = msg.method;
     const args = msg.args || [];

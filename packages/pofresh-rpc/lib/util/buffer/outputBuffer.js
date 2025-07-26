@@ -12,7 +12,7 @@ OutputBuffer.prototype.getData = function () {
     return this.buf;
 };
 
-OutBuffer.prototype.getBuffer = function () {
+OutputBuffer.prototype.getBuffer = function () {
     return this.buf.slice(0, this.offset);
 };
 
@@ -109,16 +109,16 @@ OutputBuffer.prototype.writeObject = function (object) {
 
     const typeMap = Utils.typeMap;
 
-    if (typeMap['null'] == type) {
+    if (typeMap['null'] === type) {
         return;
     }
 
-    if (typeMap['buffer'] == type) {
+    if (typeMap['buffer'] === type) {
         this.writeBytes(object);
         return;
     }
 
-    if (typeMap['array'] == type) {
+    if (typeMap['array'] === type) {
         const len = object.length;
         this.writeInt(len);
         for (let i = 0; i < len; i++) {
@@ -127,34 +127,33 @@ OutputBuffer.prototype.writeObject = function (object) {
         return;
     }
 
-    if (typeMap['string'] == type) {
+    if (typeMap['string'] === type) {
         this.writeString(object);
         return;
     }
 
-    if (typeMap['object'] == type) {
+    if (typeMap['object'] === type) {
         this.writeString(JSON.stringify(object));
-        // logger.error('invalid writeObject object must be bearcat beans and should implement writeFields and readFields interfaces');
         return;
     }
 
-    if (typeMap['bean'] == type) {
+    if (typeMap['bean'] === type) {
         this.writeString(object['$id']);
         object.writeFields(this);
         return;
     }
 
-    if (typeMap['boolean'] == type) {
+    if (typeMap['boolean'] === type) {
         this.writeBoolean(object);
         return;
     }
 
-    if (typeMap['float'] == type) {
+    if (typeMap['float'] === type) {
         this.writeFloat(object);
         return;
     }
 
-    if (typeMap['number'] == type) {
+    if (typeMap['number'] === type) {
         this.writeInt(object);
         return;
     }
@@ -176,6 +175,8 @@ OutputBuffer.prototype.grow = function (minCapacity) {
 
     if (newCapacity < 0 && minCapacity < 0) {
         throw new Error('OutOfMemoryError');
+    }
+    if (newCapacity < 0) {
         newCapacity = 0x7fffffff; // Integer.MAX_VALUE
     }
 

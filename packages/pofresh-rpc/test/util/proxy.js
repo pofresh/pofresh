@@ -1,5 +1,4 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const should = require('should');
 const Proxy = require('../../' + lib + '/util/proxy');
 
 const A = function (value) {

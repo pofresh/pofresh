@@ -1,8 +1,8 @@
 const WSServer = require('ws').WebSocketServer;
 const BaseAcceptor = require('./base-acceptor');
 
-let DEFAULT_ZIP_LENGTH = 1024 * 10;
-let useZipCompress = false;
+// let DEFAULT_ZIP_LENGTH = 1024 * 10;
+// let useZipCompress = false;
 let gid = 1;
 
 class Acceptor extends BaseAcceptor {
@@ -12,8 +12,8 @@ class Acceptor extends BaseAcceptor {
             return new WSServer({ port });
         };
         super(opts, cb);
-        DEFAULT_ZIP_LENGTH = opts.doZipLength || DEFAULT_ZIP_LENGTH;
-        useZipCompress = opts.useZipCompress || false;
+        // DEFAULT_ZIP_LENGTH = opts.doZipLength || DEFAULT_ZIP_LENGTH;
+        // const useZipCompress = opts.useZipCompress || false;
     }
 
     onConnection(socket) {
@@ -26,7 +26,7 @@ class Acceptor extends BaseAcceptor {
             ip: socket._socket.remoteAddress
         });
 
-        socket.on('message', (data, flags) => {
+        socket.on('message', (data, _flags) => {
             try {
                 // console.log("ws rpc server received message = " + data);
                 const msg = JSON.parse(data);
@@ -41,7 +41,7 @@ class Acceptor extends BaseAcceptor {
             }
         });
 
-        socket.on('close', (code, message) => {
+        socket.on('close', (_code, _message) => {
             this.onSocketClose(socket);
         });
     }

@@ -2,8 +2,8 @@ const Loader = require('pofresh-loader');
 const Gateway = require('./gateway');
 
 function loadRemoteServices(paths, context) {
-    let res = {},
-        m;
+    const res = {};
+    let m;
     paths.forEach(item => {
         m = Loader.load(item.path, context);
         if (m) {

@@ -12,6 +12,6 @@ class Service {
     }
 }
 
-module.exports = function (app) {
+module.exports = function (_app) {
     return new Service();
 };

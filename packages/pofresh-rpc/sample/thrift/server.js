@@ -39,7 +39,7 @@ const server = thrift.createServer(Calculator, {
         console.log('calculate(', logid, ',', work, ')');
 
         let val = 0;
-        if (work.op == ttypes.Operation.ADD) {
+        if (work.op === ttypes.Operation.ADD) {
             val = work.num1 + work.num2;
         } else if (work.op === ttypes.Operation.SUBTRACT) {
             val = work.num1 - work.num2;
@@ -75,7 +75,7 @@ const server = thrift.createServer(Calculator, {
         result(null, data[key]);
     },
 
-    zip: function () {
+    zip: function (result) {
         console.log('zip()');
         result(null);
     }

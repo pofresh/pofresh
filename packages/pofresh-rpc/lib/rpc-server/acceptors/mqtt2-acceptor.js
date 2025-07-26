@@ -16,12 +16,12 @@ class Acceptor extends BaseAcceptor {
         this.servicesMap = {};
     }
 
-    onConnection(socket) {
-        this.server.on('connection', function (stream) {
+    onConnection(_socket) {
+        this.server.on('connection', (stream) => {
             const socket = MqttCon(stream);
             socket.id = curId++;
 
-            socket.on('connect', pkg => {
+            socket.on('connect', _pkg => {
                 sendHandshake(socket, this);
             });
 
@@ -30,7 +30,7 @@ class Acceptor extends BaseAcceptor {
                 try {
                     this.processMsg(socket, pkg);
                 } catch (err) {
-                    const resp = Coder.encodeServer(pkg.id, [this.cloneError(err)]);
+                    // const _resp = Coder.encodeServer(pkg.id, [this.cloneError(err)]);
                     // doSend(socket, resp);
                     logger.error('process rpc message error %s', err.stack);
                 }
@@ -50,7 +50,7 @@ class Acceptor extends BaseAcceptor {
 
             this.sockets[socket.id] = socket;
 
-            socket.on('disconnect', reason => {
+            socket.on('disconnect', _reason => {
                 this.onSocketClose(socket);
             });
         });

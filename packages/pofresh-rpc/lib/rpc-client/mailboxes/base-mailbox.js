@@ -90,7 +90,7 @@ class MailBox extends EventEmitter {
         }
     }
 
-    sendMessage(pkg) {}
+    sendMessage(_pkg) {}
 
     onConnection() {
         if (this.connected) {

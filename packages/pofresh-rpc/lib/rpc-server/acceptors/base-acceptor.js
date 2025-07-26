@@ -52,7 +52,7 @@ class Acceptor extends EventEmitter {
         }
     }
 
-    onConnection(socket) {}
+    onConnection(_socket) {}
 
     onError(err) {
         logger.error('rpc server is error: %j', err.stack);
@@ -166,13 +166,12 @@ class Acceptor extends EventEmitter {
         queue.push(msg);
     }
 
-    send(socket, msg) {}
+    send(_socket, _msg) {}
 
     flush() {
-        let sockets = this.sockets,
-            queues = this.msgQueues,
-            queue,
-            socket;
+        const sockets = this.sockets;
+        const queues = this.msgQueues;
+        let queue, socket;
         for (const socketId in queues) {
             socket = sockets[socketId];
             if (!socket) {

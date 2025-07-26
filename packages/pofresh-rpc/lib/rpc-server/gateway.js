@@ -10,7 +10,7 @@ class Gateway extends EventEmitter {
         this.opts = opts || {};
         this.port = opts.port || 3050;
         this.started = false;
-        this.stoped = false;
+        this.stopped = false;
         this.acceptorFactory = opts.acceptorFactory || defaultAcceptorFactory;
         this.services = opts.services;
         const dispatcher = new Dispatcher(this.services);
@@ -34,10 +34,10 @@ class Gateway extends EventEmitter {
     }
 
     stop() {
-        if (!this.started || this.stoped) {
+        if (!this.started || this.stopped) {
             return;
         }
-        this.stoped = true;
+        this.stopped = true;
         try {
             this.acceptor.close();
         } catch (err) {
@@ -51,7 +51,7 @@ function watchServices(gateway, dispatcher) {
     const app = gateway.opts.context;
     paths.forEach(item => {
         (function () {
-            fs.watch(item.path, function (event, name) {
+            fs.watch(item.path, function (event, _name) {
                 if (event === 'change') {
                     const res = {};
                     const m = Loader.load(item.path, app);

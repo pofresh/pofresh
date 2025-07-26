@@ -4,7 +4,13 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
     {
-        ignores: ['**/node_modules/', '**/dist/', '*.log']
+        ignores: [
+            '**/node_modules/',
+            '**/dist/',
+            '*.log',
+            '**/sample/**',
+            '**/gen-nodejs/**'
+        ]
     },
     {
         files: ['**/*.{js,mjs,cjs}'],

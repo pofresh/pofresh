@@ -1,5 +1,4 @@
 const Server = require('../../').server;
-const should = require('should');
 
 const WAIT_TIME = 100;
 
@@ -23,7 +22,7 @@ describe('server', function () {
             const gateway = Server.create(opts);
 
             expect(gateway);
-            gateway.on('error', err => {
+            gateway.on('error', _err => {
                 errorCount++;
             });
             gateway.on('closed', () => {
@@ -34,8 +33,8 @@ describe('server', function () {
             gateway.stop();
 
             setTimeout(() => {
-                errorCount.should.be.exactly(0);
-                closeCount.should.be.exactly(1);
+                expect(errorCount).toBe(0);
+                expect(closeCount).toBe(1);
                 done();
             }, WAIT_TIME);
         });
@@ -47,12 +46,12 @@ describe('server', function () {
                 closeCount = 0;
 
             class MockAcceptor {
-                constructor(opts, cb) {
+                constructor(_opts, _cb) {
                     constructCount++;
                 }
 
                 listen(port) {
-                    oport.should.be.exactly(port);
+                    expect(port).toBe(oport);
                     listenCount++;
                 }
 

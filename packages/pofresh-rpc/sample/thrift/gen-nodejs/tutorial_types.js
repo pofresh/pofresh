@@ -16,7 +16,7 @@ ttypes.Operation = {
     MULTIPLY: 3,
     DIVIDE: 4
 };
-Work = module.exports.Work = function (args) {
+const Work = module.exports.Work = function (args) {
     this.num1 = 0;
     this.num2 = null;
     this.op = null;
@@ -44,33 +44,33 @@ Work.prototype.read = function (input) {
         const fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
-        if (ftype == Thrift.Type.STOP) {
+        if (ftype === Thrift.Type.STOP) {
             break;
         }
         switch (fid) {
         case 1:
-            if (ftype == Thrift.Type.I32) {
+            if (ftype === Thrift.Type.I32) {
                 this.num1 = input.readI32();
             } else {
                 input.skip(ftype);
             }
             break;
         case 2:
-            if (ftype == Thrift.Type.I32) {
+            if (ftype === Thrift.Type.I32) {
                 this.num2 = input.readI32();
             } else {
                 input.skip(ftype);
             }
             break;
         case 3:
-            if (ftype == Thrift.Type.I32) {
+            if (ftype === Thrift.Type.I32) {
                 this.op = input.readI32();
             } else {
                 input.skip(ftype);
             }
             break;
         case 4:
-            if (ftype == Thrift.Type.STRING) {
+            if (ftype === Thrift.Type.STRING) {
                 this.comment = input.readString();
             } else {
                 input.skip(ftype);
@@ -112,7 +112,7 @@ Work.prototype.write = function (output) {
     return;
 };
 
-InvalidOperation = module.exports.InvalidOperation = function (args) {
+const InvalidOperation = module.exports.InvalidOperation = function (args) {
     Thrift.TException.call(this, 'InvalidOperation');
     this.name = 'InvalidOperation';
     this.whatOp = null;
@@ -135,19 +135,19 @@ InvalidOperation.prototype.read = function (input) {
         const fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
-        if (ftype == Thrift.Type.STOP) {
+        if (ftype === Thrift.Type.STOP) {
             break;
         }
         switch (fid) {
         case 1:
-            if (ftype == Thrift.Type.I32) {
+            if (ftype === Thrift.Type.I32) {
                 this.whatOp = input.readI32();
             } else {
                 input.skip(ftype);
             }
             break;
         case 2:
-            if (ftype == Thrift.Type.STRING) {
+            if (ftype === Thrift.Type.STRING) {
                 this.why = input.readString();
             } else {
                 input.skip(ftype);

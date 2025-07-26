@@ -1,86 +1,85 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const should = require('should');
 const route = require('../../' + lib + '/rpc-client/router').df;
 
 const WAIT_TIME = 20;
-describe('router', function() {
-  const servers = {
-    logic: [
-      { id: 'logic-server-1', host: 'localhost', port: 3333 },
-      { id: 'logic-server-2', host: 'localhost', port: 4444 }
-    ],
-    area: [{ id: 'area-servere-1', host: 'localhost', port: 5555 }],
+describe('router', function () {
+    const servers = {
+        logic: [
+            { id: 'logic-server-1', host: 'localhost', port: 3333 },
+            { id: 'logic-server-2', host: 'localhost', port: 4444 }
+        ],
+        area: [{ id: 'area-servere-1', host: 'localhost', port: 5555 }],
 
-    getServersByType(serverType) {
-      return this[serverType];
-    }
-  };
+        getServersByType(serverType) {
+            return this[serverType];
+        }
+    };
 
-  const msg = {
-    serverType: 'logic',
-    service: 'rpcRemote',
-    method: 'someMethod',
-    args: []
-  };
-
-  const session = {
-    uid: 'changchang005@gmail.com'
-  };
-
-  describe('#route', function() {
-    it('should return the same result for the same user if the mapping info not changed', function(done) {
-      let firstRoute, secondRoute;
-
-      route(session, msg, servers, function(err, sid) {
-        expect(sid);
-        firstRoute = sid;
-      });
-
-      route(session, msg, servers, function(err, sid) {
-        expect(sid);
-        secondRoute = sid;
-      });
-
-      setTimeout(function() {
-        firstRoute).toBe(secondRoute);
-        done();
-      }, WAIT_TIME);
-    });
-
-    it('should return an error if try to route to an invalid server type', function(done) {
-      const invalidMsg = {
-        serverType: 'invalid-type',
+    const msg = {
+        serverType: 'logic',
         service: 'rpcRemote',
         method: 'someMethod',
         args: []
-      };
+    };
 
-      route(session, invalidMsg, servers, function(err, sid) {
-        expect(err);
-        done();
-      });
+    const session = {
+        uid: 'changchang005@gmail.com'
+    };
+
+    describe('#route', function () {
+        it('should return the same result for the same user if the mapping info not changed', function (done) {
+            let firstRoute, secondRoute;
+
+            route(session, msg, servers, function (err, sid) {
+                expect(sid);
+                firstRoute = sid;
+            });
+
+            route(session, msg, servers, function (err, sid) {
+                expect(sid);
+                secondRoute = sid;
+            });
+
+            setTimeout(function () {
+                expect(firstRoute).toBe(secondRoute);
+                done();
+            }, WAIT_TIME);
+        });
+
+        it('should return an error if try to route to an invalid server type', function (done) {
+            const invalidMsg = {
+                serverType: 'invalid-type',
+                service: 'rpcRemote',
+                method: 'someMethod',
+                args: []
+            };
+
+            route(session, invalidMsg, servers, function (err, _sid) {
+                expect(err);
+                done();
+            });
+        });
+
+        it('should be ok when session or session.uid is null', function (done) {
+            let okCount = 0;
+            route(null, msg, servers, function (err, sid) {
+                expect(sid).toBeDefined();
+                okCount++;
+            });
+
+            const session = {
+                uid: null
+            };
+
+            route(session, msg, servers, function (err, sid) {
+                expect(sid).toBeDefined();
+                okCount++;
+            });
+
+            setTimeout(function () {
+                expect(okCount).toBe(2);
+                done();
+            }, WAIT_TIME);
+        });
     });
-
-    it('should be ok when session or session.uid is null', function(done) {
-      let okCount = 0;
-      route(null, msg, servers, function(err, sid) {
-        expect(sid);
-        okCount++;
-      });
-
-      const session = {
-        uid: null
-      };
-
-      route(session, msg, servers, function(err, sid) {
-        expect(sid);
-        okCount++;
-      });
-
-      setTimeout(function() {
-        okCount).toBe(2);
-        done();
-      }, WAIT_TIME);
-    });
-  });
 });
