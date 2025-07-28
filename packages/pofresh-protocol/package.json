@@ -2,15 +2,27 @@
   "name": "pofresh-protocol",
   "version": "2.0.0",
   "private": false,
+  "main": "index.js",
+  "module": "dist/pofresh-protocol.es.js",
+  "browser": "dist/pofresh-protocol.umd.js",
+  "require": "dist/pofresh-protocol.cjs.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "lib",
+    "dist",
+    "types",
+    "index.js"
+  ],
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --run",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
+    "build": "vite build",
+    "build:watch": "vite build --watch",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "format": "prettier --write \"lib/**/*.js\" \"test/**/*.js\""
-  },
-  "dependencies": {},
-  "devDependencies": {}
+    "format": "prettier --write \"lib/**/*.js\" \"test/**/*.js\"",
+    "prepublishOnly": "npm run test:run && npm run build"
+  }
 }
