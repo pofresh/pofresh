@@ -1,66 +1,558 @@
-const encoder = require('./encoder');
-const decoder = require('./decoder');
+/**
+ * Pofresh Protobuf Library
+ * 
+ * A high-performance Protocol Buffers implementation for Node.js applications.
+ * Built on top of protobufjs for reliable encoding and decoding.
+ * 
+ * @module protobuf
+ * @version 2.0.0
+ * @author Pofresh Team
+ */
+
+const protobuf = require('protobufjs');
 const parser = require('./parser');
 
 const Protobuf = module.exports;
 
+// Internal state
+let encoderRoot = null;
+let decoderRoot = null;
+let encoderProtos = null;
+let decoderProtos = null;
+
 /**
- * [encode the given message, return a Buffer represent the message encoded by protobuf]
- * @param  {[type]} key The key to identify the message type.
- * @param  {[type]} msg The message body, a js object.
- * @return {[type]} The binary encode result in a Buffer.
+ * Create protobufjs root from parsed protos
+ * @param {Object} protos - Parsed protobuf definitions
+ * @returns {protobuf.Root} protobufjs root instance
  */
-Protobuf.encode = function (key, msg) {
-    return encoder.encode(key, msg);
+function createProtobufRoot(protos) {
+    const root = new protobuf.Root();
+    
+    function createMessageType(messageProto, messageName) {
+        const messageType = new protobuf.Type(messageName);
+        
+        // Add nested message types first
+        if (messageProto.__messages) {
+            for (const nestedName in messageProto.__messages) {
+                const nestedProto = messageProto.__messages[nestedName];
+                const nestedType = createMessageType(nestedProto, nestedName);
+                messageType.add(nestedType);
+            }
+        }
+        
+        // Add fields
+        for (const fieldName in messageProto) {
+            if (fieldName.startsWith('__')) continue;
+            
+            const fieldProto = messageProto[fieldName];
+            let fieldType = convertFieldType(fieldProto.type);
+            
+            // Check if this field type is a nested message
+            if (messageProto.__messages && messageProto.__messages[fieldProto.type]) {
+                fieldType = fieldProto.type; // Use the nested message name directly
+            }
+            
+            const rule = fieldProto.option === 'repeated' ? 'repeated' : 
+                        fieldProto.option === 'required' ? 'required' : 'optional';
+            
+            messageType.add(new protobuf.Field(fieldName, fieldProto.tag, fieldType, rule));
+        }
+        
+        return messageType;
+    }
+    
+    // Create all top-level message types
+    for (const messageName in protos) {
+        const safeName = messageName.replace(/\./g, '_');
+        const messageType = createMessageType(protos[messageName], safeName);
+        root.add(messageType);
+    }
+    
+    return root;
+}
+
+/**
+ * Convert field type from custom format to protobufjs format
+ * @param {string} type - Custom field type
+ * @returns {string} protobufjs field type
+ */
+function convertFieldType(type) {
+    const typeMap = {
+        'uInt32': 'uint32',
+        'sInt32': 'sint32',
+        'int32': 'int32',
+        'uInt64': 'uint64',
+        'sInt64': 'sint64',
+        'float': 'float',
+        'double': 'double',
+        'bool': 'bool',
+        'string': 'string',
+        'bytes': 'bytes'
+    };
+    
+    return typeMap[type] || type;
+}
+
+/**
+ * Encode a message using Protocol Buffers format
+ * 
+ * @param {string} route - The route identifier for the message type
+ * @param {Object} message - The message object to encode
+ * @returns {Buffer} The encoded message as a Buffer
+ * @throws {Error} If encoding fails or parameters are invalid
+ * 
+ * @example
+ * const encoded = Protobuf.encode('user.login', { username: 'john', password: 'secret' });
+ */
+Protobuf.encode = function (route, message) {
+    if (typeof route !== 'string' || !route.trim()) {
+        throw new Error('Route must be a non-empty string');
+    }
+    if (message === null || message === undefined) {
+        throw new Error('Message cannot be null or undefined');
+    }
+    
+    if (!encoderRoot) {
+        throw new Error('Encoder not initialized. Call Protobuf.init() first.');
+    }
+    
+    try {
+        // Replace dots with underscores for protobufjs compatibility
+        const safeName = route.replace(/\./g, '_');
+        const MessageType = encoderRoot.lookupType(safeName);
+        if (!MessageType) {
+            throw new Error(`Message type '${route}' not found in encoder protos`);
+        }
+        
+        // Verify the message
+        const errMsg = MessageType.verify(message);
+        if (errMsg) {
+            throw new Error(`Message verification failed: ${errMsg}`);
+        }
+        
+        // Encode the message
+        const encodedMessage = MessageType.encode(message).finish();
+        return Buffer.from(encodedMessage);
+    } catch (error) {
+        throw new Error(`Failed to encode message for route '${route}': ${error.message}`);
+    }
 };
 
-Protobuf.encode2Bytes = function (key, msg) {
-    const buffer = this.encode(key, msg);
-    if (!buffer || !buffer.length) {
-        console.warn('encode msg failed! key : %j, msg : %j', key, msg);
+/**
+ * Encode a message and return as Uint8Array
+ * 
+ * @param {string} route - The route identifier for the message type
+ * @param {Object} message - The message object to encode
+ * @returns {Uint8Array|null} The encoded message as Uint8Array, or null if encoding fails
+ * 
+ * @example
+ * const bytes = Protobuf.encode2Bytes('user.login', { username: 'john' });
+ */
+Protobuf.encode2Bytes = function (route, message) {
+    try {
+        const buffer = this.encode(route, message);
+        if (!buffer || !buffer.length) {
+            return null;
+        }
+        
+        // Convert Buffer to Uint8Array efficiently
+        return new Uint8Array(buffer);
+    } catch (error) {
+        // Return null for backward compatibility, but could throw in strict mode
         return null;
     }
-    const bytes = new Uint8Array(buffer.length);
-    for (let offset = 0; offset < buffer.length; offset++) {
-        bytes[offset] = buffer.readUInt8(offset);
+};
+
+/**
+ * Encode a message and return as encoded string
+ * 
+ * @param {string} route - The route identifier for the message type
+ * @param {Object} message - The message object to encode
+ * @param {string} [encoding='base64'] - The string encoding format (base64, hex, etc.)
+ * @returns {string|null} The encoded message as string, or null if encoding fails
+ * 
+ * @example
+ * const encoded = Protobuf.encodeStr('user.login', { username: 'john' }, 'base64');
+ */
+Protobuf.encodeStr = function (route, message, encoding) {
+    encoding = encoding || 'base64';
+    
+    try {
+        const buffer = Protobuf.encode(route, message);
+        return buffer ? buffer.toString(encoding) : null;
+    } catch (error) {
+        // Return null for backward compatibility
+        return null;
     }
-
-    return bytes;
 };
 
-Protobuf.encodeStr = function (key, msg, code) {
-    code = code || 'base64';
-    const buffer = Protobuf.encode(key, msg);
-    return buffer ? buffer.toString(code) : buffer;
+/**
+ * Decode a protobuf message
+ * 
+ * @param {string} route - The route identifier for the message type
+ * @param {Buffer|Uint8Array} buffer - The encoded message buffer
+ * @returns {Object} The decoded message object
+ * @throws {Error} If decoding fails or parameters are invalid
+ * 
+ * @example
+ * const decoded = Protobuf.decode('user.login', encodedBuffer);
+ */
+Protobuf.decode = function (route, buffer) {
+    if (typeof route !== 'string' || !route.trim()) {
+        throw new Error('Route must be a non-empty string');
+    }
+    if (!buffer) {
+        throw new Error('Buffer cannot be null or undefined');
+    }
+    
+    if (!decoderRoot) {
+        throw new Error('Decoder not initialized. Call Protobuf.init() first.');
+    }
+    
+    try {
+        // Replace dots with underscores for protobufjs compatibility
+        const safeName = route.replace(/\./g, '_');
+        const MessageType = decoderRoot.lookupType(safeName);
+        if (!MessageType) {
+            throw new Error(`Message type '${route}' not found in decoder protos`);
+        }
+        
+        // Ensure buffer is Uint8Array for protobufjs
+        const uint8Buffer = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+        
+        // Decode the message
+        const decodedMessage = MessageType.decode(uint8Buffer);
+        return MessageType.toObject(decodedMessage, {
+            longs: Number,
+            enums: String,
+            bytes: String,
+            defaults: false,
+            arrays: true,
+            objects: true
+        });
+    } catch (error) {
+        throw new Error(`Failed to decode message for route '${route}': ${error.message}`);
+    }
 };
 
-Protobuf.decode = function (key, msg) {
-    return decoder.decode(key, msg);
+/**
+ * Decode a protobuf message from encoded string
+ * 
+ * @param {string} route - The route identifier for the message type
+ * @param {string} encodedString - The encoded message string
+ * @param {string} [encoding='base64'] - The string encoding format
+ * @returns {Object|null} The decoded message object, or null if decoding fails
+ * 
+ * @example
+ * const decoded = Protobuf.decodeStr('user.login', encodedString, 'base64');
+ */
+Protobuf.decodeStr = function (route, encodedString, encoding) {
+    encoding = encoding || 'base64';
+    
+    if (typeof encodedString !== 'string') {
+        return null;
+    }
+    
+    try {
+        const buffer = Buffer.from(encodedString, encoding);
+        return buffer ? Protobuf.decode(route, buffer) : null;
+    } catch (error) {
+        // Return null for backward compatibility
+        return null;
+    }
 };
 
-Protobuf.decodeStr = function (key, str, code) {
-    code = code || 'base64';
-    const buffer = Buffer.from(str, code);
-
-    return buffer ? Protobuf.decode(key, buffer) : buffer;
-};
-
+/**
+ * Parse protobuf definition from JSON
+ * 
+ * @param {Object|string} json - The protobuf definition in JSON format
+ * @returns {Object} The parsed protobuf definition
+ * @throws {Error} If parsing fails
+ * 
+ * @example
+ * const protos = Protobuf.parse(protoJson);
+ */
 Protobuf.parse = function (json) {
-    return parser.parse(json);
+    if (!json) {
+        throw new Error('JSON definition cannot be null or undefined');
+    }
+    
+    try {
+        return parser.parse(json);
+    } catch (error) {
+        throw new Error(`Failed to parse protobuf definition: ${error.message}`);
+    }
 };
 
+/**
+ * Set protobuf definitions for encoder
+ * 
+ * @param {Object} protos - The protobuf definitions for encoding
+ * @throws {Error} If initialization fails
+ * 
+ * @example
+ * Protobuf.setEncoderProtos(serverProtos);
+ */
 Protobuf.setEncoderProtos = function (protos) {
-    encoder.init(protos);
+    if (!protos || typeof protos !== 'object') {
+        throw new Error('Encoder protos must be a valid object');
+    }
+    
+    try {
+        encoderProtos = protos;
+        encoderRoot = createProtobufRoot(protos);
+    } catch (error) {
+        throw new Error(`Failed to initialize encoder: ${error.message}`);
+    }
 };
 
+/**
+ * Set protobuf definitions for decoder
+ * 
+ * @param {Object} protos - The protobuf definitions for decoding
+ * @throws {Error} If initialization fails
+ * 
+ * @example
+ * Protobuf.setDecoderProtos(clientProtos);
+ */
 Protobuf.setDecoderProtos = function (protos) {
-    decoder.init(protos);
+    if (!protos || typeof protos !== 'object') {
+        throw new Error('Decoder protos must be a valid object');
+    }
+    
+    try {
+        decoderProtos = protos;
+        decoderRoot = createProtobufRoot(protos);
+    } catch (error) {
+        throw new Error(`Failed to initialize decoder: ${error.message}`);
+    }
 };
 
-Protobuf.init = function (opts) {
-    //On the serverside, use serverProtos to encode messages send to client
-    encoder.init(opts.encoderProtos);
+/**
+ * Initialize both encoder and decoder with protobuf definitions
+ * 
+ * @param {Object} options - Initialization options
+ * @param {Object} options.encoderProtos - Protobuf definitions for encoding (server-side: messages sent to client)
+ * @param {Object} options.decoderProtos - Protobuf definitions for decoding (server-side: messages from client)
+ * @throws {Error} If initialization fails
+ * 
+ * @example
+ * Protobuf.init({
+ *   encoderProtos: serverProtos,
+ *   decoderProtos: clientProtos
+ * });
+ */
+Protobuf.init = function (options) {
+    if (!options || typeof options !== 'object') {
+        throw new Error('Options must be a valid object');
+    }
+    
+    if (!options.encoderProtos) {
+        throw new Error('encoderProtos is required in options');
+    }
+    
+    if (!options.decoderProtos) {
+        throw new Error('decoderProtos is required in options');
+    }
+    
+    try {
+        // Initialize encoder and decoder
+        this.setEncoderProtos(options.encoderProtos);
+        this.setDecoderProtos(options.decoderProtos);
+    } catch (error) {
+        throw new Error(`Failed to initialize protobuf: ${error.message}`);
+    }
+};
 
-    //On the serverside, user clientProtos to decode messages receive from clients
-    decoder.init(opts.decoderProtos);
+/**
+ * Check if encoder is initialized
+ * 
+ * @returns {boolean} True if encoder is initialized
+ */
+Protobuf.isEncoderInitialized = function () {
+    return encoderRoot !== null;
+};
+
+/**
+ * Check if decoder is initialized
+ * 
+ * @returns {boolean} True if decoder is initialized
+ */
+Protobuf.isDecoderInitialized = function () {
+    return decoderRoot !== null;
+};
+
+/**
+ * Check if both encoder and decoder are initialized
+ * 
+ * @returns {boolean} True if both are initialized
+ */
+Protobuf.isInitialized = function () {
+    return this.isEncoderInitialized() && this.isDecoderInitialized();
+};
+
+// Expose internal modules for testing and advanced usage
+// Note: These are internal APIs and may change without notice
+Protobuf.encoder = {
+    encode: Protobuf.encode,
+    init: Protobuf.setEncoderProtos,
+    isInitialized: Protobuf.isEncoderInitialized,
+    byteLength: function(str) {
+        // Calculate byte length of UTF-8 string
+        return Buffer.byteLength(str, 'utf8');
+    }
+};
+
+Protobuf.decoder = {
+    decode: Protobuf.decode,
+    init: Protobuf.setDecoderProtos,
+    isInitialized: Protobuf.isDecoderInitialized
+};
+
+Protobuf.parser = parser;
+
+// Legacy compatibility - expose codec-like interface
+// Initialize typed arrays for float/double encoding
+const float32Array = new Float32Array(1);
+const float64Array = new Float64Array(1);
+const uInt8Array = new Uint8Array(8);
+
+Protobuf.codec = {
+    encodeUInt32: function(value) {
+        // Simple varint encoding for compatibility
+        const result = [];
+        while (value >= 0x80) {
+            result.push((value & 0xFF) | 0x80);
+            value >>>= 7;
+        }
+        result.push(value & 0xFF);
+        return result;
+    },
+    
+    decodeUInt32: function(bytes) {
+        let result = 0;
+        let shift = 0;
+        for (let i = 0; i < bytes.length; i++) {
+            result |= (bytes[i] & 0x7F) << shift;
+            shift += 7;
+            if ((bytes[i] & 0x80) === 0) break;
+        }
+        return result;
+    },
+    
+    encodeFloat: function(float) {
+        float32Array[0] = float;
+        const result = new Uint8Array(4);
+        for (let i = 0; i < 4; i++) {
+            result[i] = uInt8Array[i];
+        }
+        return result;
+    },
+    
+    decodeFloat: function(bytes, offset) {
+        if (!bytes || bytes.length < offset + 4) {
+            return null;
+        }
+        
+        for (let i = 0; i < 4; i++) {
+            uInt8Array[i] = bytes[offset + i];
+        }
+        
+        return float32Array[0];
+    },
+    
+    encodeDouble: function(double) {
+        float64Array[0] = double;
+        const result = new Uint8Array(8);
+        for (let i = 0; i < 8; i++) {
+            result[i] = uInt8Array[i];
+        }
+        return result;
+    },
+    
+    decodeDouble: function(bytes, offset) {
+        if (!bytes || bytes.length < 8 + offset) {
+            return null;
+        }
+        
+        for (let i = 0; i < 8; i++) {
+            uInt8Array[i] = bytes[offset + i];
+        }
+        
+        return float64Array[0];
+    },
+    
+    encodeStr: function(bytes, offset, str) {
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            const codes = this._encode2UTF8(code);
+            
+            for (let j = 0; j < codes.length; j++) {
+                bytes[offset] = codes[j];
+                offset++;
+            }
+        }
+        
+        return offset;
+    },
+    
+    decodeStr: function(bytes, offset, length) {
+        const array = [];
+        const end = offset + length;
+        
+        while (offset < end) {
+            let code = 0;
+            
+            if (bytes[offset] < 128) {
+                code = bytes[offset];
+                offset += 1;
+            } else if (bytes[offset] < 224) {
+                code = ((bytes[offset] & 0x3f) << 6) + (bytes[offset + 1] & 0x3f);
+                offset += 2;
+            } else {
+                code = ((bytes[offset] & 0x0f) << 12) + ((bytes[offset + 1] & 0x3f) << 6) + (bytes[offset + 2] & 0x3f);
+                offset += 3;
+            }
+            
+            array.push(code);
+        }
+        
+        let str = '';
+        for (let i = 0; i < array.length;) {
+            str += String.fromCharCode.apply(null, array.slice(i, i + 10000));
+            i += 10000;
+        }
+        
+        return str;
+    },
+    
+    byteLength: function(str) {
+        if (typeof str !== 'string') {
+            return -1;
+        }
+        
+        let length = 0;
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code < 0x80) {
+                length += 1;
+            } else if (code < 0x800) {
+                length += 2;
+            } else {
+                length += 3;
+            }
+        }
+        
+        return length;
+    },
+    
+    _encode2UTF8: function(code) {
+        if (code < 0x80) {
+            return [code];
+        } else if (code < 0x800) {
+            return [0xc0 | (code >> 6), 0x80 | (code & 0x3f)];
+        } else {
+            return [0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f)];
+        }
+    }
 };

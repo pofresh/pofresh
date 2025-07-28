@@ -3,15 +3,21 @@
   "version": "2.0.0",
   "main": "./lib/protobuf",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --run",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "test:unit": "vitest --run tests/unit",
+    "test:integration": "vitest --run tests/integration",
+    "test:client": "vitest --run tests/unit/client",
+    "generate:protos": "node scripts/generate-protos.js",
+    "lint": "eslint --fix"
   },
-  "dependencies": {},
+  "dependencies": {
+    "protobufjs": "^7.5.3"
+  },
   "author": {
     "name": "luson",
     "email": "ljhxai@163.com"
-  },
-  "devDependencies": {}
+  }
 }
