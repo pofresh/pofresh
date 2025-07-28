@@ -48,11 +48,11 @@ class Message {
         if (typeof type !== 'number' || !Number.isInteger(type)) {
             throw new TypeError('Message type must be an integer');
         }
-        
+
         if (type < TYPE_REQUEST || type > TYPE_PUSH) {
             throw new RangeError(`Invalid message type: ${type}. Must be between ${TYPE_REQUEST} and ${TYPE_PUSH}`);
         }
-        
+
         // Validate message ID for types that require it
         if (msgHasId(type)) {
             if (typeof id !== 'number' || !Number.isInteger(id) || id < 0) {
@@ -62,7 +62,7 @@ class Message {
                 throw new RangeError('Message ID too large');
             }
         }
-        
+
         // Calculate message max length
         const idBytes = msgHasId(type) ? calculateMsgIdBytes(id) : 0;
         let msgLen = MSG_FLAG_BYTES + idBytes;
@@ -130,14 +130,14 @@ class Message {
         if (!buffer) {
             throw new TypeError('Buffer is required for decoding');
         }
-        
+
         const bytes = getFromBuffer(buffer);
         const bytesLen = bytes.length || bytes.byteLength || 0;
-        
+
         if (bytesLen === 0) {
             throw new Error('Empty buffer cannot be decoded');
         }
-        
+
         let offset = 0;
         let id = 0;
         let route = null;
@@ -146,12 +146,12 @@ class Message {
         if (offset >= bytesLen) {
             throw new Error('Incomplete message: missing flag byte');
         }
-        
+
         const flag = bytes[offset++];
         const compressRoute = flag & MSG_COMPRESS_ROUTE_MASK;
         const type = (flag >> 1) & MSG_TYPE_MASK;
         const compressGzip = (flag >> 4) & MSG_COMPRESS_GZIP_MASK;
-        
+
         // Validate message type
         if (type < TYPE_REQUEST || type > TYPE_PUSH) {
             throw new Error(`Invalid message type: ${type}`);
@@ -168,7 +168,7 @@ class Message {
                 byte = bytes[offset++];
                 id += (byte & 0x7F) << shift;
                 shift += 7;
-                
+
                 // Prevent infinite loop and overflow
                 if (shift > 35) {
                     throw new Error('Message ID too large');
@@ -191,7 +191,7 @@ class Message {
                 if (offset + routeLen > bytesLen) {
                     throw new Error(`Incomplete message: truncated route. Expected ${routeLen} bytes, got ${bytesLen - offset}`);
                 }
-                
+
                 if (routeLen > 0) {
                     const routeBuffer = getAllocBuffer(routeLen);
                     copyArray(routeBuffer, 0, bytes, offset, routeLen);
@@ -206,7 +206,7 @@ class Message {
         // Parse body
         const bodyLen = bytesLen - offset;
         let body = null;
-        
+
         if (bodyLen > 0) {
             body = getAllocBuffer(bodyLen);
             copyArray(body, 0, bytes, offset, bodyLen);

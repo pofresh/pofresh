@@ -13,7 +13,7 @@ function strencode(str) {
     if (typeof str !== 'string') {
         throw new TypeError('Expected string input');
     }
-    
+
     if (typeof Buffer !== 'undefined') {
         // encoding defaults to 'utf8'
         return Buffer.from(str, 'utf8');
@@ -22,14 +22,14 @@ function strencode(str) {
         if (typeof TextEncoder !== 'undefined') {
             return new TextEncoder().encode(str);
         }
-        
+
         // Fallback manual UTF-8 encoding with proper surrogate pair handling
         const byteArray = new Uint8Array(str.length * 4); // Increased buffer size for safety
         let offset = 0;
-        
+
         for (let i = 0; i < str.length; i++) {
             let charCode = str.charCodeAt(i);
-            
+
             // Handle surrogate pairs for characters > U+FFFF
             if (charCode >= 0xD800 && charCode <= 0xDBFF && i + 1 < str.length) {
                 const lowSurrogate = str.charCodeAt(i + 1);
@@ -38,7 +38,7 @@ function strencode(str) {
                     i++; // Skip the low surrogate
                 }
             }
-            
+
             if (charCode <= 0x7F) {
                 byteArray[offset++] = charCode;
             } else if (charCode <= 0x7FF) {
@@ -55,7 +55,7 @@ function strencode(str) {
                 byteArray[offset++] = 0x80 | (charCode & 0x3F);
             }
         }
-        
+
         const result = new Uint8Array(offset);
         copyArray(result, 0, byteArray, 0, offset);
         return result;
@@ -71,7 +71,7 @@ function strdecode(buffer) {
     if (!buffer || buffer.length === 0) {
         return '';
     }
-    
+
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(buffer)) {
         // encoding defaults to 'utf8'
         return buffer.toString('utf8');
@@ -80,17 +80,17 @@ function strdecode(buffer) {
         if (typeof TextDecoder !== 'undefined') {
             return new TextDecoder('utf-8').decode(buffer);
         }
-        
+
         // Fallback manual UTF-8 decoding with proper error handling
         const bytes = new Uint8Array(buffer);
         const codePoints = [];
         let offset = 0;
         const end = bytes.length;
-        
+
         while (offset < end) {
             const byte1 = bytes[offset++];
             let codePoint;
-            
+
             if (byte1 < 0x80) {
                 // 1-byte sequence (ASCII)
                 codePoint = byte1;
@@ -129,7 +129,7 @@ function strdecode(buffer) {
                 // Invalid start byte
                 codePoint = 0xFFFD; // Replacement character
             }
-            
+
             // Convert code point to UTF-16 (handle surrogate pairs)
             if (codePoint <= 0xFFFF) {
                 codePoints.push(codePoint);
@@ -140,7 +140,7 @@ function strdecode(buffer) {
                 codePoints.push(0xDC00 + (codePoint & 0x3FF));
             }
         }
-        
+
         return String.fromCharCode.apply(null, codePoints);
     }
 }

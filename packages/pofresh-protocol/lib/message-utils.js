@@ -40,11 +40,11 @@ function calculateMsgIdBytes(id) {
     if (typeof id !== 'number' || !Number.isInteger(id) || id < 0) {
         throw new TypeError('Message ID must be a non-negative integer');
     }
-    
+
     if (id === 0) {
         return 1;
     }
-    
+
     let len = 0;
     let tempId = id;
     do {
@@ -88,28 +88,28 @@ function encodeMsgId(id, buffer, offset) {
     if (typeof id !== 'number' || !Number.isInteger(id) || id < 0) {
         throw new TypeError('Message ID must be a non-negative integer');
     }
-    
+
     if (!buffer) {
         throw new TypeError('Buffer is required');
     }
-    
+
     if (typeof offset !== 'number' || offset < 0) {
         throw new TypeError('Offset must be a non-negative number');
     }
-    
+
     let tempId = id;
     do {
         let byte = tempId & 0x7F;
         tempId >>>= 7; // Use unsigned right shift
-        
+
         if (tempId !== 0) {
             byte |= 0x80; // Set continuation bit
         }
-        
+
         if (offset >= buffer.length) {
             throw new RangeError('Buffer overflow while encoding message ID');
         }
-        
+
         buffer[offset++] = byte;
     } while (tempId !== 0);
 
@@ -126,24 +126,24 @@ function encodeMsgId(id, buffer, offset) {
  */
 function encodeMsgRoute(compressRoute, route, buffer, offset) {
     const { MSG_ROUTE_CODE_MAX } = require('./constants');
-    
+
     if (!buffer) {
         throw new TypeError('Buffer is required');
     }
-    
+
     if (typeof offset !== 'number' || offset < 0) {
         throw new TypeError('Offset must be a non-negative number');
     }
-    
+
     if (compressRoute) {
         if (typeof route !== 'number' || !Number.isInteger(route) || route < 0) {
             throw new TypeError('Compressed route must be a non-negative integer');
         }
-        
+
         if (route > MSG_ROUTE_CODE_MAX) {
             throw new RangeError(`Route number ${route} exceeds maximum ${MSG_ROUTE_CODE_MAX}`);
         }
-        
+
         if (offset + 2 > buffer.length) {
             throw new RangeError('Buffer overflow while encoding compressed route');
         }
@@ -154,10 +154,10 @@ function encodeMsgRoute(compressRoute, route, buffer, offset) {
         if (offset >= buffer.length) {
             throw new RangeError('Buffer overflow while encoding route length');
         }
-        
+
         if (route != null) {
             let routeBuffer;
-            
+
             // Handle pre-encoded route buffer
             if (route instanceof Uint8Array || (typeof Buffer !== 'undefined' && Buffer.isBuffer(route))) {
                 routeBuffer = route;
@@ -166,15 +166,15 @@ function encodeMsgRoute(compressRoute, route, buffer, offset) {
             } else {
                 throw new TypeError('Route must be a string or buffer');
             }
-            
+
             if (routeBuffer.length > 255) {
                 throw new RangeError(`Route too long: ${routeBuffer.length} bytes. Maximum is 255 bytes`);
             }
-            
+
             if (offset + 1 + routeBuffer.length > buffer.length) {
                 throw new RangeError('Buffer overflow while encoding route');
             }
-            
+
             buffer[offset++] = routeBuffer.length & 0xFF;
             copyArray(buffer, offset, routeBuffer, 0, routeBuffer.length);
             offset += routeBuffer.length;
@@ -197,25 +197,25 @@ function encodeMsgBody(msg, buffer, offset) {
     if (!msg) {
         return offset;
     }
-    
+
     if (!buffer) {
         throw new TypeError('Buffer is required');
     }
-    
+
     if (typeof offset !== 'number' || offset < 0) {
         throw new TypeError('Offset must be a non-negative number');
     }
-    
+
     const msgLength = msg.length || msg.byteLength || 0;
-    
+
     if (msgLength === 0) {
         return offset;
     }
-    
+
     if (offset + msgLength > buffer.length) {
         throw new RangeError('Buffer overflow while encoding message body');
     }
-    
+
     copyArray(buffer, offset, msg, 0, msgLength);
     return offset + msgLength;
 }

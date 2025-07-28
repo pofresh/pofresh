@@ -36,7 +36,7 @@ describe('Error Handling Tests', () => {
                 'Ñoël', // Accented characters
                 '\u{1F600}\u{1F601}' // Unicode escapes
             ];
-            
+
             testStrings.forEach(str => {
                 const encoded = strencode(str);
                 const decoded = strdecode(encoded);
@@ -67,7 +67,7 @@ describe('Error Handling Tests', () => {
         it('should throw error for invalid parameters in copyArray', () => {
             const dest = new Uint8Array(10);
             const src = new Uint8Array(5);
-            
+
             expect(() => copyArray(null, 0, src, 0, 5)).toThrow('Destination and source buffers are required');
             expect(() => copyArray(dest, 0, null, 0, 5)).toThrow('Destination and source buffers are required');
             expect(() => copyArray(dest, -1, src, 0, 5)).toThrow('Offsets and length must be non-negative');
@@ -99,7 +99,7 @@ describe('Error Handling Tests', () => {
         it('should throw error for incomplete package', () => {
             const incompleteHeader = new Uint8Array([1, 0, 0]); // Missing 1 byte
             expect(() => Package.decode(incompleteHeader)).toThrow('Incomplete package header');
-            
+
             const incompleteBody = new Uint8Array([1, 0, 0, 5]); // Says 5 bytes but no body
             expect(() => Package.decode(incompleteBody)).toThrow('Incomplete package body');
         });
@@ -150,7 +150,7 @@ describe('Error Handling Tests', () => {
         it('should throw error for incomplete message', () => {
             const emptyBuffer = new Uint8Array(0);
             expect(() => Message.decode(emptyBuffer)).toThrow('Empty buffer cannot be decoded');
-            
+
             const incompleteFlag = new Uint8Array(0);
             expect(() => Message.decode(incompleteFlag)).toThrow('Empty buffer cannot be decoded');
         });
@@ -179,7 +179,7 @@ describe('Error Handling Tests', () => {
             const dest = new Uint8Array(5);
             const src = new Uint8Array(5);
             expect(() => copyArray(dest, 0, src, 0, 0)).not.toThrow();
-            
+
             // Zero-length buffer allocation
             const zeroBuffer = getAllocBuffer(0);
             expect(zeroBuffer.length).toBe(0);
@@ -189,11 +189,11 @@ describe('Error Handling Tests', () => {
             // Maximum package body size (24-bit)
             const maxBodySize = 0xFFFFFF;
             expect(() => Package.encode(Package.TYPE_DATA, new Uint8Array(maxBodySize))).not.toThrow();
-            
+
             // Maximum message ID
             const maxId = 0x7FFFFFFF;
             expect(() => Message.encode(maxId, Message.TYPE_REQUEST, 0, 'route', null)).not.toThrow();
-            
+
             // Maximum route length
             const maxRoute = 'a'.repeat(255);
             expect(() => Message.encode(1, Message.TYPE_REQUEST, 0, maxRoute, null)).not.toThrow();
@@ -201,7 +201,7 @@ describe('Error Handling Tests', () => {
 
         it('should handle boundary conditions in message ID encoding', () => {
             const testIds = [0, 1, 127, 128, 16383, 16384, 2097151, 2097152];
-            
+
             testIds.forEach(id => {
                 const encoded = Message.encode(id, Message.TYPE_REQUEST, 0, 'test', null);
                 const decoded = Message.decode(encoded);

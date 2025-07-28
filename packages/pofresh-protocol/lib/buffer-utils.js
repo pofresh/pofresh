@@ -11,11 +11,11 @@ function getAllocBuffer(length) {
     if (typeof length !== 'number' || length < 0 || !Number.isInteger(length)) {
         throw new TypeError('Length must be a non-negative integer');
     }
-    
+
     if (length > 0x7FFFFFFF) {
         throw new RangeError('Length exceeds maximum buffer size');
     }
-    
+
     if (typeof Buffer !== 'undefined') {
         return Buffer.alloc(length);
     } else {
@@ -32,7 +32,7 @@ function getFromBuffer(data) {
     if (data == null) {
         throw new TypeError('Data cannot be null or undefined');
     }
-    
+
     if (typeof Buffer !== 'undefined') {
         if (Buffer.isBuffer(data)) {
             return data;
@@ -83,30 +83,30 @@ function copyArray(dest, doffset, src, soffset, length) {
     if (!dest || !src) {
         throw new TypeError('Destination and source buffers are required');
     }
-    
+
     if (typeof doffset !== 'number' || typeof soffset !== 'number' || typeof length !== 'number') {
         throw new TypeError('Offsets and length must be numbers');
     }
-    
+
     if (doffset < 0 || soffset < 0 || length < 0) {
         throw new RangeError('Offsets and length must be non-negative');
     }
-    
+
     if (length === 0) {
         return; // Nothing to copy
     }
-    
+
     const destLength = dest.length || dest.byteLength || 0;
     const srcLength = src.length || src.byteLength || 0;
-    
+
     if (doffset + length > destLength) {
         throw new RangeError('Destination buffer overflow');
     }
-    
+
     if (soffset + length > srcLength) {
         throw new RangeError('Source buffer overflow');
     }
-    
+
     if (typeof src.copy === 'function' && typeof dest.set !== 'function') {
         // Buffer to Buffer
         src.copy(dest, doffset, soffset, soffset + length);
