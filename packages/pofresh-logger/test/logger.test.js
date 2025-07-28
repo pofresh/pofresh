@@ -216,24 +216,46 @@ describe('logger', () => {
     });
 
     describe('error handling', () => {
-        it('should handle invalid config file path', () => {
+        it('should handle invalid config file path gracefully', () => {
+            // Mock console.error to capture error messages
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            
             expect(() => {
                 logger.configure('/nonexistent/path/config.json');
-            }).toThrow();
+            }).not.toThrow();
+            
+            // Should have logged an error
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to load logger configuration'),
+                expect.any(String)
+            );
+            
+            consoleSpy.mockRestore();
         });
 
-        it('should handle invalid JSON in config file', () => {
+        it('should handle invalid JSON in config file gracefully', () => {
             const invalidConfigPath = path.join(process.cwd(), 'invalid-config.json');
             fs.writeFileSync(invalidConfigPath, 'invalid json content');
+            
+            // Mock console.error to capture error messages
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             expect(() => {
                 logger.configure(invalidConfigPath);
-            }).toThrow();
+            }).not.toThrow();
+            
+            // Should have logged an error
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to load logger configuration'),
+                expect.any(String)
+            );
+            
+            consoleSpy.mockRestore();
 
             // Clean up
-            fs.unlinkSync(invalidConfigPath);
-        });
-    });
+             fs.unlinkSync(invalidConfigPath);
+         });
+     });
 
     describe('logging functionality', () => {
         it('should log messages without throwing errors', () => {

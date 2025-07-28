@@ -4,13 +4,14 @@
     "private": false,
     "main": "index.js",
     "scripts": {
-        "test": "vitest",
+        "test": "vitest --run",
         "test:run": "vitest --run",
         "test:watch": "vitest --watch",
-        "test:coverage": "vitest --coverage"
+        "test:coverage": "vitest --coverage --run",
+        "lint": "eslint --fix"
     },
     "dependencies": {
-        "log4js": "^6.9.1"
-    },
-    "devDependencies": {}
+        "winston": "^3.17.0",
+        "winston-daily-rotate-file": "^5.0.0"
+    }
 }

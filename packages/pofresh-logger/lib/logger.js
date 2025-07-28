@@ -1,4 +1,5 @@
-const log4js = require('log4js');
+const winston = require('winston');
+const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 const util = require('util');
 
@@ -6,6 +7,38 @@ const funcs = {
     env: doEnv,
     args: doArgs,
     opts: doOpts
+};
+
+// Winston logger instances cache
+const loggerCache = new Map();
+
+// Default Winston configuration
+let winstonConfig = {
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+        winston.format.errors({ stack: true }),
+        winston.format.printf(({ timestamp, level, message, category, stack }) => {
+            const categoryStr = category || 'default';
+            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+            return stack ? `${baseMessage}\n${stack}` : baseMessage;
+        })
+    ),
+    transports: [
+        new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                winston.format.errors({ stack: true }),
+                winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                    const categoryStr = category || 'default';
+                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                    const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+                    const levelColor = colours[level.toLowerCase()] || colours.info;
+                    return colorize(logLine, levelColor);
+                })
+            )
+        })
+    ]
 };
 
 function getLogger(categoryName) {
@@ -22,33 +55,97 @@ function getLogger(categoryName) {
         // category name is __filename then cut the prefix path
         categoryName = categoryName.replace(process.cwd(), '');
     }
-    const logger = log4js.getLogger(categoryName);
+
+    const cacheKey = categoryName + '|' + prefix;
+    if (loggerCache.has(cacheKey)) {
+        return loggerCache.get(cacheKey);
+    }
+    
+    // Limit cache size to prevent memory leaks
+    if (loggerCache.size > 1000) {
+        const firstKey = loggerCache.keys().next().value;
+        loggerCache.delete(firstKey);
+    }
+
+    const logger = winston.createLogger({
+        ...winstonConfig,
+        defaultMeta: { category: categoryName }
+    });
+
     const pLogger = {};
+
+    // Copy winston logger properties
     for (const key in logger) {
-        pLogger[key] = logger[key];
+        if (typeof logger[key] === 'function') {
+            pLogger[key] = logger[key].bind(logger);
+        } else {
+            pLogger[key] = logger[key];
+        }
     }
 
     ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'].forEach(function (item) {
-        pLogger[item] = function () {
-            let p = '';
-            if (!process.env.RAW_MESSAGE) {
-                if (args.length > 1) {
-                    p = '[' + prefix + '] ';
-                }
-                if (args.length && process.env.LOGGER_LINE) {
-                    p = getLine() + ': ' + p;
+            pLogger[item] = function () {
+                let p = '';
+                if (!process.env.RAW_MESSAGE) {
+                    if (args.length > 1) {
+                        p = '[' + prefix + '] ';
+                    }
+                    if (args.length && process.env.LOGGER_LINE) {
+                        p = getLine() + ': ' + p;
+                    }
+
+                    p = colorize(p, colours[item]);
                 }
 
-                p = colorize(p, colours[item]);
-            }
+                let message = arguments[0] || '';
+                
+                // Handle object serialization properly
+                if (typeof message === 'object' && message !== null) {
+                    try {
+                        message = JSON.stringify(message, null, 2);
+                    } catch (err) {
+                        message = util.inspect(message, { depth: 3, colors: false });
+                    }
+                }
+                
+                if (args.length) {
+                    message = p + message;
+                }
 
-            if (args.length) {
-                arguments[0] = p + arguments[0];
-            }
-            if (item === 'log') item = 'info';
-            logger[item].apply(logger, arguments);
-        };
-    });
+                let level = item;
+                if (item === 'log') level = 'info';
+                if (item === 'fatal') level = 'error';
+                if (item === 'trace') level = 'debug';
+
+                const restArgs = Array.prototype.slice.call(arguments, 1);
+                
+                // Process additional arguments for better formatting
+                const processedArgs = restArgs.map(arg => {
+                    if (typeof arg === 'object' && arg !== null) {
+                        try {
+                            return JSON.stringify(arg, null, 2);
+                        } catch (err) {
+                            return util.inspect(arg, { depth: 3, colors: false });
+                        }
+                    }
+                    return arg;
+                });
+
+                // Combine message with additional arguments
+                if (processedArgs.length > 0) {
+                    message += ' ' + processedArgs.join(' ');
+                }
+
+                if (logger[level] && typeof logger[level] === 'function') {
+                    logger[level](message, { category: categoryName });
+                } else {
+                    // Fallback to info level if the level doesn't exist
+                    logger.info(message, { category: categoryName });
+                }
+            };
+        });
+
+    loggerCache.set(cacheKey, pLogger);
     return pLogger;
 }
 
@@ -68,15 +165,20 @@ function getMTime(filename) {
     let mtime;
     try {
         mtime = fs.statSync(filename).mtime;
-    } catch (e) {
-        throw new Error('Cannot find file with given path: ' + filename);
+    } catch (error) {
+        throw new Error(`Cannot find file with given path: ${filename}. Error: ${error.message}`);
     }
     return mtime;
 }
 
 function loadConfigurationFile(filename) {
     if (filename) {
-        return JSON.parse(fs.readFileSync(filename, 'utf8'));
+        try {
+            const content = fs.readFileSync(filename, 'utf8');
+            return JSON.parse(content);
+        } catch (error) {
+            throw new Error(`Failed to load configuration file ${filename}: ${error.message}`);
+        }
     }
     return undefined;
 }
@@ -96,12 +198,16 @@ function configureOnceOff(config) {
     if (config) {
         try {
             if (config.replaceConsole) {
-                const logger = log4js.getLogger('console');
+                const logger = getLogger('console');
                 console.log = logger.info.bind(logger);
+                console.info = logger.info.bind(logger);
+                console.warn = logger.warn.bind(logger);
+                console.error = logger.error.bind(logger);
+                console.debug = logger.debug.bind(logger);
             }
         } catch (e) {
             throw new Error(
-                'Problem reading log4js config ' +
+                'Problem reading winston config ' +
                     util.inspect(config) +
                     '. Error was "' +
                     e.message +
@@ -127,37 +233,150 @@ function configureOnceOff(config) {
  * @return {Void}
  */
 
+function convertLog4jsToWinston(log4jsConfig) {
+    const winstonTransports = [];
+    let level = log4jsConfig.categories?.default?.level || 'info';
+
+    // Convert log4js levels to Winston levels
+    if (level === 'all') level = 'silly';
+    if (level === 'trace') level = 'debug';
+    if (level === 'fatal') level = 'error';
+
+    // Convert appenders to Winston transports
+    if (log4jsConfig.appenders) {
+        Object.keys(log4jsConfig.appenders).forEach(appenderName => {
+            const appender = log4jsConfig.appenders[appenderName];
+
+            switch (appender.type) {
+            case 'console':
+                winstonTransports.push(new winston.transports.Console({
+                    format: winston.format.combine(
+                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                        winston.format.errors({ stack: true }),
+                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                            const categoryStr = category || 'default';
+                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                            const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+                            const levelColor = colours[level.toLowerCase()] || colours.info;
+                            return colorize(logLine, levelColor);
+                        })
+                    )
+                }));
+                break;
+            case 'file':
+                winstonTransports.push(new winston.transports.File({
+                    filename: appender.filename,
+                    maxsize: appender.maxLogSize,
+                    maxFiles: appender.backups,
+                    format: winston.format.combine(
+                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                        winston.format.errors({ stack: true }),
+                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                            const categoryStr = category || 'default';
+                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                            return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                        })
+                    )
+                }));
+                break;
+            case 'dateFile':
+                winstonTransports.push(new DailyRotateFile({
+                    filename: appender.filename,
+                    datePattern: appender.pattern || 'YYYY-MM-DD',
+                    maxSize: appender.maxLogSize,
+                    maxFiles: appender.daysToKeep || appender.numBackups,
+                    format: winston.format.combine(
+                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                        winston.format.errors({ stack: true }),
+                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                            const categoryStr = category || 'default';
+                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                            return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                        })
+                    )
+                }));
+                break;
+            }
+        });
+    }
+
+    // Default console transport if no transports defined
+    if (winstonTransports.length === 0) {
+        winstonTransports.push(new winston.transports.Console({
+            format: winston.format.combine(
+                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                winston.format.errors({ stack: true }),
+                winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                    const categoryStr = category || 'default';
+                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                    const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+                    const levelColor = colours[level.toLowerCase()] || colours.info;
+                    return colorize(logLine, levelColor);
+                })
+            )
+        }));
+    }
+
+    return {
+        level: level,
+        format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.printf(({ timestamp, level, message, category }) => {
+                return `${timestamp} [${level.toUpperCase()}] ${category ? `[${category}] ` : ''}${message}`;
+            })
+        ),
+        transports: winstonTransports
+    };
+}
+
 function configure(config, opts) {
     const filename = config;
     config = config || process.env.LOG4JS_CONFIG;
     opts = opts || {};
 
     if (typeof config === 'string') {
-        config = JSON.parse(fs.readFileSync(config, 'utf8'));
+        try {
+            config = loadConfigurationFile(config);
+        } catch (error) {
+            console.error('Failed to load logger configuration:', error.message);
+            return;
+        }
     }
 
     if (config) {
-        config = replaceProperties(config, opts);
+        try {
+            config = replaceProperties(config, opts);
 
-        if (config.replaceConsole) {
-            configureOnceOff(config);
-        }
+            if (config.replaceConsole) {
+                configureOnceOff(config);
+            }
 
-        if (config.lineDebug) {
-            process.env.LOGGER_LINE = true;
-        }
+            if (config.lineDebug) {
+                process.env.LOGGER_LINE = true;
+            }
 
-        if (config.rawMessage) {
-            process.env.RAW_MESSAGE = true;
+            if (config.rawMessage) {
+                process.env.RAW_MESSAGE = true;
+            }
+
+            // Convert log4js config to Winston config
+            winstonConfig = convertLog4jsToWinston(config);
+
+            // Clear logger cache to apply new configuration
+            loggerCache.clear();
+        } catch (error) {
+            console.error('Failed to configure logger:', error.message);
+            return;
         }
     }
 
     if (filename && config && config.reloadSecs) {
-        initReloadConfiguration(filename, config.reloadSecs);
+        try {
+            initReloadConfiguration(filename, config.reloadSecs);
+        } catch (error) {
+            console.error('Failed to initialize configuration reload:', error.message);
+        }
     }
-
-    // config object could not turn on the auto reload configure file in log4js
-    log4js.configure(config, opts);
 }
 
 function replaceProperties(configObj, opts) {
@@ -168,7 +387,7 @@ function replaceProperties(configObj, opts) {
     } else if (typeof configObj === 'object') {
         let field;
         for (const f in configObj) {
-            if (!configObj.hasOwnProperty(f)) {
+            if (!Object.prototype.hasOwnProperty.call(configObj, f)) {
                 continue;
             }
 
@@ -297,11 +516,96 @@ const colours = {
     off: 'grey'
 };
 
+// Winston compatible implementations
+function shutdown(callback) {
+    // Clear all cached loggers
+    loggerCache.clear();
+    
+    // Clear reload timer if exists
+    if (configState.timerId) {
+        clearInterval(configState.timerId);
+        delete configState.timerId;
+    }
+
+    // Close all Winston transports
+    if (winstonConfig && winstonConfig.transports) {
+        const promises = winstonConfig.transports.map(transport => {
+            return new Promise((resolve) => {
+                if (transport.close) {
+                    // Add timeout to prevent hanging
+                    const timeout = setTimeout(() => {
+                        console.warn('Transport close timeout, forcing shutdown');
+                        resolve();
+                    }, 5000);
+                    
+                    transport.close(() => {
+                        clearTimeout(timeout);
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        Promise.all(promises)
+            .then(() => {
+                if (callback) callback();
+            })
+            .catch((error) => {
+                console.error('Error during logger shutdown:', error.message);
+                if (callback) callback(error);
+            });
+    } else {
+        if (callback) callback();
+    }
+}
+
+function connectLogger(logger) {
+    // Express middleware for logging HTTP requests
+    return function (req, res, next) {
+        const start = Date.now();
+        const originalEnd = res.end;
+
+        res.end = function (...args) {
+            const duration = Date.now() - start;
+            const logLevel = res.statusCode >= 400 ? 'error' : 'info';
+            const message = `${req.method} ${req.url} ${res.statusCode} ${duration}ms`;
+
+            if (logger && logger[logLevel]) {
+                logger[logLevel](message);
+            }
+
+            originalEnd.apply(res, args);
+        };
+
+        next();
+    };
+}
+
+// Winston levels mapping
+const levels = {
+    ALL: { value: Number.MIN_VALUE, colour: 'grey' },
+    TRACE: { value: 5000, colour: 'blue' },
+    DEBUG: { value: 10000, colour: 'cyan' },
+    INFO: { value: 20000, colour: 'green' },
+    WARN: { value: 30000, colour: 'yellow' },
+    ERROR: { value: 40000, colour: 'red' },
+    FATAL: { value: 50000, colour: 'magenta' },
+    OFF: { value: Number.MAX_VALUE, colour: 'grey' }
+};
+
+function addLayout(name, layoutFunction) {
+    // Winston uses formats instead of layouts
+    // This is a compatibility function
+    winston.format[name] = layoutFunction;
+}
+
 module.exports = {
     getLogger: getLogger,
     configure: configure,
-    shutdown: log4js.shutdown,
-    connectLogger: log4js.connectLogger,
-    levels: log4js.levels,
-    addLayout: log4js.addLayout
+    shutdown: shutdown,
+    connectLogger: connectLogger,
+    levels: levels,
+    addLayout: addLayout
 };
