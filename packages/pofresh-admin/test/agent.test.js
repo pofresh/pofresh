@@ -1,4 +1,4 @@
-const should = require('should');
+import { describe, it, expect } from 'vitest';
 const flow = require('flow');
 const Master = require('../lib/master/masterAgent');
 const Monitor = require('../lib/monitor/monitorAgent');
@@ -18,7 +18,7 @@ describe('agent', function () {
         authServer
     };
 
-    it('should forward the message from master to the right monitor and get the response by reuqest', function (done) {
+    it('should forward the message from master to the right monitor and get the response by reuqest', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -35,18 +35,18 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, msg, cb) {
                 req1Count++;
-                moduleId.should.eql(moduleId1);
+                expect(receivedModuleId).toBe(moduleId1);
                 cb(null, msg);
             }
         };
 
         const monitorConsole2 = {
             authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, msg, cb) {
                 req2Count++;
-                moduleId.should.eql(moduleId2);
+                expect(receivedModuleId).toBe(moduleId2);
                 cb(null, msg);
             }
         };
@@ -73,40 +73,42 @@ describe('agent', function () {
                 monitor1.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 master.request(monitorId1, moduleId1, msg1, function (err, resp) {
                     resp1Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg1);
+                    expect(err).toBeFalsy();
+                    expect(resp).toBeDefined();
+                    expect(resp).toEqual(msg1);
                 });
 
                 master.request(monitorId2, moduleId2, msg2, function (err, resp) {
                     resp2Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg2);
+                    expect(err).toBeFalsy();
+                    expect(resp).toBeDefined();
+                    expect(resp).toEqual(msg2);
                 });
             }
         );
 
-        setTimeout(function () {
-            req1Count.should.equal(1);
-            req2Count.should.equal(1);
-            resp1Count.should.equal(1);
-            resp2Count.should.equal(1);
-            monitor1.close();
-            monitor2.close();
-            master.close();
-            done();
-        }, WAIT_TIME);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(req1Count).toBe(1);
+                expect(req2Count).toBe(1);
+                expect(resp1Count).toBe(1);
+                expect(resp2Count).toBe(1);
+                monitor1.close();
+                monitor2.close();
+                master.close();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should return error to master if monitor cb with a error by reuqest', function (done) {
+    it('should return error to master if monitor cb with a error by reuqest', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -118,9 +120,9 @@ describe('agent', function () {
 
         const monitorConsole = {
             authServer,
-            execute(moduleId, method, msg, cb) {
+            execute(receivedModuleId, method, msg, cb) {
                 reqCount++;
-                moduleId.should.eql(moduleId);
+                expect(receivedModuleId).toBe(moduleId);
                 cb(new Error(errMsg));
             }
         };
@@ -141,26 +143,28 @@ describe('agent', function () {
                 monitor.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 master.request(monitorId, moduleId, msg, function (err, resp) {
                     respCount++;
-                    should.exist(err);
-                    err.message.should.eql(errMsg);
-                    should.not.exist(resp);
+                    expect(err).toBeDefined();
+                    expect(err.message).toBe(errMsg);
+                    expect(resp).toBeUndefined();
                 });
             }
         );
 
-        setTimeout(function () {
-            reqCount.should.equal(1);
-            respCount.should.equal(1);
-            monitor.close();
-            master.close();
-            done();
-        }, WAIT_TIME);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(reqCount).toBe(1);
+                expect(respCount).toBe(1);
+                monitor.close();
+                master.close();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should forward the message from master to the right monitor by notifyById', function (done) {
+    it('should forward the message from master to the right monitor by notifyById', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -175,19 +179,19 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer,
-            execute(moduleId, method, msg, cb) {
+            execute(receivedModuleId, method, receivedMsg, cb) {
                 req1Count++;
-                moduleId.should.eql(moduleId1);
-                msg.should.eql(msg1);
+                expect(receivedModuleId).toBe(moduleId1);
+                expect(receivedMsg).toEqual(msg1);
             }
         };
 
         const monitorConsole2 = {
             authServer,
-            execute(moduleId, method, msg, cb) {
+            execute(receivedModuleId, method, receivedMsg, cb) {
                 req2Count++;
-                moduleId.should.eql(moduleId2);
-                msg.should.eql(msg2);
+                expect(receivedModuleId).toBe(moduleId2);
+                expect(receivedMsg).toEqual(msg2);
             }
         };
 
@@ -210,29 +214,31 @@ describe('agent', function () {
                 monitor1.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 master.notifyById(monitorId1, moduleId1, msg1);
                 master.notifyById(monitorId2, moduleId2, msg2);
             }
         );
 
-        setTimeout(function () {
-            req1Count.should.equal(1);
-            req2Count.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(req1Count).toBe(1);
+                expect(req2Count).toBe(1);
 
-            monitor1.close();
-            monitor2.close();
-            master.close();
+                monitor1.close();
+                monitor2.close();
+                master.close();
 
-            done();
-        }, WAIT_TIME);
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should forward the message to the right type monitors by notifyByType', function (done) {
+    it('should forward the message to the right type monitors by notifyByType', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'connector-server-2';
         const monitorId3 = 'area-server-1';
@@ -251,31 +257,31 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, cb) {
                 req1Count++;
                 reqType1Count++;
-                moduleId.should.eql(moduleId1);
-                msg.should.eql(msg1);
+                expect(receivedModuleId).toBe(moduleId1);
+                expect(receivedMsg).toEqual(msg1);
             }
         };
 
         const monitorConsole2 = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, cb) {
                 req2Count++;
                 reqType1Count++;
-                moduleId.should.eql(moduleId1);
-                msg.should.eql(msg1);
+                expect(receivedModuleId).toBe(moduleId1);
+                expect(receivedMsg).toEqual(msg1);
             }
         };
 
         const monitorConsole3 = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, cb) {
                 req3Count++;
                 reqType2Count++;
-                moduleId.should.eql(moduleId2);
-                msg.should.eql(msg2);
+                expect(receivedModuleId).toBe(moduleId2);
+                expect(receivedMsg).toEqual(msg2);
             }
         };
 
@@ -302,37 +308,39 @@ describe('agent', function () {
                 monitor1.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor3.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 master.notifyByType(monitorType1, moduleId1, msg1);
                 master.notifyByType(monitorType2, moduleId2, msg2);
             }
         );
 
-        setTimeout(function () {
-            req1Count.should.equal(1);
-            req2Count.should.equal(1);
-            req3Count.should.equal(1);
-            reqType1Count.should.equal(2);
-            reqType2Count.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(req1Count).toBe(1);
+                expect(req2Count).toBe(1);
+                expect(req3Count).toBe(1);
+                expect(reqType1Count).toBe(2);
+                expect(reqType2Count).toBe(1);
 
-            monitor1.close();
-            monitor2.close();
-            monitor3.close();
-            master.close();
+                monitor1.close();
+                monitor2.close();
+                monitor3.close();
+                master.close();
 
-            done();
-        }, WAIT_TIME);
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should forward the message to all monitors by notifyAll', function (done) {
+    it('should forward the message to all monitors by notifyAll', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -345,19 +353,19 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, cb) {
                 req1Count++;
-                orgModuleId.should.eql(moduleId);
-                msg.should.eql(orgMsg);
+                expect(receivedModuleId).toBe(orgModuleId);
+                expect(receivedMsg).toEqual(orgMsg);
             }
         };
 
         const monitorConsole2 = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, cb) {
                 req2Count++;
-                orgModuleId.should.eql(moduleId);
-                msg.should.eql(orgMsg);
+                expect(receivedModuleId).toBe(orgModuleId);
+                expect(receivedMsg).toEqual(orgMsg);
             }
         };
 
@@ -379,28 +387,30 @@ describe('agent', function () {
                 monitor1.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 master.notifyAll(orgModuleId, orgMsg);
             }
         );
 
-        setTimeout(function () {
-            req1Count.should.equal(1);
-            req2Count.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(req1Count).toBe(1);
+                expect(req2Count).toBe(1);
 
-            monitor1.close();
-            monitor2.close();
-            master.close();
+                monitor1.close();
+                monitor2.close();
+                master.close();
 
-            done();
-        }, WAIT_TIME);
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should push the message from monitor to master by notify', function (done) {
+    it('should push the message from monitor to master by notify', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const orgModuleId = 'testModuleId';
@@ -412,8 +422,8 @@ describe('agent', function () {
             authServer: authServer,
             execute: function (moduleId, method, msg, cb) {
                 reqCount++;
-                orgModuleId.should.eql(moduleId);
-                msg.should.eql(orgMsg);
+                expect(orgModuleId).toBe(moduleId);
+                expect(msg).toEqual(orgMsg);
             }
         };
 
@@ -434,18 +444,20 @@ describe('agent', function () {
                 monitor.connect(masterPort, masterHost, this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitor.notify(orgModuleId, orgMsg);
             }
         );
 
-        setTimeout(function () {
-            reqCount.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(reqCount).toBe(1);
 
-            monitor.close();
-            master.close();
+                monitor.close();
+                master.close();
 
-            done();
-        }, WAIT_TIME);
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 });

@@ -1,7 +1,7 @@
-const should = require('should');
+import { describe, it, expect, beforeAll } from 'vitest';
 const flow = require('flow');
 const ConsoleService = require('..');
-const logger = require('../../pofresh-logger');
+const logger = require('pofresh-logger');
 
 const WAIT_TIME = 100;
 
@@ -9,8 +9,7 @@ const masterHost = '127.0.0.1';
 const masterPort = 3333;
 
 describe('console service', function () {
-    before(function (done) {
-        const logger = require('pofresh-logger');
+    beforeAll(function () {
         logger.configure({
             appenders: {
                 console: {
@@ -27,10 +26,9 @@ describe('console service', function () {
             rawMessage: false,
             lineDebug: true
         });
-        done();
     });
 
-    it('should forward message from master to the monitorHandler method of the module of the right monitor, and get the response by masterAgent.request', function (done) {
+    it('should forward message from master to the monitorHandler method of the module of the right monitor, and get the response by masterAgent.request', async function () {
         const monitorConfig1 = {
             id: 'connector-server-1',
             type: 'connector',
@@ -66,8 +64,8 @@ describe('console service', function () {
         monitorConsole1.register(monitorConfig1.moduleId, {
             monitorHandler(agent, msg, cb) {
                 req1Count++;
-                should.exist(msg);
-                msg.should.eql(msg1);
+                expect(msg).toBeDefined();
+                expect(msg).toEqual(msg1);
                 cb(null, msg);
             }
         });
@@ -83,8 +81,8 @@ describe('console service', function () {
         monitorConsole2.register(monitorConfig2.moduleId, {
             monitorHandler: function (agent, msg, cb) {
                 req2Count++;
-                should.exist(msg);
-                msg.should.eql(msg2);
+                expect(msg).toBeDefined();
+                expect(msg).toEqual(msg2);
                 cb(null, msg);
             }
         });
@@ -94,45 +92,47 @@ describe('console service', function () {
                 masterConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole1.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole2.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 masterConsole.agent.request(monitorConsole1.id, monitorConfig1.moduleId, msg1, function (err, resp) {
                     resp1Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg1);
+                    expect(err).toBeFalsy();
+                    expect(resp).toBeDefined();
+                    expect(resp).toEqual(msg1);
                 });
 
                 masterConsole.agent.request(monitorConsole2.id, monitorConfig2.moduleId, msg2, function (err, resp) {
                     resp2Count++;
-                    should.not.exist(err);
-                    should.exist(resp);
-                    resp.should.eql(msg2);
+                    expect(err).toBeFalsy();
+                    expect(resp).toBeDefined();
+                    expect(resp).toEqual(msg2);
                 });
             }
         ); // end of flow.exec
 
-        setTimeout(function () {
-            req1Count.should.equal(1);
-            req2Count.should.equal(1);
-            resp1Count.should.equal(1);
-            resp2Count.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(req1Count).toBe(1);
+                expect(req2Count).toBe(1);
+                expect(resp1Count).toBe(1);
+                expect(resp2Count).toBe(1);
 
-            monitorConsole1.stop();
-            monitorConsole2.stop();
-            masterConsole.stop();
-            done();
-        }, WAIT_TIME);
+                monitorConsole1.stop();
+                monitorConsole2.stop();
+                masterConsole.stop();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should forward message from monitor to the masterHandler of the right module of the master by monitor.notify', function (done) {
+    it('should forward message from monitor to the masterHandler of the right module of the master by monitor.notify', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -147,8 +147,8 @@ describe('console service', function () {
         masterConsole.register(moduleId, {
             masterHandler: function (agent, msg, cb) {
                 reqCount++;
-                should.exist(msg);
-                msg.should.eql(orgMsg);
+                expect(msg).toBeDefined();
+                expect(msg).toEqual(orgMsg);
             }
         });
 
@@ -165,25 +165,27 @@ describe('console service', function () {
                 masterConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole.agent.notify(moduleId, orgMsg);
             }
         ); // end of flow.exec
 
-        setTimeout(function () {
-            reqCount.should.equal(1);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                expect(reqCount).toBe(1);
 
-            monitorConsole.stop();
-            masterConsole.stop();
-            done();
-        }, WAIT_TIME);
+                monitorConsole.stop();
+                masterConsole.stop();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should fail if the module is disable', function (done) {
+    it('should fail if the module is disable', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -196,7 +198,7 @@ describe('console service', function () {
         masterConsole.register(moduleId, {
             masterHandler: function (agent, msg, cb) {
                 // should not come here
-                true.should.not.be.ok();
+                expect(true).toBe(false);
             }
         });
 
@@ -211,7 +213,7 @@ describe('console service', function () {
         monitorConsole.register(moduleId, {
             monitorHandler: function (agent, msg, cb) {
                 // should not come here
-                true.should.not.be.ok();
+                expect(true).toBe(false);
             }
         });
 
@@ -220,26 +222,28 @@ describe('console service', function () {
                 masterConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 masterConsole.disable(moduleId);
                 monitorConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole.disable(moduleId);
                 monitorConsole.agent.notify(moduleId, orgMsg);
                 masterConsole.agent.notifyById(monitorId, moduleId, orgMsg);
             }
         ); // end of flow.exec
 
-        setTimeout(function () {
-            monitorConsole.stop();
-            masterConsole.stop();
-            done();
-        }, WAIT_TIME);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                monitorConsole.stop();
+                masterConsole.stop();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should fail if the monitor not exists', function (done) {
+    it('should fail if the monitor not exists', async function () {
         const monitorId = 'connector-server-1';
         const moduleId = 'testModuleId';
         const orgMsg = { msg: 'message to someone' };
@@ -253,21 +257,23 @@ describe('console service', function () {
                 masterConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 masterConsole.agent.request(monitorId, moduleId, orgMsg, function (err, resp) {
-                    should.exist(err);
-                    should.not.exist(resp);
+                    expect(err).toBeDefined();
+                    expect(resp).toBeUndefined();
                 });
             }
         ); // end of flow.exec
 
-        setTimeout(function () {
-            masterConsole.stop();
-            done();
-        }, WAIT_TIME);
+        await new Promise(resolve => {
+            setTimeout(function () {
+                masterConsole.stop();
+                resolve();
+            }, WAIT_TIME);
+        });
     });
 
-    it('should invoke masterHandler periodically in pull mode', function (done) {
+    it('should invoke masterHandler periodically in pull mode', async function () {
         const moduleId = 'testModuleId';
         const intervalSec = 1;
         let invokeCount = 0;
@@ -287,17 +293,19 @@ describe('console service', function () {
 
         masterConsole.start();
 
-        setTimeout(
-            function () {
-                invokeCount.should.equal(turn);
-                masterConsole.stop();
-                done();
-            },
-            intervalSec * (turn - 0.5) * 1000
-        );
+        await new Promise(resolve => {
+            setTimeout(
+                function () {
+                    expect(invokeCount).toBe(turn);
+                    masterConsole.stop();
+                    resolve();
+                },
+                intervalSec * (turn - 0.5) * 1000
+            );
+        });
     });
 
-    it('should invoke monitorHandler periodically in push mode', function (done) {
+    it('should invoke monitorHandler periodically in push mode', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -330,22 +338,24 @@ describe('console service', function () {
                 masterConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
                 monitorConsole.start(this);
             },
             function (err) {
-                should.not.exist(err);
+                expect(err).toBeFalsy();
             }
         );
 
-        setTimeout(
-            function () {
-                invokeCount.should.equal(turn);
-                monitorConsole.stop();
-                masterConsole.stop();
-                done();
-            },
-            intervalSec * (turn - 0.5) * 1000
-        );
+        await new Promise(resolve => {
+            setTimeout(
+                function () {
+                    expect(invokeCount).toBe(turn);
+                    monitorConsole.stop();
+                    masterConsole.stop();
+                    resolve();
+                },
+                intervalSec * (turn - 0.5) * 1000
+            );
+        });
     });
 });

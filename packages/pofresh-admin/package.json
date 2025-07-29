@@ -3,10 +3,11 @@
   "version": "2.0.5",
   "private": false,
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --run",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint --fix"
   },
   "dependencies": {
     "mqtt-connection": "^4.1.0",
