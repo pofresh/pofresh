@@ -6,8 +6,10 @@
 const logger = require('pofresh-logger').getLogger('pofresh-admin', __filename);
 const vm = require('vm');
 const fs = require('fs');
-const util = require('util');
+
 const path = require('path');
+const Security = require('../util/security');
+const ErrorHandler = require('../util/errorHandler');
 
 const moduleId = 'scripts';
 
@@ -27,29 +29,76 @@ class Module {
             save,
             run
         };
+        this.rateLimiter = Security.createRateLimiter({
+            maxRequests: 10,
+            windowMs: 60000 // 1分钟内最多10次脚本执行
+        });
     }
 
     monitorHandler(agent, msg, cb) {
-        const context = {
-            app: this.app,
-            require,
-            os: require('os'),
-            fs: require('fs'),
-            process,
-            util
-        };
-        try {
-            vm.runInNewContext(msg.script, context);
+        // 速率限制检查
+        const rateLimitResult = this.rateLimiter({ ip: agent.id || 'unknown' });
+        if (!rateLimitResult.allowed) {
+            return ErrorHandler.safeCallback(cb, new Error('Rate limit exceeded. Please try again later.'));
+        }
+
+        // 输入验证
+        const validationError = ErrorHandler.validateParams(msg, ['script'], {
+            script: 'string'
+        });
+
+        if (validationError) {
+            return ErrorHandler.safeCallback(cb, validationError);
+        }
+
+        const script = msg.script.trim();
+        if (!script) {
+            return ErrorHandler.safeCallback(cb, new Error('Script content cannot be empty'));
+        }
+
+        // 安全验证脚本内容
+        const scriptValidation = Security.validateScript(script);
+        if (!scriptValidation.isValid) {
+            logger.warn('Unsafe script rejected:', scriptValidation.errors);
+            return ErrorHandler.safeCallback(cb,
+                new Error('Script contains unsafe content: ' + scriptValidation.errors.join(', ')));
+        }
+
+        // 记录警告
+        if (scriptValidation.warnings.length > 0) {
+            logger.warn('Script warnings:', scriptValidation.warnings);
+        }
+
+        // 使用ErrorHandler的安全异步操作
+        ErrorHandler.safeAsyncOperation(() => {
+            // 创建安全的执行上下文
+            const context = Security.createSecureContext({
+                app: this.app,
+                result: undefined // 用于存储脚本结果
+            });
+
+            vm.runInNewContext(script, context, {
+                timeout: 5000,
+                displayErrors: true,
+                breakOnSigint: true
+            });
 
             const result = context.result;
-            if (!result) {
-                cb(null, 'script result should be assigned to result value to script module context');
+            if (result === undefined) {
+                return {
+                    success: true,
+                    message: 'script result should be assigned to result value to script module context',
+                    warnings: scriptValidation.warnings
+                };
             } else {
-                cb(null, result);
+                return {
+                    success: true,
+                    result: result,
+                    warnings: scriptValidation.warnings
+                };
             }
-        } catch (e) {
-            cb(null, e.toString());
-        }
+
+        }, cb, 'Script execution');
     }
 
     clientHandler(agent, msg, cb) {

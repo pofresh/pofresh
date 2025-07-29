@@ -295,11 +295,23 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
         return;
     }
     if (handle === 'monitor') {
+        // 输入验证
+        if (!param || !param.filepath) {
+            return cb(new Error('filepath parameter is required'));
+        }
+
         let filepath = param.filepath;
         const force = param.force;
+
+        // 安全检查：防止路径遍历攻击
+        if (filepath.includes('..') || filepath.includes('~')) {
+            return cb(new Error('Invalid filepath: path traversal not allowed'));
+        }
+
         if (!/\.heapsnapshot$/.test(filepath)) {
             filepath = filepath + '.heapsnapshot';
         }
+
         checkFilePath(filepath, force, err => {
             if (err) {
                 cb(err);
@@ -308,10 +320,15 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
             let heapdump = null;
             try {
                 heapdump = require('heapdump');
-                heapdump.writeSnapshot(filepath);
-                cb(null, filepath + ' memory dump ok');
+                heapdump.writeSnapshot(filepath, (err, filename) => {
+                    if (err) {
+                        cb(new Error('Failed to write heap snapshot: ' + err.message));
+                    } else {
+                        cb(null, (filename || filepath) + ' memory dump ok');
+                    }
+                });
             } catch (e) {
-                cb('pofresh-admin require heapdump');
+                cb(new Error('pofresh-admin require heapdump module: ' + e.message));
             }
         });
     }
@@ -498,7 +515,7 @@ function checkJSON(obj) {
     }
     try {
         JSON.stringify(obj);
-    } catch (e) {
+    } catch {
         return false;
     }
     return true;

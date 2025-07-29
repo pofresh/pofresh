@@ -28,7 +28,8 @@ describe('console service', function () {
         });
     });
 
-    it('should forward message from master to the monitorHandler method of the module of the right monitor, and get the response by masterAgent.request', async function () {
+    it('should forward message from master to the monitorHandler method of the module ' +
+        'of the right monitor, and get the response by masterAgent.request', async function () {
         const monitorConfig1 = {
             id: 'connector-server-1',
             type: 'connector',
@@ -79,11 +80,11 @@ describe('console service', function () {
         });
 
         monitorConsole2.register(monitorConfig2.moduleId, {
-            monitorHandler: function (agent, msg, cb) {
+            monitorHandler: function (_agent, msg, _cb) {
                 req2Count++;
                 expect(msg).toBeDefined();
                 expect(msg).toEqual(msg2);
-                cb(null, msg);
+                _cb(null, msg);
             }
         });
 
@@ -132,7 +133,8 @@ describe('console service', function () {
         });
     });
 
-    it('should forward message from monitor to the masterHandler of the right module of the master by monitor.notify', async function () {
+    it('should forward message from monitor to the masterHandler of the right module ' +
+        'of the master by monitor.notify', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -145,7 +147,7 @@ describe('console service', function () {
         });
 
         masterConsole.register(moduleId, {
-            masterHandler: function (agent, msg, cb) {
+            masterHandler: function (_agent, msg, _cb) {
                 reqCount++;
                 expect(msg).toBeDefined();
                 expect(msg).toEqual(orgMsg);
@@ -196,7 +198,7 @@ describe('console service', function () {
         });
 
         masterConsole.register(moduleId, {
-            masterHandler: function (agent, msg, cb) {
+            masterHandler: function (_agent, _msg, _cb) {
                 // should not come here
                 expect(true).toBe(false);
             }
@@ -211,7 +213,7 @@ describe('console service', function () {
         });
 
         monitorConsole.register(moduleId, {
-            monitorHandler: function (agent, msg, cb) {
+            monitorHandler: function (_agent, _msg, _cb) {
                 // should not come here
                 expect(true).toBe(false);
             }
@@ -286,7 +288,7 @@ describe('console service', function () {
         masterConsole.register(moduleId, {
             type: 'pull',
             interval: intervalSec,
-            masterHandler: function (agent, msg, cb) {
+            masterHandler: function (_agent, _msg, _cb) {
                 invokeCount++;
             }
         });
@@ -328,7 +330,7 @@ describe('console service', function () {
         monitorConsole.register(moduleId, {
             type: 'push',
             interval: intervalSec,
-            monitorHandler: function (agent, msg, cb) {
+            monitorHandler: function (_agent, _msg, _cb) {
                 invokeCount++;
             }
         });

@@ -20,11 +20,21 @@ class SIOClient extends EventEmitter {
 
     connect(host, port, cb) {
         cb = cb || function () {};
+        let callbackInvoked = false;
+
+        // 防止回调被多次调用
+        const safeCallback = (err, result) => {
+            if (!callbackInvoked) {
+                callbackInvoked = true;
+                cb(err, result);
+            }
+        };
 
         if (this.connected) {
-            return cb(new Error('SIOClient has already connected.'));
+            return safeCallback(new Error('SIOClient has already connected.'));
         }
 
+        // 输入验证
         if (host) {
             this.host = host;
         } else {
@@ -37,34 +47,76 @@ class SIOClient extends EventEmitter {
             port = this.port;
         }
 
+        if (!host || !port) {
+            return safeCallback(new Error('Host and port are required'));
+        }
+
         this.closed = false;
 
-        this.socket = IOClient('ws://' + host + ':' + port, {
-            // forceNew: true,
-            // reconnection: false,
-            reconnectionDelay: this.reconnectDelay,
-            reconnectionDelayMax: this.reconnectDelayMax,
-            timeout: this.timeout
+        // 添加连接超时
+        const connectTimeout = setTimeout(() => {
+            if (!callbackInvoked) {
+                logger.error('Connection timeout for %s to %s:%s', this.id, host, port);
+                this.setSocketClose();
+                safeCallback(new Error('Connection timeout'));
+            }
+        }, this.timeout || 10000);
+
+        try {
+            this.socket = IOClient('ws://' + host + ':' + port, {
+                forceNew: true,
+                reconnection: true,
+                reconnectionDelay: this.reconnectDelay,
+                reconnectionDelayMax: this.reconnectDelayMax,
+                timeout: this.timeout
+            });
+        } catch (err) {
+            clearTimeout(connectTimeout);
+            return safeCallback(new Error('Failed to create socket: ' + err.message));
+        }
+
+        this.socket.on('register', msg => {
+            try {
+                this.emit('register', msg);
+            } catch (err) {
+                logger.error('Error handling register message:', err);
+            }
         });
 
-        this.socket.on('register', msg => this.emit('register', msg));
+        this.socket.on('monitor', msg => {
+            try {
+                this.emit('monitor', msg);
+            } catch (err) {
+                logger.error('Error handling monitor message:', err);
+            }
+        });
 
-        this.socket.on('monitor', msg => this.emit('monitor', msg));
-
-        this.socket.on('client', msg => this.emit('client', msg));
+        this.socket.on('client', msg => {
+            try {
+                this.emit('client', msg);
+            } catch (err) {
+                logger.error('Error handling client message:', err);
+            }
+        });
 
         this.socket.on('connect', () => {
+            clearTimeout(connectTimeout);
             if (this.connected) {
                 return;
             }
             this.connected = true;
             this.emit('connect');
-            cb();
+            safeCallback();
         });
 
         this.socket.on('connect_error', err => {
-            this.emit('error', new Error('[SIOClient] socket connect_error, remote server ' + host + ':' + port));
+            clearTimeout(connectTimeout);
+            const errorMsg = '[SIOClient] socket connect_error, remote server ' + host + ':' + port;
             logger.error('%s socket error: %s, remote server host: %s, port: %s', this.id, err, host, port);
+            this.emit('error', new Error(errorMsg));
+            if (!callbackInvoked) {
+                safeCallback(new Error(errorMsg));
+            }
         });
 
         this.socket.on('disconnect', reason => {

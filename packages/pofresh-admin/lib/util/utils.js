@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 const rrl = require('reverse-read-line');
+const ErrorHandler = require('./errorHandler');
+const configManager = require('./configManager');
 
 const utils = module.exports;
 
@@ -11,8 +13,35 @@ const utils = module.exports;
  */
 utils.invokeCallback = function (cb) {
     if (!!cb && typeof cb === 'function') {
-        cb.apply(null, Array.prototype.slice.call(arguments, 1));
+        try {
+            cb.apply(null, Array.prototype.slice.call(arguments, 1));
+        } catch (err) {
+            // 使用ErrorHandler来安全处理回调错误
+            const logger = require('pofresh-logger').getLogger('pofresh-admin', 'utils');
+            logger.error('Error in callback execution:', err);
+        }
     }
+};
+
+/**
+ * 安全的回调调用，使用ErrorHandler
+ */
+utils.safeCallback = function (cb, err, result) {
+    ErrorHandler.safeCallback(cb, err, result);
+};
+
+/**
+ * 创建带超时的回调
+ */
+utils.createTimeoutCallback = function (cb, timeout, operation) {
+    return ErrorHandler.createTimeoutCallback(cb, timeout, operation);
+};
+
+/**
+ * 验证参数
+ */
+utils.validateParams = function (params, required, types) {
+    return ErrorHandler.validateParams(params, required, types);
 };
 
 /*
@@ -55,7 +84,7 @@ utils.compareServer = function (server1, server2) {
 utils.size = function (obj, type) {
     let count = 0;
     for (const i in obj) {
-        if (obj.hasOwnProperty(i) && typeof obj[i] !== 'function') {
+        if (Object.prototype.hasOwnProperty.call(obj, i) && typeof obj[i] !== 'function') {
             if (!type) {
                 count++;
                 continue;
@@ -77,32 +106,41 @@ utils.md5 = function (str) {
 };
 
 utils.defaultAuthUser = function (msg, env, cb) {
-    let adminUsers = null;
-    const appBase = path.dirname(require.main.filename);
-    const adminUserPath = path.join(appBase, '/config/adminUser.json');
-    const presentPath = path.join(appBase, 'config', env, 'adminUser.json');
-    if (fs.existsSync(adminUserPath)) {
-        adminUsers = require(adminUserPath);
-    } else if (fs.existsSync(presentPath)) {
-        adminUsers = require(presentPath);
-    }
-
-    if (!adminUsers || adminUsers.length === 0) {
-        return cb(null);
-    }
-
-    const username = msg.username;
-    const password = msg.password;
-    const md5 = msg.md5;
-
-    const user = adminUsers.find(u => {
-        if (u.username !== username) {
-            return false;
-        }
-        return md5 ? utils.md5(u.password) === password : u.password === password;
+    // 使用ErrorHandler进行参数验证
+    const validationError = ErrorHandler.validateParams(msg, ['username', 'password'], {
+        username: 'string',
+        password: 'string'
     });
 
-    cb(user);
+    if (validationError) {
+        return ErrorHandler.safeCallback(cb, validationError);
+    }
+
+    if (!env || typeof env !== 'string') {
+        return ErrorHandler.safeCallback(cb, new Error('Environment must be a non-empty string'));
+    }
+
+    // 使用ErrorHandler的安全异步操作和ConfigManager
+    ErrorHandler.safeAsyncOperation(() => {
+        const adminUsers = configManager.loadAdminUsers(env);
+
+        if (!adminUsers || adminUsers.length === 0) {
+            return null; // 没有配置用户，返回null
+        }
+
+        const username = msg.username;
+        const password = msg.password;
+        const md5 = msg.md5;
+
+        const user = adminUsers.find(u => {
+            if (!u || typeof u !== 'object' || u.username !== username) {
+                return false;
+            }
+            return md5 ? utils.md5(u.password) === password : u.password === password;
+        });
+
+        return user;
+    }, cb, 'User authentication');
 };
 
 utils.defaultAuthServerMaster = function (msg, env, cb) {

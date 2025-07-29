@@ -88,10 +88,36 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     stop() {
-        for (const mid in this.modules) {
-            this.disable(mid);
+        try {
+            // 停止所有模块
+            for (const mid in this.modules) {
+                try {
+                    this.disable(mid);
+                } catch (err) {
+                    logger.error('Error disabling module %s:', mid, err);
+                }
+            }
+
+            // 清理定时器
+            if (this.scheduleId) {
+                schedule.cancelJob(this.scheduleId);
+                this.scheduleId = null;
+            }
+
+            // 关闭代理
+            if (this.agent) {
+                this.agent.close();
+            }
+
+            // 清理资源
+            this.modules = {};
+            this.values = {};
+
+            logger.info('ConsoleService stopped successfully');
+        } catch (err) {
+            logger.error('Error stopping ConsoleService:', err);
+            throw err;
         }
-        this.agent.close();
     }
 
     /**

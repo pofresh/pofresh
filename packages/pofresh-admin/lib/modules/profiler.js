@@ -36,53 +36,94 @@ class Module {
     }
 
     monitorHandler(agent, msg, cb) {
-        let type = msg.type,
+        // 输入验证
+        if (!msg || typeof msg !== 'object') {
+            return cb && cb(new Error('Invalid message format'));
+        }
+
+        const type = msg.type,
             action = msg.action,
-            uid = msg.uid,
-            result = null;
-        if (type === 'CPU') {
-            if (action === 'start') {
-                profiler.startProfiling();
-            } else {
-                result = profiler.stopProfiling();
-                const res = {};
-                res.head = result.getTopDownRoot();
-                res.bottomUpHead = result.getBottomUpRoot();
-                res.msg = msg;
-                agent.notify(moduleId, { clientId: msg.clientId, type: type, body: res });
-            }
-        } else {
-            const snapshot = profiler.takeSnapshot();
-            const appBase = path.dirname(require.main.filename);
-            const name = appBase + '/logs/' + utils.format(new Date()) + '.log';
-            const log = fs.createWriteStream(name, { flags: 'a' });
-            let data;
-            snapshot.serialize({
-                onData: function (chunk, size) {
-                    chunk = chunk + '';
-                    data = {
-                        method: 'Profiler.addHeapSnapshotChunk',
-                        params: {
-                            uid: uid,
-                            chunk: chunk
-                        }
-                    };
-                    log.write(chunk);
-                    agent.notify(moduleId, { clientId: msg.clientId, type: type, body: data });
-                },
-                onEnd: function () {
-                    agent.notify(moduleId, {
-                        clientId: msg.clientId,
-                        type: type,
-                        body: { params: { uid: uid } }
-                    });
-                    profiler.deleteAllSnapshots();
+            uid = msg.uid;
+        let result = null;
+
+        try {
+            if (type === 'CPU') {
+                if (action === 'start') {
+                    profiler.startProfiling();
+                    cb && cb(null, 'CPU profiling started');
+                } else {
+                    result = profiler.stopProfiling();
+                    if (!result) {
+                        return cb && cb(new Error('No CPU profiling session to stop'));
+                    }
+                    const res = {};
+                    res.head = result.getTopDownRoot();
+                    res.bottomUpHead = result.getBottomUpRoot();
+                    res.msg = msg;
+                    agent.notify(moduleId, { clientId: msg.clientId, type: type, body: res });
+                    cb && cb(null, 'CPU profiling stopped');
                 }
-            });
+            } else {
+                const snapshot = profiler.takeSnapshot();
+                const appBase = path.dirname(require.main.filename);
+                const logsDir = path.join(appBase, 'logs');
+
+                // 确保logs目录存在
+                if (!fs.existsSync(logsDir)) {
+                    fs.mkdirSync(logsDir, { recursive: true });
+                }
+
+                const name = path.join(logsDir, utils.format(new Date()) + '.log');
+                const log = fs.createWriteStream(name, { flags: 'a' });
+                let data;
+
+                // 添加错误处理
+                log.on('error', (err) => {
+                    logger.error('Failed to write heap snapshot:', err);
+                    cb && cb(err);
+                });
+
+                snapshot.serialize({
+                    onData: function (chunk) {
+                        try {
+                            chunk = chunk + '';
+                            data = {
+                                method: 'Profiler.addHeapSnapshotChunk',
+                                params: {
+                                    uid: uid,
+                                    chunk: chunk
+                                }
+                            };
+                            log.write(chunk);
+                            agent.notify(moduleId, { clientId: msg.clientId, type: type, body: data });
+                        } catch (err) {
+                            logger.error('Error processing heap snapshot chunk:', err);
+                        }
+                    },
+                    onEnd: function () {
+                        try {
+                            agent.notify(moduleId, {
+                                clientId: msg.clientId,
+                                type: type,
+                                body: { params: { uid: uid } }
+                            });
+                            profiler.deleteAllSnapshots();
+                            log.end(); // 确保文件流正确关闭
+                            cb && cb(null, 'Heap snapshot completed');
+                        } catch (err) {
+                            logger.error('Error completing heap snapshot:', err);
+                            cb && cb(err);
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            logger.error('Profiler error:', err);
+            cb && cb(err);
         }
     }
 
-    masterHandler(agent, msg, cb) {
+    masterHandler(agent, msg, _cb) {
         if (msg.type === 'CPU') {
             this.proxy.stopCallBack(msg.body, msg.clientId, agent);
         } else {
@@ -90,9 +131,9 @@ class Module {
         }
     }
 
-    clientHandler(agent, msg, cb) {
+    clientHandler(agent, msg, _cb) {
         if (msg.action === 'list') {
-            list(agent, msg, cb);
+            list(agent, msg, _cb);
             return;
         }
 

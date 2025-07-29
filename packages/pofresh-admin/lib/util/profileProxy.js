@@ -166,7 +166,7 @@ class Proxy {
         }
     }
 
-    clearProfiles(id, params) {
+    clearProfiles(_id, _params) {
         this.profiles.HEAP = {};
         this.profiles.CPU = {};
         //profiler.deleteAllSnapshots();

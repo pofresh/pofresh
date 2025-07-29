@@ -98,7 +98,7 @@ function fetchLogs(root, msg, callback) {
                 let json = {};
                 try {
                     json = JSON.parse(last);
-                } catch (e) {
+                } catch {
                     continue;
                 }
                 json.route = json.route || json.service;

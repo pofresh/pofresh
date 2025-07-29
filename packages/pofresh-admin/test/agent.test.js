@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 const flow = require('flow');
 const Master = require('../lib/master/masterAgent');
 const Monitor = require('../lib/monitor/monitorAgent');
-const ConsoleService = require('../lib/consoleService');
+
 
 const WAIT_TIME = 200;
 
@@ -18,7 +18,8 @@ describe('agent', function () {
         authServer
     };
 
-    it('should forward the message from master to the right monitor and get the response by reuqest', async function () {
+    it('should forward the message from master to the right monitor and get the response ' +
+        'by reuqest', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -35,19 +36,19 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer,
-            execute: function (receivedModuleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, msg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
-                cb(null, msg);
+                _cb(null, msg);
             }
         };
 
         const monitorConsole2 = {
             authServer,
-            execute: function (receivedModuleId, method, msg, cb) {
+            execute: function (receivedModuleId, method, msg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
-                cb(null, msg);
+                _cb(null, msg);
             }
         };
 
@@ -108,7 +109,8 @@ describe('agent', function () {
         });
     });
 
-    it('should return error to master if monitor cb with a error by reuqest', async function () {
+    it('should return error to master if monitor cb with a error ' +
+        'by reuqest', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -120,10 +122,10 @@ describe('agent', function () {
 
         const monitorConsole = {
             authServer,
-            execute(receivedModuleId, method, msg, cb) {
+            execute(receivedModuleId, method, msg, _cb) {
                 reqCount++;
                 expect(receivedModuleId).toBe(moduleId);
-                cb(new Error(errMsg));
+                _cb(new Error(errMsg));
             }
         };
 
@@ -164,7 +166,8 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message from master to the right monitor by notifyById', async function () {
+    it('should forward the message from master to the right monitor ' +
+        'by notifyById', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -179,7 +182,7 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, cb) {
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
                 expect(receivedMsg).toEqual(msg1);
@@ -188,7 +191,7 @@ describe('agent', function () {
 
         const monitorConsole2 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, cb) {
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
                 expect(receivedMsg).toEqual(msg2);
@@ -238,7 +241,8 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message to the right type monitors by notifyByType', async function () {
+    it('should forward the message to the right type monitors ' +
+        'by notifyByType', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'connector-server-2';
         const monitorId3 = 'area-server-1';
@@ -257,7 +261,7 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, _cb) {
                 req1Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -267,7 +271,7 @@ describe('agent', function () {
 
         const monitorConsole2 = {
             authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, _cb) {
                 req2Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -277,7 +281,7 @@ describe('agent', function () {
 
         const monitorConsole3 = {
             authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, _cb) {
                 req3Count++;
                 reqType2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
@@ -340,7 +344,8 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message to all monitors by notifyAll', async function () {
+    it('should forward the message to all monitors ' +
+        'by notifyAll', async function () {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -353,7 +358,7 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -362,7 +367,7 @@ describe('agent', function () {
 
         const monitorConsole2 = {
             authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, cb) {
+            execute: function (receivedModuleId, method, receivedMsg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -410,7 +415,8 @@ describe('agent', function () {
         });
     });
 
-    it('should push the message from monitor to master by notify', async function () {
+    it('should push the message from monitor to master ' +
+        'by notify', async function () {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const orgModuleId = 'testModuleId';
@@ -420,7 +426,7 @@ describe('agent', function () {
 
         const masterConsole = {
             authServer: authServer,
-            execute: function (moduleId, method, msg, cb) {
+            execute: function (moduleId, method, msg, _cb) {
                 reqCount++;
                 expect(orgModuleId).toBe(moduleId);
                 expect(msg).toEqual(orgMsg);

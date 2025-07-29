@@ -45,21 +45,52 @@ class MonitorAgent extends EventEmitter {
      */
     connect(port, host, cb) {
         if (this.state > ST_INITED) {
-            logger.error('monitor client has connected or closed.');
+            const err = new Error('monitor client has connected or closed.');
+            if (cb) cb(err);
+            return;
+        }
+
+        // 输入验证
+        if (!port || !host) {
+            const err = new Error('Port and host are required');
+            if (cb) cb(err);
             return;
         }
 
         cb = cb || function () {};
+        let callbackInvoked = false;
 
-        this.socket = new this.Client(this.opts);
+        // 防止回调被多次调用
+        const safeCallback = (err, result) => {
+            if (!callbackInvoked) {
+                callbackInvoked = true;
+                cb(err, result);
+            }
+        };
+
+        try {
+            this.socket = new this.Client(this.opts);
+        } catch (err) {
+            return safeCallback(new Error('Failed to create client socket: ' + err.message));
+        }
+
+        // 添加连接超时
+        const connectTimeout = setTimeout(() => {
+            if (!callbackInvoked) {
+                logger.error('Connection timeout for server %j %j', this.id, this.type);
+                safeCallback(new Error('Connection timeout'));
+            }
+        }, 10000); // 10秒超时
 
         this.socket.on('register', msg => {
+            clearTimeout(connectTimeout);
             if (msg && msg.code === protocol.PRO_OK) {
                 this.state = ST_REGISTERED;
-                cb();
+                safeCallback();
             } else {
                 this.emit('close');
                 logger.error('server %j %j register master failed', this.id, this.type);
+                safeCallback(new Error('Registration failed'));
             }
         });
 

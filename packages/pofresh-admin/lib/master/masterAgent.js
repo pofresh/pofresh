@@ -124,6 +124,13 @@ class MasterAgent extends EventEmitter {
      */
     request(serverId, moduleId, msg, cb) {
         if (this.state > ST_STARTED) {
+            utils.invokeCallback(cb, new Error('MasterAgent is not in started state'));
+            return false;
+        }
+
+        // 输入验证
+        if (!serverId || !moduleId) {
+            utils.invokeCallback(cb, new Error('serverId and moduleId are required'));
             return false;
         }
 
@@ -134,7 +141,25 @@ class MasterAgent extends EventEmitter {
         }
 
         const curId = this.reqId++;
-        this.callbacks[curId] = cb;
+
+        // 添加超时处理防止内存泄漏
+        const timeoutId = setTimeout(() => {
+            if (this.callbacks[curId]) {
+                delete this.callbacks[curId];
+                if (this.reqMsgMap[serverId] && this.reqMsgMap[serverId][curId]) {
+                    delete this.reqMsgMap[serverId][curId];
+                }
+                utils.invokeCallback(cb, new Error('Request timeout'));
+            }
+        }, 30000); // 30秒超时
+
+        this.callbacks[curId] = (...args) => {
+            clearTimeout(timeoutId);
+            if (this.reqMsgMap[serverId] && this.reqMsgMap[serverId][curId]) {
+                delete this.reqMsgMap[serverId][curId];
+            }
+            utils.invokeCallback(cb, ...args);
+        };
 
         if (!this.reqMsgMap[serverId]) {
             this.reqMsgMap[serverId] = {};
@@ -142,8 +167,16 @@ class MasterAgent extends EventEmitter {
 
         this.reqMsgMap[serverId][curId] = { moduleId, msg };
 
-        this.sendToMonitor(record.socket, curId, moduleId, msg);
-        return true;
+        try {
+            this.sendToMonitor(record.socket, curId, moduleId, msg);
+            return true;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            delete this.callbacks[curId];
+            delete this.reqMsgMap[serverId][curId];
+            utils.invokeCallback(cb, err);
+            return false;
+        }
     }
 
     /**

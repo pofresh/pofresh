@@ -26,13 +26,9 @@ class SIOServer extends EventEmitter {
             this.emit('connection', socket);
         });
 
-        try {
-            this.server.listen(port);
-            logger.info('[MasterServer] listen on %d', port);
-            this.emit('listening');
-        } catch (e) {
-            throw e;
-        }
+        this.server.listen(port);
+        logger.info('[MasterServer] listen on %d', port);
+        this.emit('listening');
         this.closed = false;
     }
 

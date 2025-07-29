@@ -6,7 +6,7 @@ const net = require('net');
 let curId = 1;
 
 class MqttServer extends EventEmitter {
-    constructor(opts, cb) {
+    constructor(_opts, _cb) {
         super();
         this.inited = false;
         this.closed = true;
@@ -37,7 +37,7 @@ class MqttServer extends EventEmitter {
             const socket = MqttCon(stream);
             socket.id = curId++;
 
-            socket.on('connect', pkg => {
+            socket.on('connect', _pkg => {
                 socket.connack({
                     returnCode: 0
                 });
