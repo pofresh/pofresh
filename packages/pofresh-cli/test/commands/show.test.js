@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
 
 describe('show command', () => {
     let showCommand;

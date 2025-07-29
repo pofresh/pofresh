@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import cli from '../index.js';
 
 describe('pofresh-cli', () => {

@@ -44,18 +44,19 @@ class Command {
                 context: Context
             },
             function (err, data) {
-                if (err) console.log(err);
-                else {
+                if (err) {
+                    util.log('Error retrieving server list: ' + err);
+                } else {
                     const _msg = data['msg'];
                     if (_msg[comd]) {
-                        util.log('\nswitch to server: ' + comd + '\n');
+                        util.log('\nSwitched to server: ' + comd + '\n');
                         Context = comd;
                         agent.setContext(Context);
                         const PROMPT = user + consts.PROMPT + Context + '>';
                         rl.setPrompt(PROMPT);
                     } else {
                         util.log(
-                            '\ncommand \'use ' + comd + '\' error for serverId ' + comd + ' not in pofresh clusters\n'
+                            '\nError: Server "' + comd + '" not found in pofresh clusters\n'
                         );
                     }
                 }

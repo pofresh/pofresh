@@ -3,12 +3,20 @@ const async = require('async');
 const crypto = require('crypto');
 const consts = require('./consts');
 
+/**
+ * Utility functions for pofresh-cli
+ * @module util
+ */
 const util = {};
 
 module.exports = util;
 
 let serverMap = {};
 
+/**
+ * Log a message to stdout
+ * @param {string} str - The message to log
+ */
 function log(str) {
     process.stdout.write(str + '\n');
 }
@@ -29,24 +37,26 @@ function help() {
 }
 
 function errorHandle(comd, rl) {
-    log('\nunknow command : ' + comd);
-    log('type help for help infomation\n');
+    log('\nUnknown command: ' + comd);
+    log('Type "help" for help information\n');
     rl.prompt();
 }
 
 function argsFilter(argv) {
+    if (!argv || typeof argv !== 'string') {
+        return [];
+    }
+    
     let lines;
     if (argv.indexOf('\'') > 0) {
         lines = argv.split('\'');
     }
+    
     const getArg = function (argv) {
+        if (!argv) return [];
         const argvs = argv.split(' ');
-        for (let i = 0; i < argvs.length; i++) {
-            if (argvs[i] === ' ' || argvs[i] === '') {
-                argvs.splice(i, 1);
-            }
-        }
-        return argvs;
+        // Filter out empty strings and spaces more efficiently
+        return argvs.filter(arg => arg.trim() !== '');
     };
     if (lines) {
         let head = getArg(lines[0]);
@@ -298,6 +308,31 @@ function tabComplete(hits, line, map, comd) {
     return hits;
 }
 
+// Enhanced error handling function
+function handleError(err, context, rl) {
+    if (err) {
+        const errorMsg = typeof err === 'string' ? err : err.message || err.toString();
+        log(`\nError in ${context}: ${errorMsg}\n`);
+    }
+    if (rl) {
+        rl.prompt();
+    }
+}
+
+// Input validation function
+function validateInput(input, type) {
+    switch (type) {
+        case 'string':
+            return typeof input === 'string' && input.trim().length > 0;
+        case 'number':
+            return !isNaN(input) && isFinite(input);
+        case 'array':
+            return Array.isArray(input) && input.length > 0;
+        default:
+            return input != null;
+    }
+}
+
 util.log = log;
 util.md5 = md5;
 util.help = help;
@@ -306,3 +341,5 @@ util.argsFilter = argsFilter;
 util.format_date = format_date;
 util.errorHandle = errorHandle;
 util.formatOutput = formatOutput;
+util.handleError = handleError;
+util.validateInput = validateInput;

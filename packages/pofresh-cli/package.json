@@ -4,7 +4,7 @@
   "description": "Pofresh command line client for managing pofresh",
   "main": "index.js",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --run",
     "test:run": "vitest --run",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage"
@@ -14,17 +14,17 @@
     "pofresh",
     "command",
     "line",
-    "maintening"
+    "maintaining"
   ],
   "bin": {
     "pofresh-cli": "./bin/pofresh-cli"
   },
   "dependencies": {
-    "optimist": ">=0.6.1",
-    "cliff": ">=0.1.8",
+    "async": "^3.2.6",
+    "cliff": "^0.1.10",
+    "commander": "^12.1.0",
     "pofresh-admin": "workspace:*",
-    "pofresh-logger": "workspace:*",
-    "async": ">=3.2.6"
+    "pofresh-logger": "workspace:*"
   },
   "author": "luson",
   "license": "MIT"

@@ -92,7 +92,7 @@ consts.COMANDS_MAP = {
         'example: disable app systemMonitor\n'
     ],
     stop: ['\nstop server. takes serverId as argument.', 'stop <serverId>', 'example: stop area-server-1\n'],
-    kill: ['\nkill all servers.', 'example: kill', 'note: be carefull to use this command\n'],
+    kill: ['\nkill all servers.', 'example: kill', 'note: be careful to use this command\n'],
     dump: [
         '\nmake a dump of the V8 heap and cpu for later inspection',
         'dump cpu|memory <filepath> [times] [--force]',
@@ -214,7 +214,7 @@ consts.COMANDS_COMPLETE = [
     'removeCron'
 ];
 
-consts.COMANDS_ERROR = 'this command is error format';
+consts.COMANDS_ERROR = 'this command has an incorrect format';
 consts.COMANDS_ADD_ERROR = '\nadd command error\n';
 consts.COMANDS_ENABLE_ERROR = '\nenable command error\n';
 consts.COMANDS_DISABLE_ERROR = '\ndisable command error\n';
@@ -223,7 +223,7 @@ consts.COMANDS_KILL_ERROR = '\nkill command error\n';
 consts.COMANDS_USE_ERROR = '\nuse command error\n';
 consts.COMANDS_STOP_ERROR = '\nstop command error\n';
 consts.COMANDS_EXEC_ERROR = '\nexec command script filepath error\n';
-consts.COMANDS_CONTEXT_ERROR = 'this command is not used in this context\nyou can use command \'use\' to switch context';
+consts.COMANDS_CONTEXT_ERROR = 'this command cannot be used in this context\nyou can use command \'use\' to switch context';
 consts.MODULE_INFO = 'there are following modules registered in pofresh clusters';
 consts.COMPONENTS_INFO = 'there are following components registered in current server';
 consts.STATUS_ERROR = 'can not get status in this server';

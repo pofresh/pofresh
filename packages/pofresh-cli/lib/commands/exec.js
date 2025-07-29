@@ -34,14 +34,17 @@ class Command {
         }
 
         let file = null;
-        if (comd[0] !== '/') {
-            comd = process.cwd() + '/' + comd;
+        const path = require('path');
+        
+        // Handle both Unix and Windows paths
+        if (!path.isAbsolute(comd)) {
+            comd = path.join(process.cwd(), comd);
         }
 
         try {
-            file = fs.readFileSync(comd).toString();
+            file = fs.readFileSync(comd, 'utf8');
         } catch (e) {
-            util.log(consts.COMANDS_EXEC_ERROR);
+            util.log('\nError reading script file: ' + e.message + '\n');
             rl.prompt();
             return;
         }
@@ -54,12 +57,14 @@ class Command {
                 script: file
             },
             function (err, msg) {
-                if (err) console.log(err);
-                else {
+                if (err) {
+                    util.log('Error executing script: ' + err);
+                } else {
                     try {
-                        msg = JSON.parse(msg);
-                        util.formatOutput(commandId, msg);
+                        const parsedMsg = JSON.parse(msg);
+                        util.formatOutput(commandId, parsedMsg);
                     } catch (e) {
+                        // If not JSON, display as plain text
                         util.log('\n' + msg + '\n');
                     }
                 }

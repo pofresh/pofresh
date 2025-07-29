@@ -3,12 +3,13 @@ const adminClient = require('pofresh-admin').adminClient;
 const command = require('./command')();
 const consts = require('./consts');
 const util = require('./util');
-const argv = require('optimist').argv;
 
-const username = (argv.u = argv.u || 'monitor');
-const password = (argv.p = argv.p || 'monitor');
-const host = (argv.h = argv.h || 'localhost');
-const port = (argv.P = argv.P || 3005);
+// Get options from global or use defaults
+const options = global.cliOptions || {};
+const username = options.username || 'monitor';
+const password = options.password || 'monitor';
+const host = options.host || 'localhost';
+const port = parseInt(options.port) || 3005;
 const context = 'all';
 let client = null;
 
@@ -59,9 +60,6 @@ function startCli() {
         }
         switch (key) {
         case 'help':
-            util.help();
-            rl.prompt();
-            break;
         case '?':
             util.help();
             rl.prompt();
@@ -109,7 +107,6 @@ function completer(line) {
     hits = util.tabComplete(hits, line, consts.COMANDS_COMPLETE_INFO, 'help');
     hits = util.tabComplete(hits, line, consts.SHOW_COMMAND, 'show');
     hits = util.tabComplete(hits, line, null, 'enable');
-    hits = util.tabComplete(hits, line, null, 'disable');
     hits = util.tabComplete(hits, line, null, 'disable');
     hits = util.tabComplete(hits, line, null, 'dump');
     hits = util.tabComplete(hits, line, null, 'use');

@@ -28,8 +28,12 @@ class Command {
                         args: argvs.slice(1)
                     },
                     function (err, data) {
-                        if (err) console.log(err);
-                        else util.formatOutput(comd, data);
+                        if (err) {
+                            util.log('Error adding server: ' + err);
+                        } else {
+                            util.formatOutput(comd, data);
+                            util.log('Server added successfully');
+                        }
                         rl.prompt();
                     }
                 );

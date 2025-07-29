@@ -33,10 +33,13 @@ class Command {
                         ids: ids
                     },
                     function (err, data) {
-                        if (err) console.log(err);
-                        else util.formatOutput(comd, data);
+                        if (err) {
+                            util.log('Error stopping server: ' + err);
+                        } else {
+                            util.formatOutput(comd, data);
+                            util.log('Server stopped successfully');
+                        }
                         rl.prompt();
-                        console.log('back', data);
                     }
                 );
             } else {

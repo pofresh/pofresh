@@ -45,8 +45,12 @@ class Command {
                     {
                         signal: 'kill'
                     },
-                    function (err) {
-                        if (err) console.log(err);
+                    function (err, data) {
+                        if (err) {
+                            util.log('Error killing servers: ' + err);
+                        } else {
+                            util.log('All servers killed successfully');
+                        }
                         rl.prompt();
                     }
                 );

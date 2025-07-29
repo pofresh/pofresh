@@ -44,8 +44,11 @@ class Command {
                 context: Context
             },
             function (err, data) {
-                if (err) console.log(err);
-                else util.formatOutput(comd, data);
+                if (err) {
+                    util.log('Error retrieving information: ' + err);
+                } else {
+                    util.formatOutput(comd, data);
+                }
                 rl.prompt();
             }
         );

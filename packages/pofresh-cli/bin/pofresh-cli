@@ -1,21 +1,32 @@
 #!/usr/bin/env node
 
+const { Command } = require('commander');
 const cli = require('../lib/cli');
 const util = require('../lib/util');
 const consts = require('../lib/consts');
-const argv = require('optimist').argv;
 
-const extra = argv._;
+const program = new Command();
 
-if (extra && extra.length) {
-    showHelp();
-} else {
-    if (argv['help']) {
-        showHelp();
-    } else {
-        cli();
-    }
-}
+program
+    .name('pofresh-cli')
+    .description('Pofresh command line client for managing pofresh')
+    .version(require('../package.json').version)
+    .option('-h, --host <host>', 'server host', 'localhost')
+    .option('-P, --port <port>', 'server port', '3005')
+    .option('-u, --username <username>', 'username', 'monitor')
+    .option('-p, --password <password>', 'password', 'monitor')
+    .option('--help-login', 'show login help')
+    .action((options) => {
+        if (options.helpLogin) {
+            showHelp();
+        } else {
+            // Pass options to cli
+            global.cliOptions = options;
+            cli();
+        }
+    });
+
+program.parse();
 
 function showHelp() {
     const HELP_LOGIN = consts.HELP_LOGIN;
