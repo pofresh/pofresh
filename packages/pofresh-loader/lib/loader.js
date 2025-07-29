@@ -3,7 +3,7 @@
  */
 
 const fs = require('fs');
-const ph = require('path');
+const path = require('path');
 
 /**
  * Load modules under the path.
@@ -21,73 +21,128 @@ const ph = require('path');
  *                           module factory function.
  * @param {Boolean} isReload if true, loader would reload the module.
  * @return {Object}          module that has loaded.
+ * @throws {Error} when path is invalid or not accessible
  */
 module.exports.load = function (mpath, context, isReload = false) {
-    if (!mpath) {
-        throw new Error('path should not be empty.');
+    if (!mpath || typeof mpath !== 'string') {
+        throw new Error('path should be a non-empty string.');
+    }
+
+    let resolvedPath;
+    try {
+        resolvedPath = fs.realpathSync(mpath);
+    } catch (err) {
+        throw new Error(`Failed to resolve path "${mpath}": ${err.message}`);
+    }
+
+    let stats;
+    try {
+        stats = fs.statSync(resolvedPath);
+    } catch (err) {
+        throw new Error(`Failed to access path "${resolvedPath}": ${err.message}`);
+    }
+
+    if (!stats.isDirectory()) {
+        throw new Error(`Path "${resolvedPath}" is not a directory.`);
+    }
+
+    return loadPath(resolvedPath, context, isReload);
+};
+
+function loadPath(dirPath, context, isReload = false) {
+    let files;
+    try {
+        files = fs.readdirSync(dirPath);
+    } catch (err) {
+        throw new Error(`Failed to read directory "${dirPath}": ${err.message}`);
+    }
+
+    if (files.length === 0) {
+        console.warn('Directory is empty:', dirPath);
+        return {};
+    }
+
+    const result = {};
+    const errors = [];
+
+    for (const fileName of files) {
+        const filePath = path.join(dirPath, fileName);
+
+        // Check if it's a JavaScript file without additional stat call
+        if (!fileName.endsWith('.js')) {
+            continue;
+        }
+
+        let stats;
+        try {
+            stats = fs.statSync(filePath);
+        } catch (err) {
+            errors.push(`Failed to stat file "${filePath}": ${err.message}`);
+            continue;
+        }
+
+        if (!stats.isFile()) {
+            continue;
+        }
+
+        try {
+            const module = loadFile(filePath, context, isReload);
+            if (module) {
+                const moduleName = module.name || path.basename(fileName, '.js');
+                if (result[moduleName]) {
+                    console.warn(`Module name conflict: "${moduleName}" already exists, overwriting.`);
+                }
+                result[moduleName] = module;
+            }
+        } catch (err) {
+            errors.push(`Failed to load module "${filePath}": ${err.message}`);
+        }
+    }
+
+    // Log errors but don't throw to allow partial loading
+    if (errors.length > 0) {
+        console.warn('Some modules failed to load:', errors);
+    }
+
+    return result;
+}
+
+function loadFile(filePath, context, isReload = false) {
+    const module = requireUncached(filePath, isReload);
+
+    if (module === null || module === undefined) {
+        return null;
+    }
+
+    if (typeof module === 'function') {
+        // if the module provides a factory function
+        // then invoke it to get an instance
+        try {
+            const instance = module(context);
+            return instance;
+        } catch (err) {
+            throw new Error(`Factory function failed for module "${filePath}": ${err.message}`);
+        }
+    }
+
+    return module;
+}
+
+function requireUncached(modulePath, isReload = false) {
+    let resolvedPath;
+    try {
+        resolvedPath = require.resolve(modulePath);
+    } catch (err) {
+        throw new Error(`Cannot resolve module "${modulePath}": ${err.message}`);
+    }
+
+    if (isReload && require.cache[resolvedPath]) {
+        delete require.cache[resolvedPath];
     }
 
     try {
-        mpath = fs.realpathSync(mpath);
+        return require(modulePath);
     } catch (err) {
-        throw err;
+        throw new Error(`Failed to require module "${modulePath}": ${err.message}`);
     }
-
-    if (!fs.statSync(mpath).isDirectory()) {
-        throw new Error('path should be directory.');
-    }
-
-    return loadPath(mpath, context, isReload);
-};
-
-function loadPath(path, context, isReload = false) {
-    const files = fs.readdirSync(path);
-    if (files.length === 0) {
-        console.warn('path is empty, path:', path);
-        return;
-    }
-
-    let fp,
-        m,
-        res = {};
-    files.forEach(fn => {
-        fp = ph.join(path, fn);
-        if (!fs.statSync(fp).isFile() || ph.extname(fn) !== '.js') {
-            // only load js file type
-            return;
-        }
-
-        m = loadFile(fp, context, isReload);
-
-        if (!m) {
-            return;
-        }
-        const name = m.name || ph.basename(fn, '.js');
-        res[name] = m;
-    });
-
-    return res;
-}
-
-function loadFile(fp, context, isReload = false) {
-    let m = requireUncached(fp, isReload);
-
-    if (!m) {
-        return;
-    }
-
-    if (typeof m === 'function') {
-        // if the module provides a factory function
-        // then invoke it to get a instance
-        m = m(context);
-    }
-
-    return m;
-}
-
-function requireUncached(module, isReload = false) {
-    if (isReload) {
-        delete require.cache[require.resolve(module)];
-    }
-    return require(module);
 }

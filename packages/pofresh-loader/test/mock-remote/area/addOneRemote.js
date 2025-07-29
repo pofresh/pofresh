@@ -1,7 +1,7 @@
 /**
  * Mock remote service
  */
-module.exports = function (app) {
+module.exports = function (_app) {
     return {
         doService(value, cb) {
             cb(null, value + 1);

@@ -1,16 +1,11 @@
-import { expect, describe, it } from 'vitest';
-import { createRequire } from 'module';
+import Loader from '../index.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-const Loader = require('../index.js');
 const testPath = path.join(__dirname, 'mock-remote/area/');
 
-const WAIT_TIME = 20;
 
 describe('loader', function () {
     describe('#load', function () {
