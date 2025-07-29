@@ -8,7 +8,7 @@ module.exports.commandId = 'kill';
 module.exports.helpCommand = 'help kill';
 
 class Command {
-    handle(agent, comd, argv, rl, client, msg) {
+    handle(agent, comd, argv, rl, client, _msg) {
         rl.question(consts.KILL_QUESTION_INFO, function (answer) {
             if (answer === 'yes') {
                 client.request(
@@ -16,7 +16,7 @@ class Command {
                     {
                         signal: 'kill'
                     },
-                    function (err, data) {
+                    function (err, _data) {
                         if (err) console.log(err);
                         rl.prompt();
                     }

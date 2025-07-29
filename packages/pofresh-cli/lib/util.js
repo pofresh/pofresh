@@ -46,12 +46,12 @@ function argsFilter(argv) {
     if (!argv || typeof argv !== 'string') {
         return [];
     }
-    
+
     let lines;
     if (argv.indexOf('\'') > 0) {
         lines = argv.split('\'');
     }
-    
+
     const getArg = function (argv) {
         if (!argv) return [];
         const argvs = argv.split(' ');
@@ -148,7 +148,7 @@ function formatOutput(comd, data) {
             );
             for (let i = 0; i < loginedList.length; i++) {
                 rows.push([
-                    format_date(new Date(loginedList[i].loginTime)),
+                    formatDate(new Date(loginedList[i].loginTime)),
                     loginedList[i].uid,
                     loginedList[i].address
                 ]);
@@ -221,7 +221,7 @@ function formatOutput(comd, data) {
     }
 }
 
-function format_date(date, friendly) {
+function formatDate(date, friendly) {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
@@ -232,16 +232,16 @@ function format_date(date, friendly) {
     if (friendly) {
         const now = new Date();
         const mseconds = -(date.getTime() - now.getTime());
-        const time_std = [1000, 60 * 1000, 60 * 60 * 1000, 24 * 60 * 60 * 1000];
-        if (mseconds < time_std[3]) {
-            if (mseconds > 0 && mseconds < time_std[1]) {
-                return Math.floor(mseconds / time_std[0]).toString() + ' 秒前';
+        const timeStd = [1000, 60 * 1000, 60 * 60 * 1000, 24 * 60 * 60 * 1000];
+        if (mseconds < timeStd[3]) {
+            if (mseconds > 0 && mseconds < timeStd[1]) {
+                return Math.floor(mseconds / timeStd[0]).toString() + ' 秒前';
             }
-            if (mseconds > time_std[1] && mseconds < time_std[2]) {
-                return Math.floor(mseconds / time_std[1]).toString() + ' 分钟前';
+            if (mseconds > timeStd[1] && mseconds < timeStd[2]) {
+                return Math.floor(mseconds / timeStd[1]).toString() + ' 分钟前';
             }
-            if (mseconds > time_std[2]) {
-                return Math.floor(mseconds / time_std[2]).toString() + ' 小时前';
+            if (mseconds > timeStd[2]) {
+                return Math.floor(mseconds / timeStd[2]).toString() + ' 小时前';
             }
         }
     }
@@ -322,14 +322,14 @@ function handleError(err, context, rl) {
 // Input validation function
 function validateInput(input, type) {
     switch (type) {
-        case 'string':
-            return typeof input === 'string' && input.trim().length > 0;
-        case 'number':
-            return !isNaN(input) && isFinite(input);
-        case 'array':
-            return Array.isArray(input) && input.length > 0;
-        default:
-            return input != null;
+    case 'string':
+        return typeof input === 'string' && input.trim().length > 0;
+    case 'number':
+        return !isNaN(input) && isFinite(input);
+    case 'array':
+        return Array.isArray(input) && input.length > 0;
+    default:
+        return input !== null;
     }
 }
 
@@ -338,7 +338,7 @@ util.md5 = md5;
 util.help = help;
 util.tabComplete = tabComplete;
 util.argsFilter = argsFilter;
-util.format_date = format_date;
+util.formatDate = formatDate;
 util.errorHandle = errorHandle;
 util.formatOutput = formatOutput;
 util.handleError = handleError;

@@ -57,7 +57,8 @@ consts.COMANDS_MAP = {
         '\nadd server to pofresh clusters',
         'add args are key=value from servers.json config files',
         'example: add host=127.0.0.1 port=3451 serverType=chat id=chat-server-2',
-        'example: add host=127.0.0.1 port=3152 serverType=connector id=connector-server-3 clientPort=3012 frontend=true\n'
+        'example: add host=127.0.0.1 port=3152 serverType=connector id=connector-server-3 ' +
+        'clientPort=3012 frontend=true\n'
     ],
     show: [
         '\nshow infos like : servers, connections',
@@ -128,7 +129,7 @@ consts.COMANDS_MAP = {
     blacklist: [
         '\nadd blacklist for frontend server',
         'example: blacklist 192.168.10.120 192.168.18.60',
-        'example: blacklist \b(([01]?\d?\d|2[0-4]\d|25[0-5])\.){3}([01]?\d?\d|2[0-4]\d|25[0-5])\b'
+        'example: blacklist \\b(([01]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d?\\d|2[0-4]\\d|25[0-5])\\b'
     ],
     run: [
         '\nrun script in server',
@@ -223,7 +224,8 @@ consts.COMANDS_KILL_ERROR = '\nkill command error\n';
 consts.COMANDS_USE_ERROR = '\nuse command error\n';
 consts.COMANDS_STOP_ERROR = '\nstop command error\n';
 consts.COMANDS_EXEC_ERROR = '\nexec command script filepath error\n';
-consts.COMANDS_CONTEXT_ERROR = 'this command cannot be used in this context\nyou can use command \'use\' to switch context';
+consts.COMANDS_CONTEXT_ERROR = 'this command cannot be used in this context\n' +
+    'you can use command \'use\' to switch context';
 consts.MODULE_INFO = 'there are following modules registered in pofresh clusters';
 consts.COMPONENTS_INFO = 'there are following components registered in current server';
 consts.STATUS_ERROR = 'can not get status in this server';

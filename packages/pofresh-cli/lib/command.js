@@ -45,7 +45,7 @@ class Command {
                     {
                         signal: 'kill'
                     },
-                    function (err, data) {
+                    function (err, _data) {
                         if (err) {
                             util.log('Error killing servers: ' + err);
                         } else {

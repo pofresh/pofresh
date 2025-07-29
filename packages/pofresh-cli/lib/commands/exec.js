@@ -35,7 +35,7 @@ class Command {
 
         let file = null;
         const path = require('path');
-        
+
         // Handle both Unix and Windows paths
         if (!path.isAbsolute(comd)) {
             comd = path.join(process.cwd(), comd);
@@ -43,8 +43,8 @@ class Command {
 
         try {
             file = fs.readFileSync(comd, 'utf8');
-        } catch (e) {
-            util.log('\nError reading script file: ' + e.message + '\n');
+        } catch (_e) {
+            util.log('\nError reading script file: ' + _e.message + '\n');
             rl.prompt();
             return;
         }
@@ -63,7 +63,7 @@ class Command {
                     try {
                         const parsedMsg = JSON.parse(msg);
                         util.formatOutput(commandId, parsedMsg);
-                    } catch (e) {
+                    } catch {
                         // If not JSON, display as plain text
                         util.log('\n' + msg + '\n');
                     }
