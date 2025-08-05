@@ -3,14 +3,207 @@ const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 const util = require('util');
 
+// BatchLoggerManager for efficient log batching
+class BatchLoggerManager {
+  constructor(config) {
+    this.config = config;
+    this.timers = new Map();
+  }
+
+  // Add a log entry to the batch
+  addLogEntry(logger, level, message, meta) {
+    try {
+        if (!this.config.enabled) {
+            logger[level](message, meta);
+            return;
+        }
+
+        const loggerKey = logger._batchKey || 'default';
+        if (!this.config.batches.has(loggerKey)) {
+            this.config.batches.set(loggerKey, []);
+        }
+
+        const batch = this.config.batches.get(loggerKey);
+        batch.push({ level, message, meta });
+
+        // Check if we need to flush the batch
+        if (batch.length >= this.config.sizeThreshold) {
+            this.flushBatch(loggerKey, logger);
+        }
+
+        // Set up a timer if not already set
+        if (!this.timers.has(loggerKey)) {
+            this.timers.set(loggerKey, setTimeout(() => {
+                this.flushBatch(loggerKey, logger);
+            }, this.config.timeThreshold));
+        }
+    } catch (error) {
+        // Enhanced error handling with stack trace and context
+        const loggerKey = logger._batchKey || 'default';
+        console.error(`Failed to add log entry for logger ${loggerKey}: ${error.message}`);
+        console.error(error.stack);
+        // Graceful degradation: Try to log directly without batching
+        try {
+            logger[level](`[BATCH ERROR] ${message}`, meta);
+        } catch (fallbackError) {
+            console.error(`Failed to fallback to direct logging: ${fallbackError.message}`);
+        }
+    }
+}
+
+  // Flush a specific batch
+  flushBatch(loggerKey, logger) {
+    try {
+      if (!this.config.batches.has(loggerKey)) return;
+
+      const batch = this.config.batches.get(loggerKey);
+      if (batch.length === 0) {
+        this.config.batches.delete(loggerKey);
+        if (this.timers.has(loggerKey)) {
+          clearTimeout(this.timers.get(loggerKey));
+          this.timers.delete(loggerKey);
+        }
+        return;
+      }
+
+      // Clear the timer for this batch
+      if (this.timers.has(loggerKey)) {
+        clearTimeout(this.timers.get(loggerKey));
+        this.timers.delete(loggerKey);
+      }
+
+      // Process the batch
+      batch.forEach(entry => {
+        try {
+          logger[entry.level](entry.message, entry.meta);
+        } catch (entryError) {
+          console.error(`Error logging entry in batch ${loggerKey}: ${entryError.message}`);
+          console.error(entryError.stack);
+          // Attempt to log the error itself
+          try {
+            logger.error(`[ENTRY ERROR] ${entry.message}`, {
+              originalError: entryError.message,
+              stack: entryError.stack,
+              meta: entry.meta
+            });
+          } catch (errorLoggingError) {
+            console.error(`Failed to log error for entry in batch ${loggerKey}: ${errorLoggingError.message}`);
+          }
+        }
+      });
+    } catch (error) {
+      console.error(`Error flushing batch ${loggerKey}: ${error.message}`);
+      console.error(error.stack);
+      // Save failed batch for later processing
+      try {
+        if (!this.failedBatches) {
+          this.failedBatches = new Map();
+        }
+        if (!this.failedBatches.has(loggerKey)) {
+          this.failedBatches.set(loggerKey, []);
+        }
+        this.failedBatches.get(loggerKey).push(...batch);
+        console.warn(`Batch ${loggerKey} saved for later processing due to error`);
+      } catch (saveError) {
+        console.error(`Failed to save failed batch ${loggerKey}: ${saveError.message}`);
+      }
+    } finally {
+      // Clear the batch regardless of processing outcome
+      this.config.batches.delete(loggerKey);
+    }
+  }
+
+  // Flush all batches
+  flushAllBatches(loggers) {
+    for (const [loggerKey, _] of this.config.batches.entries()) {
+      const logger = loggers.get(loggerKey) || loggers.get('default');
+      if (logger) {
+        this.flushBatch(loggerKey, logger);
+      }
+    }
+  }
+}
+
 const funcs = {
     env: doEnv,
     args: doArgs,
     opts: doOpts
 };
 
-// Winston logger instances cache
-const loggerCache = new Map();
+// Winston logger instances cache with LRU implementation
+class LRUCache {
+  constructor(maxSize) {
+    this.maxSize = maxSize;
+    this.cache = new Map();
+    this.order = [];
+  }
+
+  get(key) {
+    if (!this.cache.has(key)) return undefined;
+
+    // Move to end (most recently used)
+    const index = this.order.indexOf(key);
+    if (index !== -1) {
+      this.order.splice(index, 1);
+    }
+    this.order.push(key);
+
+    return this.cache.get(key);
+  }
+
+  set(key, value) {
+    // Remove least recently used if full
+    if (this.cache.size >= this.maxSize) {
+      const lruKey = this.order.shift();
+      this.cache.delete(lruKey);
+    }
+
+    // Add new item
+    this.cache.set(key, value);
+    this.order.push(key);
+  }
+
+  has(key) {
+    return this.cache.has(key);
+  }
+
+  clear() {
+    this.cache.clear();
+    this.order = [];
+  }
+
+  delete(key) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+      const index = this.order.indexOf(key);
+      if (index !== -1) {
+        this.order.splice(index, 1);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  keys() {
+    return this.cache.keys();
+  }
+}
+
+const loggerCache = new LRUCache(1000);
+
+// Batch logging configuration
+const batchConfig = {
+  enabled: true,
+  sizeThreshold: 100,
+  timeThreshold: 500, // ms
+  batches: new Map()
+};
+
+// Initialize batch manager after batchConfig is defined
+const batchManager = new BatchLoggerManager(batchConfig);
+
+// Export batchConfig for testing purposes
+module.exports.batchConfig = batchConfig;
 
 // Default Winston configuration
 let winstonConfig = {
@@ -61,11 +254,8 @@ function getLogger(categoryName) {
         return loggerCache.get(cacheKey);
     }
     
-    // Limit cache size to prevent memory leaks
-    if (loggerCache.size > 1000) {
-        const firstKey = loggerCache.keys().next().value;
-        loggerCache.delete(firstKey);
-    }
+    // LRU cache automatically handles size limits
+
 
     const logger = winston.createLogger({
         ...winstonConfig,
@@ -99,12 +289,19 @@ function getLogger(categoryName) {
 
                 let message = arguments[0] || '';
                 
-                // Handle object serialization properly
+                // Enhanced object serialization with circular reference detection
                 if (typeof message === 'object' && message !== null) {
                     try {
-                        message = JSON.stringify(message, null, 2);
+                        // Use custom replacer to handle circular references
+                        message = JSON.stringify(message, circularReplacer(), 2);
                     } catch (err) {
-                        message = util.inspect(message, { depth: 3, colors: false });
+                        // Fallback to util.inspect with depth control
+                        message = util.inspect(message, { 
+                            depth: getOptimalDepth(message), 
+                            colors: false, 
+                            breakLength: 80, 
+                            compact: messageSize(message) > 1000
+                        });
                     }
                 }
                 
@@ -119,13 +316,18 @@ function getLogger(categoryName) {
 
                 const restArgs = Array.prototype.slice.call(arguments, 1);
                 
-                // Process additional arguments for better formatting
+                // Process additional arguments with enhanced serialization
                 const processedArgs = restArgs.map(arg => {
                     if (typeof arg === 'object' && arg !== null) {
                         try {
-                            return JSON.stringify(arg, null, 2);
+                            return JSON.stringify(arg, circularReplacer(), 2);
                         } catch (err) {
-                            return util.inspect(arg, { depth: 3, colors: false });
+                            return util.inspect(arg, { 
+                                depth: getOptimalDepth(arg), 
+                                colors: false, 
+                                breakLength: 80, 
+                                compact: messageSize(arg) > 1000
+                            });
                         }
                     }
                     return arg;
@@ -136,12 +338,8 @@ function getLogger(categoryName) {
                     message += ' ' + processedArgs.join(' ');
                 }
 
-                if (logger[level] && typeof logger[level] === 'function') {
-                    logger[level](message, { category: categoryName });
-                } else {
-                    // Fallback to info level if the level doesn't exist
-                    logger.info(message, { category: categoryName });
-                }
+                // Use batch manager to handle log entries
+                batchManager.addLogEntry(logger, level, message, { category: categoryName });
             };
         });
 
@@ -206,15 +404,12 @@ function configureOnceOff(config) {
                 console.debug = logger.debug.bind(logger);
             }
         } catch (e) {
-            throw new Error(
-                'Problem reading winston config ' +
-                    util.inspect(config) +
-                    '. Error was "' +
-                    e.message +
-                    '" (' +
-                    e.stack +
-                    ')'
-            );
+            // Enhanced error handling with stack trace
+            const errorMessage = `Problem reading winston config ${util.inspect(config)}. Error was "${e.message}"`;
+            console.error(errorMessage);
+            console.error(e.stack);
+            // Graceful degradation: Continue with default configuration
+            return;
         }
     }
 }
@@ -329,53 +524,128 @@ function convertLog4jsToWinston(log4jsConfig) {
     };
 }
 
+function validateConfig(config) {
+    const errors = [];
+
+    // Validate required fields
+    if (!config) {
+        errors.push('Configuration cannot be null or undefined');
+        return {
+            valid: false,
+            errors
+        };
+    }
+
+    // Validate appenders if present
+    if (config.appenders) {
+        if (typeof config.appenders !== 'object') {
+            errors.push('Appenders must be an object');
+        } else {
+            Object.keys(config.appenders).forEach(appenderName => {
+                const appender = config.appenders[appenderName];
+                if (!appender.type) {
+                    errors.push('Appender ' + appenderName + ' is missing type');
+                }
+                if (appender.type === 'file' && !appender.filename) {
+                    errors.push('File appender ' + appenderName + ' is missing filename');
+                }
+                if (appender.type === 'dateFile' && !appender.filename) {
+                    errors.push('DateFile appender ' + appenderName + ' is missing filename');
+                }
+            });
+        }
+    }
+
+    // Validate categories if present
+    if (config.categories) {
+        if (typeof config.categories !== 'object') {
+            errors.push('Categories must be an object');
+        } else if (!config.categories.default) {
+            errors.push('Default category is required');
+        } else if (!config.categories.default.level) {
+            errors.push('Default category is missing level');
+        }
+    }
+
+    return {
+        valid: errors.length === 0,
+        errors
+    };
+}
+
 function configure(config, opts) {
     const filename = config;
     config = config || process.env.LOG4JS_CONFIG;
     opts = opts || {};
 
-    if (typeof config === 'string') {
-        try {
-            config = loadConfigurationFile(config);
-        } catch (error) {
-            console.error('Failed to load logger configuration:', error.message);
-            return;
-        }
-    }
-
-    if (config) {
-        try {
-            config = replaceProperties(config, opts);
-
-            if (config.replaceConsole) {
-                configureOnceOff(config);
+    try {
+        if (typeof config === 'string') {
+            try {
+                config = loadConfigurationFile(config);
+            } catch (error) {
+                console.error('Failed to load logger configuration: ' + error.message);
+                console.error(error.stack);
+                // Use default configuration as fallback
+                console.warn('Using default logger configuration as fallback');
+                config = {}
             }
-
-            if (config.lineDebug) {
-                process.env.LOGGER_LINE = true;
-            }
-
-            if (config.rawMessage) {
-                process.env.RAW_MESSAGE = true;
-            }
-
-            // Convert log4js config to Winston config
-            winstonConfig = convertLog4jsToWinston(config);
-
-            // Clear logger cache to apply new configuration
-            loggerCache.clear();
-        } catch (error) {
-            console.error('Failed to configure logger:', error.message);
-            return;
         }
-    }
 
-    if (filename && config && config.reloadSecs) {
-        try {
-            initReloadConfiguration(filename, config.reloadSecs);
-        } catch (error) {
-            console.error('Failed to initialize configuration reload:', error.message);
+        if (config) {
+            try {
+                config = replaceProperties(config, opts);
+
+                // Validate configuration
+                const validationResult = validateConfig(config);
+                if (!validationResult.valid) {
+                    console.error('Invalid logger configuration:');
+                    validationResult.errors.forEach(error => console.error('- ' + error));
+                    // Use default configuration as fallback
+                    console.warn('Using default logger configuration as fallback');
+                    config = {};
+                } else {
+                    if (config.replaceConsole) {
+                        configureOnceOff(config);
+                    }
+
+                    if (config.lineDebug) {
+                        process.env.LOGGER_LINE = true;
+                    }
+
+                    if (config.rawMessage) {
+                        process.env.RAW_MESSAGE = true;
+                    }
+
+                    // Convert log4js config to Winston config
+                    winstonConfig = convertLog4jsToWinston(config);
+                }
+
+                // Clear logger cache to apply new configuration
+                loggerCache.clear();
+            } catch (error) {
+                console.error('Failed to configure logger: ' + error.message);
+                console.error(error.stack);
+                // Use default configuration as fallback
+                console.warn('Using default logger configuration as fallback');
+                config = {};
+                loggerCache.clear();
+            }
         }
+
+        if (filename && config && config.reloadSecs) {
+            try {
+                initReloadConfiguration(filename, config.reloadSecs);
+            } catch (error) {
+                console.error('Failed to initialize configuration reload: ' + error.message);
+                console.error(error.stack);
+            }
+        }
+    } catch (error) {
+        console.error('Unexpected error in logger configuration: ' + error.message);
+        console.error(error.stack);
+        // Use default configuration as fallback
+        console.warn('Using default logger configuration as fallback');
+        loggerCache.clear();
     }
 }
 
@@ -518,6 +788,13 @@ const colours = {
 
 // Winston compatible implementations
 function shutdown(callback) {
+    try {
+        // Flush all remaining log batches
+        batchManager.flushAllBatches(loggerCache);
+    } catch (error) {
+        console.error('Error flushing log batches during shutdown:', error);
+    }
+
     // Clear all cached loggers
     loggerCache.clear();
     
@@ -601,11 +878,42 @@ function addLayout(name, layoutFunction) {
     winston.format[name] = layoutFunction;
 }
 
+// Helper functions for serialization
+function circularReplacer() {
+  const seen = new WeakSet();
+  return function(key, value) {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+}
+
+function messageSize(obj) {
+  try {
+    return Buffer.byteLength(JSON.stringify(obj));
+  } catch {
+    return 0;
+  }
+}
+
+function getOptimalDepth(obj) {
+  // Adjust inspection depth based on object complexity
+  const size = messageSize(obj);
+  if (size < 1000) return 5;  // Small objects get deeper inspection
+  if (size < 5000) return 3;  // Medium objects
+  return 1;                   // Large objects get shallow inspection
+}
+
 module.exports = {
     getLogger: getLogger,
     configure: configure,
     shutdown: shutdown,
     connectLogger: connectLogger,
+    batchConfig: batchConfig,
     levels: levels,
     addLayout: addLayout
 };

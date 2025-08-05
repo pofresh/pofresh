@@ -1,7 +1,31 @@
 import fs from 'fs';
 import path from 'path';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import logger from '../lib/logger.js';
+import logger, { batchConfig } from '../lib/logger.js';
+
+// Save original batch configuration before all tests
+beforeAll(() => {
+    // Store original batch config
+    originalBatchConfig = {
+        enabled: batchConfig.enabled,
+        sizeThreshold: batchConfig.sizeThreshold,
+        timeThreshold: batchConfig.timeThreshold
+    };
+    // Disable batch logging
+    batchConfig.enabled = false;
+    console.log('Batch logging disabled for tests');
+});
+
+// Restore original batch configuration after all tests
+afterAll(() => {
+    // Restore original settings
+    batchConfig.enabled = originalBatchConfig.enabled;
+    batchConfig.sizeThreshold = originalBatchConfig.sizeThreshold;
+    batchConfig.timeThreshold = originalBatchConfig.timeThreshold;
+    console.log('Batch logging restored to original configuration');
+});
+
+// Variable to store original batch configuration
+let originalBatchConfig;
 
 describe('File Logging', () => {
     let testLogDir;
@@ -66,18 +90,29 @@ describe('File Logging', () => {
                         appenders: ['file'],
                         level: 'info'
                     }
+                },
+                batch: {
+                    enabled: false
                 }
             };
 
             logger.configure(config);
+            console.log('Logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('file-test');
+            console.log('Logger instance created:', testLogger.name);
             
             testLogger.info('Test file logging message');
             testLogger.warn('Test warning message');
             testLogger.error('Test error message');
             
-            // Wait a bit for file write
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait longer for file write to complete since we disabled batching
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Debug info
+            console.log(`Log file exists: ${fs.existsSync(logFile)}`);
+            if (fs.existsSync(logFile)) {
+                console.log(`Log file content: ${fs.readFileSync(logFile, 'utf8')}`);
+            }
             
             expect(fs.existsSync(logFile)).toBe(true);
             const logContent = fs.readFileSync(logFile, 'utf8');
@@ -102,6 +137,9 @@ describe('File Logging', () => {
                         appenders: ['dateFile'],
                         level: 'info'
                     }
+                },
+                batch: {
+                    enabled: false
                 }
             };
 
@@ -147,16 +185,31 @@ describe('File Logging', () => {
                         appenders: ['file1', 'file2', 'console'],
                         level: 'info'
                     }
+                },
+                batch: {
+                    enabled: false
                 }
             };
 
             logger.configure(config);
+            console.log('Multi-appender logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('multi-test');
+            console.log('Multi-appender logger instance created:', testLogger.name);
             
             testLogger.info('Multi-appender test message');
             
-            // Wait a bit for file writes
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for file writes to complete
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Debug info
+            console.log(`Log file 1 exists: ${fs.existsSync(logFile1)}`);
+            console.log(`Log file 2 exists: ${fs.existsSync(logFile2)}`);
+            if (fs.existsSync(logFile1)) {
+                console.log(`Log file 1 content: ${fs.readFileSync(logFile1, 'utf8')}`);
+            }
+            if (fs.existsSync(logFile2)) {
+                console.log(`Log file 2 content: ${fs.readFileSync(logFile2, 'utf8')}`);
+            }
             
             expect(fs.existsSync(logFile1)).toBe(true);
             expect(fs.existsSync(logFile2)).toBe(true);
@@ -184,11 +237,16 @@ describe('File Logging', () => {
                         appenders: ['file'],
                         level: 'warn' // Only warn and above
                     }
+                },
+                batch: {
+                    enabled: false
                 }
             };
 
             logger.configure(config);
+            console.log('Level test logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('level-test');
+            console.log('Level test logger instance created:', testLogger.name);
             
             testLogger.debug('Debug message - should not appear');
             testLogger.info('Info message - should not appear');

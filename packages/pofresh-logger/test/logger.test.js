@@ -226,8 +226,7 @@ describe('logger', () => {
             
             // Should have logged an error
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to load logger configuration'),
-                expect.any(String)
+                expect.stringContaining('Failed to load logger configuration')
             );
             
             consoleSpy.mockRestore();
@@ -246,8 +245,7 @@ describe('logger', () => {
             
             // Should have logged an error
             expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to load logger configuration'),
-                expect.any(String)
+                expect.stringContaining('Failed to load logger configuration')
             );
             
             consoleSpy.mockRestore();

@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import logger from '../lib/logger.js';
 
 // Test data factory functions
@@ -224,4 +223,5 @@ describe('Connect Logger Middleware', () => {
             expect(callOrder).toEqual(['middleware1', 'middleware2']);
         });
     });
+
 });
