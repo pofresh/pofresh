@@ -10,6 +10,7 @@
         "lint:fix": "npx ultracite@latest format",
         "format": "npx ultracite@latest format"
     },
-    "dependencies": {},
-    "devDependencies": {}
+    "dependencies": {
+        "pofresh-logger": "workspace:*"
+    }
 }

@@ -1,3 +1,5 @@
 module.exports = () => ({
-    doService(_cb) {}
+    doService(_cb) {
+        // do something
+    }
 });

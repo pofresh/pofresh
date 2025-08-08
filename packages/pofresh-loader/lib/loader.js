@@ -5,6 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const logger = require('pofresh-logger').getLogger('loader', __filename);
+
 /**
  * Load modules under the path.
  * If the module is a function, loader would treat it as a factory function
@@ -28,14 +30,14 @@ module.exports.load = (mpath, context, isReload = false) => {
         throw new Error('path should be a non-empty string.');
     }
 
-    let resolvedPath;
+    let resolvedPath, stats;
+
     try {
         resolvedPath = fs.realpathSync(mpath);
     } catch (err) {
         throw new Error(`Failed to resolve path "${mpath}": ${err.message}`);
     }
 
-    let stats;
     try {
         stats = fs.statSync(resolvedPath);
     } catch (err) {
@@ -49,64 +51,82 @@ module.exports.load = (mpath, context, isReload = false) => {
     return loadPath(resolvedPath, context, isReload);
 };
 
+/**
+ * Load all JavaScript files from a directory
+ * @param {string} dirPath - Directory path to load from
+ * @param {Object} context - Context to pass to factory functions
+ * @param {boolean} isReload - Whether to reload cached modules
+ * @returns {Object} Object containing loaded modules
+ */
 function loadPath(dirPath, context, isReload = false) {
     let files;
     try {
-        files = fs.readdirSync(dirPath);
+        files = fs.readdirSync(dirPath, { withFileTypes: true });
     } catch (err) {
         throw new Error(`Failed to read directory "${dirPath}": ${err.message}`);
     }
 
     if (files.length === 0) {
-        console.warn('Directory is empty:', dirPath);
+        logger.warn(`Directory is empty: ${dirPath}`);
         return {};
     }
 
     const result = {};
     const errors = [];
 
-    for (const fileName of files) {
-        const filePath = path.join(dirPath, fileName);
-
-        // Check if it's a JavaScript file without additional stat call
-        if (!fileName.endsWith('.js')) {
+    // Load all files synchronously
+    for (const dirent of files) {
+        if (!(dirent.isFile() && dirent.name.endsWith('.js'))) {
             continue;
         }
 
-        let stats;
-        try {
-            stats = fs.statSync(filePath);
-        } catch (err) {
-            errors.push(`Failed to stat file "${filePath}": ${err.message}`);
-            continue;
-        }
-
-        if (!stats.isFile()) {
-            continue;
-        }
-
-        try {
-            const module = loadFile(filePath, context, isReload);
-            if (module) {
-                const moduleName = module.name || path.basename(fileName, '.js');
-                if (result[moduleName]) {
-                    console.warn(`Module name conflict: "${moduleName}" already exists, overwriting.`);
-                }
-                result[moduleName] = module;
-            }
-        } catch (err) {
-            errors.push(`Failed to load module "${filePath}": ${err.message}`);
-        }
+        const filePath = path.join(dirPath, dirent.name);
+        processModuleFile(filePath, dirent, context, isReload, result, errors);
     }
 
     // Log errors but don't throw to allow partial loading
     if (errors.length > 0) {
-        console.warn('Some modules failed to load:', errors);
+        logger.warn('Some modules failed to load:', errors);
     }
 
     return result;
 }
 
+/**
+ * Process a single module file
+ * @param {string} filePath - Path to the file
+ * @param {fs.Dirent} dirent - Directory entry
+ * @param {Object} context - Context to pass to factory functions
+ * @param {boolean} isReload - Whether to reload cached modules
+ * @param {Object} result - Result object to populate
+ * @param {Array} errors - Array to collect errors
+ */
+function processModuleFile(filePath, dirent, context, isReload, result, errors) {
+    let module;
+
+    try {
+        module = loadFile(filePath, context, isReload);
+    } catch (err) {
+        errors.push(`Failed to load module "${filePath}": ${err.message}`);
+        return;
+    }
+
+    if (module !== null && module !== undefined) {
+        const moduleName = module.name || path.basename(dirent.name, '.js');
+        if (result[moduleName]) {
+            logger.warn(`Module name conflict: "${moduleName}" already exists, overwriting.`);
+        }
+        result[moduleName] = module;
+    }
+}
+
+/**
+ * Load a single JavaScript file
+ * @param {string} filePath - Path to the file to load
+ * @param {Object} context - Context to pass to factory functions
+ * @param {boolean} isReload - Whether to reload cached modules
+ * @returns {*} The loaded module or result of factory function
+ */
 function loadFile(filePath, context, isReload = false) {
     const module = requireUncached(filePath, isReload);
 
@@ -118,8 +138,7 @@ function loadFile(filePath, context, isReload = false) {
         // if the module provides a factory function
         // then invoke it to get an instance
         try {
-            const instance = module(context);
-            return instance;
+            return module(context);
         } catch (err) {
             throw new Error(`Factory function failed for module "${filePath}": ${err.message}`);
         }
@@ -128,6 +147,12 @@ function loadFile(filePath, context, isReload = false) {
     return module;
 }
 
+/**
+ * Require a module with optional cache clearing
+ * @param {string} modulePath - Path to the module to require
+ * @param {boolean} isReload - Whether to clear the module from cache first
+ * @returns {*} The required module
+ */
 function requireUncached(modulePath, isReload = false) {
     let resolvedPath;
     try {

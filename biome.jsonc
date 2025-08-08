@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
     "extends": ["ultracite"],
     "files": {
         "ignoreUnknown": true,
@@ -14,7 +14,23 @@
         ]
     },
     "linter": {
-        "enabled": false
+        "enabled": true,
+        "rules": {
+            "style": {
+                "useNodejsImportProtocol": "off",
+                "useFilenamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "filenameCases": ["camelCase"],
+                        "requireAscii": true,
+                        "strictCase": false
+                    }
+                }
+            }
+        },
+        "domains": {
+            "test": "all"
+        }
     },
     "formatter": {
         "enabled": true,

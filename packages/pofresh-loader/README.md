@@ -36,15 +36,30 @@ npm install pofresh-loader
 
 ## Usage
 ``` javascript
-var Loader = require('pofresh-loader');
+const Loader = require('pofresh-loader');
 
-var res = Loader.load('.');
+// Load modules asynchronously
+const res = await Loader.load('.');
 console.log('res: %j', res);
+
+// Load with context
+const context = { app: 'myApp' };
+const modules = await Loader.load('./modules', context);
+
+// Load with reload option
+const reloadedModules = await Loader.load('./modules', context, true);
 ```
 
 ## API
-### Loader.load(path, context)
-Load all modules in the path.
+### Loader.load(path, context, isReload)
+Load all modules in the path asynchronously.
 #### Parameters
-+ path loaded path
-+ context if the module provides a factory method, the context would be pass as a parameter as the factory method.
++ **path** {String} - Path to load modules from (required)
++ **context** {Object} - Context passed to factory functions (optional)
++ **isReload** {Boolean} - Whether to reload cached modules (optional, default: false)
+
+#### Returns
++ **Promise<Object>** - Object containing loaded modules with their names as keys
+
+#### Throws
++ **Error** - When path is invalid, not accessible, or not a directory
