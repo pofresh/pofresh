@@ -9,7 +9,7 @@
         "test:watch": "vitest --watch",
         "test:coverage": "vitest --coverage --run",
         "lint": "ultracite lint",
-        "lint:fix": "ultracite format",
+        "lint:fix": "ultracite format --unsafe",
         "format": "ultracite format"
     },
     "dependencies": {

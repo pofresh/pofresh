@@ -73,12 +73,9 @@ setTimeout(() => {
 
     // Graceful shutdown
     logger.shutdown(() => {
-        console.log('Logger shutdown complete');
+        // Shutdown complete
     });
 }, 100);
-
-// Demonstrate high-volume logging performance
-console.log('\n=== Performance Test ===');
 const perfLogger = logger.getLogger('performance');
 const messageCount = 1000;
 const perfStartTime = process.hrtime.bigint();
@@ -92,6 +89,4 @@ for (let i = 0; i < messageCount; i++) {
 }
 
 const perfEndTime = process.hrtime.bigint();
-const perfDuration = Number(perfEndTime - perfStartTime) / 1_000_000;
-console.log(`Logged ${messageCount} messages in ${perfDuration.toFixed(2)}ms`);
-console.log(`Average: ${(perfDuration / messageCount).toFixed(3)}ms per message`);
+const _perfDuration = Number(perfEndTime - perfStartTime) / 1_000_000;

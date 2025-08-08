@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { vi } from 'vitest';
 import logger from '../lib/logger.js';
 
 describe('logger', () => {
@@ -11,8 +12,8 @@ describe('logger', () => {
         originalEnv = { ...process.env };
 
         // Clean up environment variables
-        delete process.env.RAW_MESSAGE;
-        delete process.env.LOGGER_LINE;
+        process.env.RAW_MESSAGE = undefined;
+        process.env.LOGGER_LINE = undefined;
 
         // Create test config file path
         testConfigPath = path.join(process.cwd(), 'test-log4js.json');
@@ -55,16 +56,18 @@ describe('logger', () => {
             const testLogger = logger.getLogger('test-levels');
 
             // Test that all log methods exist and are functions
-            ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'].forEach(level => {
+            for (const level of ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal']) {
                 expect(typeof testLogger[level]).toBe('function');
-            });
+            }
         });
 
         it('should handle logger with prefix', () => {
             const testLogger = logger.getLogger('test', 'component', 'subcomponent');
 
             // Mock console to capture output
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {
+                // Suppress console.log output during test
+            });
 
             testLogger.info('test message');
 
@@ -179,6 +182,7 @@ describe('logger', () => {
                         type: 'console',
                         layout: {
                             type: 'pattern',
+                            // biome-ignore lint/suspicious/noTemplateCurlyInString: This is log4js pattern syntax, not JS template string
                             pattern: '${env:NODE_ENV} - %m'
                         }
                     }
@@ -218,7 +222,9 @@ describe('logger', () => {
     describe('error handling', () => {
         it('should handle invalid config file path gracefully', () => {
             // Mock console.error to capture error messages
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+                // Suppress console.error output during test
+            });
 
             expect(() => {
                 logger.configure('/nonexistent/path/config.json');
@@ -235,7 +241,9 @@ describe('logger', () => {
             fs.writeFileSync(invalidConfigPath, 'invalid json content');
 
             // Mock console.error to capture error messages
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+                // Suppress console.error output during test
+            });
 
             expect(() => {
                 logger.configure(invalidConfigPath);

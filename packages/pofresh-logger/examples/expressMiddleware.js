@@ -50,9 +50,6 @@ const appLogger = logger.getLogger('default', 'ExpressApp');
 const accessLogger = logger.getLogger('access');
 const errorLogger = logger.getLogger('error', 'ErrorHandler');
 
-// Simulate Express.js application
-console.log('=== Express Middleware Example ===\n');
-
 // Create connect logger middleware for access logging
 const accessLoggerMiddleware = logger.connectLogger(accessLogger, {
     level: 'info',
@@ -60,9 +57,9 @@ const accessLoggerMiddleware = logger.connectLogger(accessLogger, {
 });
 
 // Alternative middleware with custom format
-const customAccessLogger = logger.connectLogger(accessLogger, {
+const _customAccessLogger = logger.connectLogger(accessLogger, {
     level: 'info',
-    format(req, res, format) {
+    format(_req, _res, format) {
         return format(
             `:remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms`
         );
@@ -95,7 +92,7 @@ function simulateExpressApp() {
                     referer: 'http://example.com'
                 },
                 connection: {
-                    remoteAddress: '192.168.1.' + (100 + index)
+                    remoteAddress: `192.168.1.${100 + index}`
                 },
                 httpVersion: '1.1'
             };
@@ -146,7 +143,7 @@ function simulateExpressApp() {
 }
 
 // Error handling middleware simulation
-function errorHandlingMiddleware(err, req, res, next) {
+function _errorHandlingMiddleware(err, req, res, next) {
     errorLogger.error('Unhandled error:', {
         error: err.message,
         stack: err.stack,
@@ -201,16 +198,8 @@ setTimeout(() => {
     });
 }, 2500);
 
-console.log('\n=== Simulating Express application with logging ===');
-console.log('Check the logs directory for:');
-console.log('- access-YYYY-MM-DD.log: HTTP access logs');
-console.log('- app.log: Application logs');
-console.log('- error.log: Error logs');
-
 // Graceful shutdown
 setTimeout(() => {
     appLogger.info('Express application shutting down...');
-    logger.shutdown(() => {
-        console.log('\nLogger shutdown complete');
-    });
+    logger.shutdown();
 }, 3000);

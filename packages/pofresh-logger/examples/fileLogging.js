@@ -65,9 +65,6 @@ const accessLogger = logger.getLogger('access', 'AccessLog');
 const errorLogger = logger.getLogger('error', 'ErrorHandler');
 const devLogger = logger.getLogger('development', 'DevMode');
 
-// Demonstrate different logging scenarios
-console.log('=== File Logging Example ===\n');
-
 // Application logging
 appLogger.info('Application started successfully');
 appLogger.debug('This debug message will not appear (level is info)');
@@ -110,16 +107,10 @@ levels.forEach(level => {
     }
 });
 
-console.log('\n=== Check the logs directory for output files ===');
-console.log('- app.log: General application logs');
-console.log('- access-YYYY-MM-DD.log: Daily rotating access logs');
-console.log('- error.log: Error-only logs');
-
 // Graceful shutdown
 process.on('SIGINT', () => {
     appLogger.info('Application shutting down...');
     logger.shutdown(() => {
-        console.log('Logger shutdown complete');
         process.exit(0);
     });
 });

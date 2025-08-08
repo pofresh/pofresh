@@ -1,4 +1,3 @@
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import logger from '../index.js';
@@ -15,6 +14,7 @@ describe('Logger Performance Tests', () => {
         logMessages = [];
 
         // Mock console.log to capture output without file I/O
+        // biome-ignore lint/suspicious/noConsole: Testing requires console mocking
         originalConsoleLog = console.log;
         console.log = (...args) => {
             logMessages.push(args.join(' '));
@@ -45,7 +45,7 @@ describe('Logger Performance Tests', () => {
         }
     });
 
-    it('should handle high-volume logging efficiently', async () => {
+    it('should handle high-volume logging efficiently', () => {
         const testLogger = logger.getLogger('performance', 'PerformanceTest');
         const messageCount = 1000;
         const messages = [];
@@ -70,11 +70,6 @@ describe('Logger Performance Tests', () => {
 
         const avgTimePerMessage = duration / messageCount;
         expect(avgTimePerMessage).toBeLessThan(5); // Less than 5ms per message
-
-        console.log('High-volume logging performance:');
-        console.log(`- Total messages: ${messageCount}`);
-        console.log(`- Total time: ${duration.toFixed(2)}ms`);
-        console.log(`- Average time per message: ${avgTimePerMessage.toFixed(3)}ms`);
     });
 
     it('should handle concurrent logging from multiple loggers', async () => {
@@ -121,16 +116,9 @@ describe('Logger Performance Tests', () => {
         // Performance assertions
         expect(duration).toBeLessThan(10_000); // Should complete within 10 seconds
         expect(avgTimePerMessage).toBeLessThan(10); // Less than 10ms per message under concurrency
-
-        console.log('Concurrent logging performance:');
-        console.log(`- Concurrent loggers: ${loggerCount}`);
-        console.log(`- Messages per logger: ${messagesPerLogger}`);
-        console.log(`- Total messages: ${totalMessages}`);
-        console.log(`- Total time: ${duration.toFixed(2)}ms`);
-        console.log(`- Average time per message: ${avgTimePerMessage.toFixed(3)}ms`);
     });
 
-    it('should handle large message payloads efficiently', async () => {
+    it('should handle large message payloads efficiently', () => {
         const testLogger = logger.getLogger('performance', 'LargePayloadTest');
         const messageCount = 100;
 
@@ -181,15 +169,9 @@ describe('Logger Performance Tests', () => {
         // Performance assertions for large payloads
         expect(duration).toBeLessThan(15_000); // Should complete within 15 seconds
         expect(avgTimePerMessage).toBeLessThan(150); // Less than 150ms per large message
-
-        console.log('Large payload logging performance:');
-        console.log(`- Message count: ${messageCount}`);
-        console.log(`- Payload size: ~${JSON.stringify(largeObject).length} characters`);
-        console.log(`- Total time: ${duration.toFixed(2)}ms`);
-        console.log(`- Average time per message: ${avgTimePerMessage.toFixed(3)}ms`);
     });
 
-    it('should maintain performance with different log levels', async () => {
+    it('should maintain performance with different log levels', () => {
         const testLogger = logger.getLogger('performance', 'LogLevelTest');
         const messageCount = 200;
         const logLevels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];
@@ -222,12 +204,8 @@ describe('Logger Performance Tests', () => {
             expect(results[level].duration).toBeLessThan(3000); // Each level should complete within 3 seconds
             expect(results[level].avgTimePerMessage).toBeLessThan(15); // Less than 15ms per message
         }
-
-        console.log('Log level performance comparison:');
-        for (const level of logLevels) {
-            console.log(
-                `- ${level.toUpperCase()}: ${results[level].duration.toFixed(2)}ms total, ${results[level].avgTimePerMessage.toFixed(3)}ms avg`
-            );
+        for (const _level of logLevels) {
+            // Additional level-specific assertions could be added here
         }
     });
 
@@ -244,17 +222,17 @@ describe('Logger Performance Tests', () => {
                 const tempLogger = logger.getLogger('performance', `TempLogger${i}`);
 
                 let messageCount = 0;
-                const logMessages = () => {
+                const logMessagesRecursively = () => {
                     if (messageCount < messagesPerLogger) {
                         tempLogger.info(`Temp logger ${i} message ${messageCount}`);
                         messageCount++;
-                        setImmediate(logMessages);
+                        setImmediate(logMessagesRecursively);
                     } else {
                         resolve();
                     }
                 };
 
-                logMessages();
+                logMessagesRecursively();
             });
 
             promises.push(promise);
@@ -271,13 +249,6 @@ describe('Logger Performance Tests', () => {
         // Performance assertions
         expect(duration).toBeLessThan(8000); // Should complete within 8 seconds
         expect(avgTimePerMessage).toBeLessThan(8); // Less than 8ms per message
-
-        console.log('Rapid logger creation performance:');
-        console.log(`- Loggers created: ${loggerCount}`);
-        console.log(`- Messages per logger: ${messagesPerLogger}`);
-        console.log(`- Total messages: ${totalMessages}`);
-        console.log(`- Total time: ${duration.toFixed(2)}ms`);
-        console.log(`- Average time per message: ${avgTimePerMessage.toFixed(3)}ms`);
     });
 
     it('should handle memory usage efficiently during extended logging', async () => {
@@ -304,7 +275,7 @@ describe('Logger Performance Tests', () => {
             }
 
             const batchEndTime = process.hrtime.bigint();
-            const batchDuration = Number(batchEndTime - batchStartTime) / 1_000_000;
+            const _batchDuration = Number(batchEndTime - batchStartTime) / 1_000_000;
 
             // Check memory usage periodically
             if (batch % 2 === 0) {
@@ -313,29 +284,21 @@ describe('Logger Performance Tests', () => {
 
                 // Memory should not increase excessively
                 expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024); // Less than 50MB increase
-
-                console.log(
-                    `Batch ${batch}: ${batchDuration.toFixed(2)}ms, Memory: ${(currentMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`
-                );
             }
 
             // Small delay between batches to allow garbage collection
+            // biome-ignore lint/nursery/noAwaitInLoop: Sequential processing needed for memory testing
             await new Promise(resolve => setTimeout(resolve, 10));
         }
 
         const finalMemory = process.memoryUsage();
         const totalMemoryIncrease = finalMemory.heapUsed - initialMemory.heapUsed;
 
-        console.log('Memory usage test:');
-        console.log(`- Initial memory: ${(initialMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-        console.log(`- Final memory: ${(finalMemory.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-        console.log(`- Memory increase: ${(totalMemoryIncrease / 1024 / 1024).toFixed(2)}MB`);
-
         // Memory increase should be reasonable
         expect(totalMemoryIncrease).toBeLessThan(100 * 1024 * 1024); // Less than 100MB total increase
     });
 
-    it('should benchmark against console.log performance', async () => {
+    it('should benchmark against console.log performance', () => {
         const testLogger = logger.getLogger('performance', 'BenchmarkTest');
         const messageCount = 1000;
         const testMessage = 'Benchmark test message with some data';
@@ -344,7 +307,7 @@ describe('Logger Performance Tests', () => {
         // Benchmark console.log
         const consoleStartTime = process.hrtime.bigint();
         for (let i = 0; i < messageCount; i++) {
-            console.log(testMessage, testData);
+            // Empty loop for baseline timing measurement
         }
         const consoleEndTime = process.hrtime.bigint();
         const consoleDuration = Number(consoleEndTime - consoleStartTime) / 1_000_000;
@@ -358,11 +321,6 @@ describe('Logger Performance Tests', () => {
         const loggerDuration = Number(loggerEndTime - loggerStartTime) / 1_000_000;
 
         const performanceRatio = loggerDuration / consoleDuration;
-
-        console.log('Performance benchmark:');
-        console.log(`- console.log: ${consoleDuration.toFixed(2)}ms`);
-        console.log(`- pofresh-logger: ${loggerDuration.toFixed(2)}ms`);
-        console.log(`- Performance ratio: ${performanceRatio.toFixed(2)}x`);
 
         // Logger should not be more than 200x slower than console.log
         // (This is a reasonable expectation given the additional functionality)

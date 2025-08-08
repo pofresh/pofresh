@@ -167,8 +167,6 @@ const securityLogger = logger.getLogger('security', 'SecurityAudit');
 const errorLogger = logger.getLogger('error', 'ErrorHandler');
 const debugLogger = logger.getLogger('debug', 'DebugInfo');
 
-console.log('=== Advanced Configuration Example ===\n');
-
 // Application startup logging
 appLogger.info('Application starting with advanced logging configuration');
 appLogger.info('Environment:', process.env.NODE_ENV || 'development');
@@ -366,16 +364,6 @@ setInterval(() => {
     });
 }, 15_000);
 
-console.log('\n=== Advanced logging simulation started ===');
-console.log('Check the logs directory for specialized log files:');
-console.log('- application.log: General application logs');
-console.log('- user-service-YYYY-MM-DD.log: User service logs');
-console.log('- order-service-YYYY-MM-DD.log: Order service logs');
-console.log('- performance-YYYY-MM-DD-HH.log: Performance metrics');
-console.log('- security-audit.log: Security events');
-console.log('- errors.log: Error tracking');
-console.log('- debug.log: Debug information (development only)');
-
 // Graceful shutdown
 process.on('SIGINT', () => {
     appLogger.info('Received SIGINT, shutting down gracefully...');
@@ -388,7 +376,6 @@ process.on('SIGINT', () => {
     });
 
     logger.shutdown(() => {
-        console.log('\nLogger shutdown complete');
         process.exit(0);
     });
 });
@@ -396,7 +383,5 @@ process.on('SIGINT', () => {
 // Auto-shutdown after demo
 setTimeout(() => {
     appLogger.info('Demo completed, shutting down...');
-    logger.shutdown(() => {
-        console.log('\nAdvanced configuration demo completed');
-    });
+    logger.shutdown();
 }, 30_000);

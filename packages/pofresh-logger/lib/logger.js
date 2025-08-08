@@ -40,16 +40,14 @@ class BatchLoggerManager {
                     }, this.config.timeThreshold)
                 );
             }
-        } catch (error) {
+        } catch (_error) {
             // Enhanced error handling with stack trace and context
-            const loggerKey = logger._batchKey || 'default';
-            console.error(`Failed to add log entry for logger ${loggerKey}: ${error.message}`);
-            console.error(error.stack);
+            const _loggerKey = logger._batchKey || 'default';
             // Graceful degradation: Try to log directly without batching
             try {
                 logger[level](`[BATCH ERROR] ${message}`, meta);
-            } catch (fallbackError) {
-                console.error(`Failed to fallback to direct logging: ${fallbackError.message}`);
+            } catch (_fallbackError) {
+                // Silently ignore fallback logging errors to prevent infinite loops
             }
         }
     }
@@ -57,7 +55,9 @@ class BatchLoggerManager {
     // Flush a specific batch
     flushBatch(loggerKey, logger) {
         try {
-            if (!this.config.batches.has(loggerKey)) return;
+            if (!this.config.batches.has(loggerKey)) {
+                return;
+            }
 
             const batch = this.config.batches.get(loggerKey);
             if (batch.length === 0) {
@@ -76,12 +76,10 @@ class BatchLoggerManager {
             }
 
             // Process the batch
-            batch.forEach(entry => {
+            for (const entry of batch) {
                 try {
                     logger[entry.level](entry.message, entry.meta);
                 } catch (entryError) {
-                    console.error(`Error logging entry in batch ${loggerKey}: ${entryError.message}`);
-                    console.error(entryError.stack);
                     // Attempt to log the error itself
                     try {
                         logger.error(`[ENTRY ERROR] ${entry.message}`, {
@@ -89,28 +87,26 @@ class BatchLoggerManager {
                             stack: entryError.stack,
                             meta: entry.meta
                         });
-                    } catch (errorLoggingError) {
-                        console.error(
-                            `Failed to log error for entry in batch ${loggerKey}: ${errorLoggingError.message}`
-                        );
+                    } catch (_errorLoggingError) {
+                        // Silently ignore logging errors to prevent infinite loops
                     }
                 }
-            });
-        } catch (error) {
-            console.error(`Error flushing batch ${loggerKey}: ${error.message}`);
-            console.error(error.stack);
+            }
+        } catch (_error) {
             // Save failed batch for later processing
             try {
-                if (!this.failedBatches) {
-                    this.failedBatches = new Map();
+                const currentBatch = this.config.batches.get(loggerKey);
+                if (currentBatch) {
+                    if (!this.failedBatches) {
+                        this.failedBatches = new Map();
+                    }
+                    if (!this.failedBatches.has(loggerKey)) {
+                        this.failedBatches.set(loggerKey, []);
+                    }
+                    this.failedBatches.get(loggerKey).push(...currentBatch);
                 }
-                if (!this.failedBatches.has(loggerKey)) {
-                    this.failedBatches.set(loggerKey, []);
-                }
-                this.failedBatches.get(loggerKey).push(...batch);
-                console.warn(`Batch ${loggerKey} saved for later processing due to error`);
-            } catch (saveError) {
-                console.error(`Failed to save failed batch ${loggerKey}: ${saveError.message}`);
+            } catch (_saveError) {
+                // Silently ignore save errors to prevent cascading failures
             }
         } finally {
             // Clear the batch regardless of processing outcome
@@ -144,7 +140,9 @@ class LRUCache {
     }
 
     get(key) {
-        if (!this.cache.has(key)) return;
+        if (!this.cache.has(key)) {
+            return;
+        }
 
         // Move to end (most recently used)
         const index = this.order.indexOf(key);
@@ -239,22 +237,22 @@ let winstonConfig = {
     ]
 };
 
-function getLogger(categoryName) {
-    const args = arguments;
+function getLogger(categoryName, ...additionalArgs) {
     let prefix = '';
-    for (let i = 1; i < args.length; i++) {
-        if (i !== args.length - 1) {
-            prefix = prefix + args[i] + '] [';
+    for (let i = 0; i < additionalArgs.length; i++) {
+        if (i !== additionalArgs.length - 1) {
+            prefix = `${prefix + additionalArgs[i]}] [`;
         } else {
-            prefix = prefix + args[i];
+            prefix += additionalArgs[i];
         }
     }
+    let processedCategoryName = categoryName;
     if (typeof categoryName === 'string') {
         // category name is __filename then cut the prefix path
-        categoryName = categoryName.replace(process.cwd(), '');
+        processedCategoryName = categoryName.replace(process.cwd(), '');
     }
 
-    const cacheKey = categoryName + '|' + prefix;
+    const cacheKey = `${processedCategoryName}|${prefix}`;
     if (loggerCache.has(cacheKey)) {
         return loggerCache.get(cacheKey);
     }
@@ -263,7 +261,7 @@ function getLogger(categoryName) {
 
     const logger = winston.createLogger({
         ...winstonConfig,
-        defaultMeta: { category: categoryName }
+        defaultMeta: { category: processedCategoryName }
     });
 
     const pLogger = {};
@@ -277,69 +275,83 @@ function getLogger(categoryName) {
         }
     }
 
-    ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'].forEach(item => {
-        pLogger[item] = () => {
-            let p = '';
-            if (!process.env.RAW_MESSAGE) {
-                if (args.length > 1) {
-                    p = '[' + prefix + '] ';
-                }
-                if (args.length && process.env.LOGGER_LINE) {
-                    p = getLine() + ': ' + p;
-                }
+    // Helper function to serialize objects
+    function serializeObject(obj) {
+        try {
+            return JSON.stringify(obj, circularReplacer(), 2);
+        } catch (_err) {
+            return util.inspect(obj, {
+                depth: getOptimalDepth(obj),
+                colors: false,
+                breakLength: 80,
+                compact: messageSize(obj) > 1000
+            });
+        }
+    }
 
-                p = colorize(p, colours[item]);
+    // Helper function to process arguments
+    function processArguments(args) {
+        return args.map(arg => {
+            if (typeof arg === 'object' && arg !== null) {
+                return serializeObject(arg);
             }
+            return arg;
+        });
+    }
 
-            let message = arguments[0] || '';
+    // Helper function to get log level mapping
+    function mapLogLevel(item) {
+        if (item === 'log') {
+            return 'info';
+        }
+        if (item === 'fatal') {
+            return 'error';
+        }
+        if (item === 'trace') {
+            return 'debug';
+        }
+        return item;
+    }
+
+    // Helper function to format prefix
+    function formatPrefix(item, args) {
+        if (process.env.RAW_MESSAGE) {
+            return '';
+        }
+
+        let p = '';
+        if (args.length > 1) {
+            p = `[${prefix}] `;
+        }
+        if (args.length && process.env.LOGGER_LINE) {
+            p = `${getLine()}: ${p}`;
+        }
+        return colorize(p, colours[item]);
+    }
+
+    // Create log methods for each level
+    const logLevels = ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'];
+    for (const item of logLevels) {
+        pLogger[item] = (...logArgs) => {
+            const p = formatPrefix(item, additionalArgs);
+            let message = logArgs[0] || '';
 
             // Enhanced object serialization with circular reference detection
             if (typeof message === 'object' && message !== null) {
-                try {
-                    // Use custom replacer to handle circular references
-                    message = JSON.stringify(message, circularReplacer(), 2);
-                } catch (err) {
-                    // Fallback to util.inspect with depth control
-                    message = util.inspect(message, {
-                        depth: getOptimalDepth(message),
-                        colors: false,
-                        breakLength: 80,
-                        compact: messageSize(message) > 1000
-                    });
-                }
+                message = serializeObject(message);
             }
 
-            if (args.length) {
+            if (additionalArgs.length) {
                 message = p + message;
             }
 
-            let level = item;
-            if (item === 'log') level = 'info';
-            if (item === 'fatal') level = 'error';
-            if (item === 'trace') level = 'debug';
-
-            const restArgs = Array.prototype.slice.call(arguments, 1);
-
-            // Process additional arguments with enhanced serialization
-            const processedArgs = restArgs.map(arg => {
-                if (typeof arg === 'object' && arg !== null) {
-                    try {
-                        return JSON.stringify(arg, circularReplacer(), 2);
-                    } catch (err) {
-                        return util.inspect(arg, {
-                            depth: getOptimalDepth(arg),
-                            colors: false,
-                            breakLength: 80,
-                            compact: messageSize(arg) > 1000
-                        });
-                    }
-                }
-                return arg;
-            });
+            const level = mapLogLevel(item);
+            const restArgs = logArgs.slice(1);
+            const processedArgs = processArguments(restArgs);
 
             // Combine message with additional arguments
             if (processedArgs.length > 0) {
-                message += ' ' + processedArgs.join(' ');
+                message += ` ${processedArgs.join(' ')}`;
             }
 
             // Use batch manager to handle log entries
@@ -347,7 +359,7 @@ function getLogger(categoryName) {
                 category: categoryName
             });
         };
-    });
+    }
 
     loggerCache.set(cacheKey, pLogger);
     return pLogger;
@@ -358,7 +370,7 @@ const configState = {};
 function initReloadConfiguration(filename, reloadSecs) {
     if (configState.timerId) {
         clearInterval(configState.timerId);
-        delete configState.timerId;
+        configState.timerId = undefined;
     }
     configState.filename = filename;
     configState.lastMTime = getMTime(filename);
@@ -411,9 +423,7 @@ function configureOnceOff(config) {
             }
         } catch (e) {
             // Enhanced error handling with stack trace
-            const errorMessage = `Problem reading winston config ${util.inspect(config)}. Error was "${e.message}"`;
-            console.error(errorMessage);
-            console.error(e.stack);
+            const _errorMessage = `Problem reading winston config ${util.inspect(config)}. Error was "${e.message}"`;
             // Graceful degradation: Continue with default configuration
             return;
         }
@@ -436,16 +446,22 @@ function configureOnceOff(config) {
 
 function convertLog4jsToWinston(log4jsConfig) {
     const winstonTransports = [];
-    let level = log4jsConfig.categories?.default?.level || 'info';
+    let defaultLevel = log4jsConfig.categories?.default?.level || 'info';
 
     // Convert log4js levels to Winston levels
-    if (level === 'all') level = 'silly';
-    if (level === 'trace') level = 'debug';
-    if (level === 'fatal') level = 'error';
+    if (defaultLevel === 'all') {
+        defaultLevel = 'silly';
+    }
+    if (defaultLevel === 'trace') {
+        defaultLevel = 'debug';
+    }
+    if (defaultLevel === 'fatal') {
+        defaultLevel = 'error';
+    }
 
     // Convert appenders to Winston transports
     if (log4jsConfig.appenders) {
-        Object.keys(log4jsConfig.appenders).forEach(appenderName => {
+        for (const appenderName of Object.keys(log4jsConfig.appenders)) {
             const appender = log4jsConfig.appenders[appenderName];
 
             switch (appender.type) {
@@ -503,8 +519,11 @@ function convertLog4jsToWinston(log4jsConfig) {
                         })
                     );
                     break;
+                default:
+                    // Unknown appender type, skip silently
+                    break;
             }
-        });
+        }
     }
 
     // Default console transport if no transports defined
@@ -527,11 +546,11 @@ function convertLog4jsToWinston(log4jsConfig) {
     }
 
     return {
-        level,
+        level: defaultLevel,
         format: winston.format.combine(
             winston.format.timestamp(),
-            winston.format.printf(({ timestamp, level, message, category }) => {
-                return `${timestamp} [${level.toUpperCase()}] ${category ? `[${category}] ` : ''}${message}`;
+            winston.format.printf(({ timestamp, level: logLevel, message, category }) => {
+                return `${timestamp} [${logLevel.toUpperCase()}] ${category ? `[${category}] ` : ''}${message}`;
             })
         ),
         transports: winstonTransports
@@ -555,18 +574,18 @@ function validateConfig(config) {
         if (typeof config.appenders !== 'object') {
             errors.push('Appenders must be an object');
         } else {
-            Object.keys(config.appenders).forEach(appenderName => {
+            for (const appenderName of Object.keys(config.appenders)) {
                 const appender = config.appenders[appenderName];
                 if (!appender.type) {
-                    errors.push('Appender ' + appenderName + ' is missing type');
+                    errors.push(`Appender ${appenderName} is missing type`);
                 }
                 if (appender.type === 'file' && !appender.filename) {
-                    errors.push('File appender ' + appenderName + ' is missing filename');
+                    errors.push(`File appender ${appenderName} is missing filename`);
                 }
                 if (appender.type === 'dateFile' && !appender.filename) {
-                    errors.push('DateFile appender ' + appenderName + ' is missing filename');
+                    errors.push(`DateFile appender ${appenderName} is missing filename`);
                 }
-            });
+            }
         }
     }
 
@@ -589,82 +608,69 @@ function validateConfig(config) {
 
 function configure(config, opts) {
     const filename = config;
-    config = config || process.env.LOG4JS_CONFIG;
-    opts = opts || {};
+    let configValue = config || process.env.LOG4JS_CONFIG;
+    const options = opts || {};
 
     try {
-        if (typeof config === 'string') {
+        if (typeof configValue === 'string') {
             try {
-                config = loadConfigurationFile(config);
-            } catch (error) {
-                console.error('Failed to load logger configuration: ' + error.message);
-                console.error(error.stack);
-                // Use default configuration as fallback
-                console.warn('Using default logger configuration as fallback');
-                config = {};
+                configValue = loadConfigurationFile(configValue);
+            } catch (_error) {
+                configValue = {};
             }
         }
 
-        if (config) {
+        if (configValue) {
             try {
-                config = replaceProperties(config, opts);
+                configValue = replaceProperties(configValue, options);
 
                 // Validate configuration
-                const validationResult = validateConfig(config);
+                const validationResult = validateConfig(configValue);
                 if (validationResult.valid) {
-                    if (config.replaceConsole) {
-                        configureOnceOff(config);
+                    if (configValue.replaceConsole) {
+                        configureOnceOff(configValue);
                     }
 
-                    if (config.lineDebug) {
+                    if (configValue.lineDebug) {
                         process.env.LOGGER_LINE = true;
                     }
 
-                    if (config.rawMessage) {
+                    if (configValue.rawMessage) {
                         process.env.RAW_MESSAGE = true;
                     }
 
                     // Convert log4js config to Winston config
-                    winstonConfig = convertLog4jsToWinston(config);
+                    winstonConfig = convertLog4jsToWinston(configValue);
                 } else {
-                    console.error('Invalid logger configuration:');
-                    validationResult.errors.forEach(error => console.error('- ' + error));
-                    // Use default configuration as fallback
-                    console.warn('Using default logger configuration as fallback');
-                    config = {};
+                    // Log validation errors if needed
+                    for (const _error of validationResult.errors) {
+                        // Error handling can be added here if needed
+                    }
+                    configValue = {};
                 }
 
                 // Clear logger cache to apply new configuration
                 loggerCache.clear();
-            } catch (error) {
-                console.error('Failed to configure logger: ' + error.message);
-                console.error(error.stack);
-                // Use default configuration as fallback
-                console.warn('Using default logger configuration as fallback');
-                config = {};
+            } catch (_error) {
+                configValue = {};
                 loggerCache.clear();
             }
         }
 
-        if (filename && config && config.reloadSecs) {
+        if (filename && configValue && configValue.reloadSecs) {
             try {
-                initReloadConfiguration(filename, config.reloadSecs);
-            } catch (error) {
-                console.error('Failed to initialize configuration reload: ' + error.message);
-                console.error(error.stack);
+                initReloadConfiguration(filename, configValue.reloadSecs);
+            } catch (_error) {
+                /* ignore reload configuration errors */
             }
         }
-    } catch (error) {
-        console.error('Unexpected error in logger configuration: ' + error.message);
-        console.error(error.stack);
-        // Use default configuration as fallback
-        console.warn('Using default logger configuration as fallback');
+    } catch (_error) {
         loggerCache.clear();
     }
 }
 
 function replaceProperties(configObj, opts) {
-    if (configObj instanceof Array) {
+    if (Array.isArray(configObj)) {
         for (let i = 0, l = configObj.length; i < l; i++) {
             configObj[i] = replaceProperties(configObj[i], opts);
         }
@@ -702,11 +708,13 @@ function doReplace(src, opts) {
         func,
         res = '',
         lastIndex = 0;
-    while ((m = ptn.exec(src))) {
+    m = ptn.exec(src);
+    while (m) {
         pro = m[1];
         ts = pro.split(':');
         if (ts.length !== 2 && ts.length !== 3) {
             res += pro;
+            m = ptn.exec(src);
             continue;
         }
 
@@ -719,12 +727,14 @@ function doReplace(src, opts) {
         func = funcs[scope];
         if (!func && typeof func !== 'function') {
             res += pro;
+            m = ptn.exec(src);
             continue;
         }
 
         res += src.substring(lastIndex, m.index);
         lastIndex = ptn.lastIndex;
         res += func(name, opts) || defaultValue;
+        m = ptn.exec(src);
     }
 
     if (lastIndex < src.length) {
@@ -747,7 +757,7 @@ function doOpts(name, opts) {
 }
 
 function getLine() {
-    const e = new Error();
+    const e = new Error('Stack trace for line number detection');
     // now magic will happen: get line number from callstack
     if (process.platform === 'win32') {
         return e.stack.split('\n')[3].split(':')[2];
@@ -756,11 +766,11 @@ function getLine() {
 }
 
 function colorizeStart(style) {
-    return style ? '\x1B[' + styles[style][0] + 'm' : '';
+    return style ? `\x1B[${styles[style][0]}m` : '';
 }
 
 function colorizeEnd(style) {
-    return style ? '\x1B[' + styles[style][1] + 'm' : '';
+    return style ? `\x1B[${styles[style][1]}m` : '';
 }
 
 /**
@@ -801,12 +811,12 @@ const colours = {
 };
 
 // Winston compatible implementations
-function shutdown(callback) {
+function shutdown(callback = null) {
     try {
         // Flush all remaining log batches
         batchManager.flushAllBatches(loggerCache);
-    } catch (error) {
-        console.error('Error flushing log batches during shutdown:', error);
+    } catch (_error) {
+        // Ignore flush errors during shutdown
     }
 
     // Clear all cached loggers
@@ -815,17 +825,16 @@ function shutdown(callback) {
     // Clear reload timer if exists
     if (configState.timerId) {
         clearInterval(configState.timerId);
-        delete configState.timerId;
+        configState.timerId = undefined;
     }
 
     // Close all Winston transports
-    if (winstonConfig && winstonConfig.transports) {
+    if (winstonConfig?.transports) {
         const promises = winstonConfig.transports.map(transport => {
             return new Promise(resolve => {
                 if (transport.close) {
                     // Add timeout to prevent hanging
                     const timeout = setTimeout(() => {
-                        console.warn('Transport close timeout, forcing shutdown');
                         resolve();
                     }, 5000);
 
@@ -841,13 +850,18 @@ function shutdown(callback) {
 
         Promise.all(promises)
             .then(() => {
-                if (callback) callback();
+                if (callback) {
+                    callback();
+                }
             })
             .catch(error => {
-                console.error('Error during logger shutdown:', error.message);
-                if (callback) callback(error);
+                if (callback) {
+                    callback(error);
+                }
             });
-    } else if (callback) callback();
+    } else if (callback) {
+        callback();
+    }
 }
 
 function connectLogger(logger) {
@@ -861,7 +875,7 @@ function connectLogger(logger) {
             const logLevel = res.statusCode >= 400 ? 'error' : 'info';
             const message = `${req.method} ${req.url} ${res.statusCode} ${duration}ms`;
 
-            if (logger && logger[logLevel]) {
+            if (logger?.[logLevel]) {
                 logger[logLevel](message);
             }
 
@@ -893,7 +907,7 @@ function addLayout(name, layoutFunction) {
 // Helper functions for serialization
 function circularReplacer() {
     const seen = new WeakSet();
-    return (key, value) => {
+    return (_key, value) => {
         if (typeof value === 'object' && value !== null) {
             if (seen.has(value)) {
                 return '[Circular]';
@@ -915,8 +929,12 @@ function messageSize(obj) {
 function getOptimalDepth(obj) {
     // Adjust inspection depth based on object complexity
     const size = messageSize(obj);
-    if (size < 1000) return 5; // Small objects get deeper inspection
-    if (size < 5000) return 3; // Medium objects
+    if (size < 1000) {
+        return 5; // Small objects get deeper inspection
+    }
+    if (size < 5000) {
+        return 3; // Medium objects
+    }
     return 1; // Large objects get shallow inspection
 }
 

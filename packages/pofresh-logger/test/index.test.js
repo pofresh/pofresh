@@ -1,4 +1,5 @@
 import logger from '../index.js';
+import libLogger from '../lib/logger.js';
 
 describe('pofresh-logger', () => {
     it('should export main logger functionality', () => {
@@ -7,7 +8,6 @@ describe('pofresh-logger', () => {
     });
 
     it('should be the same as lib/logger export', () => {
-        const libLogger = require('../lib/logger');
         expect(logger).toBe(libLogger);
     });
 
