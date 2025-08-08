@@ -56,7 +56,7 @@ class Service {
         const handler = this.getHandler(routeRecord);
         if (!handler) {
             logger.error('[handleManager]: fail to find handler for %j', msg.__route__);
-            utils.invokeCallback(cb, new Error('fail to find handler for ' + msg.__route__));
+            utils.invokeCallback(cb, new Error(`fail to find handler for ${msg.__route__}`));
             return;
         }
         const start = Date.now();
@@ -67,7 +67,7 @@ class Service {
                     route: msg.__route__,
                     args: msg,
                     time: utils.format(new Date(start)),
-                    timeUsed: new Date() - start
+                    timeUsed: Date.now() - start
                 };
                 forwardLogger.info(JSON.stringify(log));
             }
@@ -103,7 +103,7 @@ function loadHandlers(app, serverType, handlerMap) {
 function watchHandlers(app, handlerMap) {
     const p = pathUtil.getHandlerPath(app.getBase(), app.serverType);
     if (p) {
-        fs.watch(p, (event, name) => {
+        fs.watch(p, (event, _name) => {
             if (event === 'change') {
                 handlerMap[app.serverType] = Loader.load(p, app);
             }

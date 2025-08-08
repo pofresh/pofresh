@@ -8,7 +8,7 @@ const events = require('../util/events');
 const Client = require('pofresh-rpc').client;
 const pathUtil = require('../util/pathUtil');
 const Constants = require('../util/constants');
-const logger = require('pofresh-logger').getLogger('pofresh', __filename);
+const _logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
 /**
  * Component factory function
@@ -99,7 +99,7 @@ class Component {
      * @param {Array} servers server info list, {id, serverType, host, port}
      */
     addServers(servers) {
-        if (!(servers && servers.length)) {
+        if (!servers?.length) {
             return;
         }
 
@@ -122,7 +122,7 @@ class Component {
      * @param  {Array} ids server id list
      */
     replaceServers(servers) {
-        if (!(servers && servers.length)) {
+        if (!servers?.length) {
             return;
         }
 
@@ -230,7 +230,7 @@ function genRouteFun() {
         }
 
         const type = msg.serverType,
-            route = routes[type] || routes['default'];
+            route = routes[type] || routes.default;
 
         if (route) {
             route(session, msg, app, cb);
@@ -242,12 +242,12 @@ function genRouteFun() {
 
 function defaultRoute(session, msg, app, cb) {
     const list = app.getServersByType(msg.serverType);
-    if (!(list && list.length)) {
-        cb(new Error('can not find server info for type:' + msg.serverType));
+    if (!list?.length) {
+        cb(new Error(`can not find server info for type:${msg.serverType}`));
         return;
     }
 
     const uid = session ? session.uid || '' : '';
-    const index = Math.abs(crc.crc32(uid + '')) % list.length;
+    const index = Math.abs(crc.crc32(`${uid}`)) % list.length;
     utils.invokeCallback(cb, null, list[index].id);
 }

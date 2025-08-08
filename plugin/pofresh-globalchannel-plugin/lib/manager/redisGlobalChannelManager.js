@@ -16,9 +16,7 @@ class GlobalChannelManager {
 
     start(cb) {
         this.redis = redis.createClient(this.port, this.host, this.opts);
-        this.redis.on('error', err => {
-            console.error('[globalchannel-plugin][redis]' + err.stack);
-        });
+        this.redis.on('error', _err => {});
         this.redis.once('ready', err => {
             if (err) {
                 cb(err);
@@ -30,7 +28,7 @@ class GlobalChannelManager {
         this.redis.connect();
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         if (this.redis) {
             this.redis.end();
             this.redis = null;
@@ -39,60 +37,40 @@ class GlobalChannelManager {
     }
 
     async clean() {
-        try {
-            const list = await redis.keys(genCleanKey(this));
-            const mu = this.redis.multi();
-            list.forEach(key => mu.del(key));
-            return await mu.exec();
-        } catch (e) {
-            throw e;
-        }
+        const list = await redis.keys(genCleanKey(this));
+        const mu = this.redis.multi();
+        list.forEach(key => mu.del(key));
+        return await mu.exec();
     }
 
     async destroyChannel(name) {
         const servers = this.app.getServers();
         let server;
-        try {
-            const mu = this.redis.multi();
-            for (const sid in servers) {
-                server = servers[sid];
-                if (this.app.isFrontend(server)) {
-                    mu.del(genKey(this, name, sid));
-                }
+        const mu = this.redis.multi();
+        for (const sid in servers) {
+            server = servers[sid];
+            if (this.app.isFrontend(server)) {
+                mu.del(genKey(this, name, sid));
             }
-            return await mu.exec();
-        } catch (e) {
-            throw e;
         }
+        return await mu.exec();
     }
 
     async add(name, uid, sid) {
-        try {
-            return await this.redis.sAdd(genKey(this, name, sid), uid);
-        } catch (e) {
-            throw e;
-        }
+        return await this.redis.sAdd(genKey(this, name, sid), uid);
     }
 
     async leave(name, uid, sid) {
-        try {
-            return await this.redis.sRem(genKey(this, name, sid), uid);
-        } catch (e) {
-            throw e;
-        }
+        return await this.redis.sRem(genKey(this, name, sid), uid);
     }
 
     async getMembersBySid(name, sid) {
-        try {
-            return await this.redis.sMembers(genKey(this, name, sid));
-        } catch (e) {
-            throw e;
-        }
+        return await this.redis.sMembers(genKey(this, name, sid));
     }
 }
 
 module.exports = GlobalChannelManager;
 
-const genKey = (self, name, sid) => self.prefix + ':' + name + ':' + sid;
+const genKey = (self, name, sid) => `${self.prefix}:${name}:${sid}`;
 
-const genCleanKey = self => self.prefix + '*';
+const genCleanKey = self => `${self.prefix}*`;

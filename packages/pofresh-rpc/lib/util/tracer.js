@@ -55,7 +55,7 @@ function getModule(module) {
     const strs = module.split('/');
     const lines = strs.slice(-3);
     for (let i = 0; i < lines.length; i++) {
-        rs += '/' + lines[i];
+        rs += `/${lines[i]}`;
     }
     return rs;
 }

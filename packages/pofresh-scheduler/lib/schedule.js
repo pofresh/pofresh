@@ -89,7 +89,9 @@ function executeJob() {
     }
 
     //If all the job have been canceled
-    if (!job) return;
+    if (!job) {
+        return;
+    }
 
     //Run next schedule
     setTimer(job);
@@ -100,13 +102,17 @@ function executeJob() {
  * @return Next valid job
  */
 function peekNextJob() {
-    if (queue.size() <= 0) return null;
+    if (queue.size() <= 0) {
+        return null;
+    }
 
     let job = null;
 
     do {
         job = map[queue.peek().id];
-        if (!job) queue.pop();
+        if (!job) {
+            queue.pop();
+        }
     } while (!job && queue.size() > 0);
 
     return job ? job : null;

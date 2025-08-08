@@ -6,7 +6,7 @@ ws.on('open', function open() {
     run();
 });
 
-ws.on('message', (data, _flags) => {
+ws.on('message', (_data, _flags) => {
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
     run();
@@ -23,13 +23,7 @@ function run() {
 
     if (times === numRequests) {
         const now = Date.now();
-        const cost = now - start;
-        console.log(
-            'run %d num requests cost: %d ops/sec',
-            numRequests,
-            cost,
-            (numRequests / (cost / 1000)).toFixed(2)
-        );
+        const _cost = now - start;
         times = 0;
         start = now;
         return run();

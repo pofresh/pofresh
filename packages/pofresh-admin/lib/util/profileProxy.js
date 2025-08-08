@@ -11,7 +11,7 @@ class Proxy {
         this.isProfilingCPU = false;
     }
 
-    enable(id, params, clientId, agent) {
+    enable(id, _params, clientId, agent) {
         this.sendResult(
             id,
             {
@@ -22,7 +22,7 @@ class Proxy {
         );
     }
 
-    causesRecompilation(id, params, clientId, agent) {
+    causesRecompilation(id, _params, clientId, agent) {
         this.sendResult(
             id,
             {
@@ -33,7 +33,7 @@ class Proxy {
         );
     }
 
-    isSampling(id, params, clientId, agent) {
+    isSampling(id, _params, clientId, agent) {
         this.sendResult(
             id,
             {
@@ -44,7 +44,7 @@ class Proxy {
         );
     }
 
-    hasHeapProfiler(id, params, clientId, agent) {
+    hasHeapProfiler(id, _params, clientId, agent) {
         this.sendResult(
             id,
             {
@@ -55,7 +55,7 @@ class Proxy {
         );
     }
 
-    getProfileHeaders(id, params, clientId, agent) {
+    getProfileHeaders(id, _params, clientId, agent) {
         const headers = [];
         for (const type in this.profiles) {
             for (const profileId in this.profiles[type]) {
@@ -119,7 +119,7 @@ class Proxy {
 
     getProfile(id, params, clientId, agent) {
         let profile = this.profiles[params.type][params.uid];
-        if (profile && profile.finish) {
+        if (profile?.finish) {
             this.asyncGet(id, params, profile, clientId, agent);
         } else {
             const timerId = setInterval(() => {

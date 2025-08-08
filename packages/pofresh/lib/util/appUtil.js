@@ -161,7 +161,7 @@ function loadMaster(app) {
 function processArgs(app, args) {
     const serverType = args.serverType || Constants.RESERVED.MASTER;
     const master = app.getMaster();
-    const serverId = args.id || (master && master.id) || 'master-server-1';
+    const serverId = args.id || master?.id || 'master-server-1';
     const mode = args.mode || Constants.RESERVED.CLUSTER;
     const masterha = args.masterha || 'false';
     const type = args.type || Constants.RESERVED.ALL;
@@ -221,7 +221,7 @@ function parseArgs(args) {
         const sep = arg.indexOf('=');
         const key = arg.slice(0, sep);
         let value = arg.slice(sep + 1);
-        if (!isNaN(Number(value)) && value.indexOf('.') < 0) {
+        if (!Number.isNaN(Number(value)) && value.indexOf('.') < 0) {
             value = Number(value);
         }
         argsMap[key] = value;

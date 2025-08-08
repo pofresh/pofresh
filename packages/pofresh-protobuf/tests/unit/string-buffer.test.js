@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 function joinTest(num) {
     const arr = [];
     for (let i = 0; i < num; i++) {
-        arr.push(i + '');
+        arr.push(`${i}`);
     }
 
     let start = Date.now();
@@ -32,24 +32,20 @@ describe('String Buffer Performance Tests', () => {
     it('should compare string concatenation vs array join for 100 items', () => {
         const result = joinTest(100);
         expect(result.str).toBe(result.str1);
-        console.log('Test count: 100, concat time:', result.time1, 'ms, join time:', result.time2, 'ms');
     });
 
     it('should compare string concatenation vs array join for 50000 items', () => {
         const result = joinTest(50_000);
         expect(result.str).toBe(result.str1);
-        console.log('Test count: 50000, concat time:', result.time1, 'ms, join time:', result.time2, 'ms');
     });
 
     it('should compare string concatenation vs array join for 100000 items', () => {
         const result = joinTest(100_000);
         expect(result.str).toBe(result.str1);
-        console.log('Test count: 100000, concat time:', result.time1, 'ms, join time:', result.time2, 'ms');
     });
 
     it('should compare string concatenation vs array join for 200000 items', () => {
         const result = joinTest(200_000);
         expect(result.str).toBe(result.str1);
-        console.log('Test count: 200000, concat time:', result.time1, 'ms, join time:', result.time2, 'ms');
     });
 });

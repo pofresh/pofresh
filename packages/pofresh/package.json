@@ -7,13 +7,11 @@
         "url": "https://github.com/ljhsai/pofresh.git"
     },
     "scripts": {
-        "test": "vitest",
-        "test:run": "vitest --run",
+        "test": "vitest --run",
         "test:watch": "vitest --watch",
         "test:coverage": "vitest --coverage",
         "lint": "npx ultracite@latest lint",
-        "lint:fix": "npx ultracite@latest format",
-        "format": "npx ultracite@latest format"
+        "lint:fix": "npx ultracite@latest format --unsafe"
     },
     "bugs": {
         "url": "https://github.com/ljhsai/pofresh/issues"

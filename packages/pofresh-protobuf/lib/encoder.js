@@ -130,7 +130,7 @@ function estimateBufferSize(msg, protos) {
                 default:
                     // For nested messages, estimate recursively
                     if (value && typeof value === 'object') {
-                        const nestedProtos = protos.__messages && protos.__messages[proto.type];
+                        const nestedProtos = protos.__messages?.[proto.type];
                         if (nestedProtos) {
                             size += estimateBufferSize(value, nestedProtos) + 5;
                         } else {
@@ -168,7 +168,9 @@ function validateMessage(msg, protos) {
 
     // Check all proto fields
     for (const name in protos) {
-        if (name.startsWith('__')) continue; // Skip internal fields
+        if (name.startsWith('__')) {
+            continue; // Skip internal fields
+        }
 
         const proto = protos[name];
         const value = msg[name];
@@ -286,7 +288,7 @@ function validateSingleValue(value, type, protos, fieldName) {
 
         default: {
             // Handle nested messages
-            const nestedProtos = protos.__messages && protos.__messages[type];
+            const nestedProtos = protos.__messages?.[type];
             if (nestedProtos) {
                 const nestedValidation = validateMessage(value, nestedProtos);
                 if (!nestedValidation.isValid) {
@@ -295,9 +297,9 @@ function validateSingleValue(value, type, protos, fieldName) {
                         error: `Nested message '${fieldName}': ${nestedValidation.error}`
                     };
                 }
-            } else if (Encoder.protos && Encoder.protos['message ' + type]) {
+            } else if (Encoder.protos?.[`message ${type}`]) {
                 // Legacy support
-                const legacyValidation = validateMessage(value, Encoder.protos['message ' + type]);
+                const legacyValidation = validateMessage(value, Encoder.protos[`message ${type}`]);
                 if (!legacyValidation.isValid) {
                     return {
                         isValid: false,
@@ -438,8 +440,7 @@ function encodeProperty(value, type, offset, buffer, protos) {
 
         default: {
             // Handle nested messages
-            const message =
-                (protos.__messages && protos.__messages[type]) || (Encoder.protos && Encoder.protos['message ' + type]);
+            const message = protos.__messages?.[type] || Encoder.protos?.[`message ${type}`];
             if (message) {
                 // Use a tmp buffer to build an internal msg
                 const tmpBuffer = util.createBuffer(estimateBufferSize(value, message));

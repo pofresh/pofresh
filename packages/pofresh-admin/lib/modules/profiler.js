@@ -29,7 +29,7 @@ module.exports.moduleId = moduleId;
 
 class Module {
     constructor(opts) {
-        if (opts && opts.isMaster) {
+        if (opts?.isMaster) {
             this.proxy = new ProfileProxy();
         }
     }
@@ -37,7 +37,7 @@ class Module {
     monitorHandler(agent, msg, cb) {
         // 输入验证
         if (!msg || typeof msg !== 'object') {
-            return cb && cb(new Error('Invalid message format'));
+            return cb?.(new Error('Invalid message format'));
         }
 
         const type = msg.type,
@@ -49,18 +49,18 @@ class Module {
             if (type === 'CPU') {
                 if (action === 'start') {
                     profiler.startProfiling();
-                    cb && cb(null, 'CPU profiling started');
+                    cb?.(null, 'CPU profiling started');
                 } else {
                     result = profiler.stopProfiling();
                     if (!result) {
-                        return cb && cb(new Error('No CPU profiling session to stop'));
+                        return cb?.(new Error('No CPU profiling session to stop'));
                     }
                     const res = {};
                     res.head = result.getTopDownRoot();
                     res.bottomUpHead = result.getBottomUpRoot();
                     res.msg = msg;
                     agent.notify(moduleId, { clientId: msg.clientId, type, body: res });
-                    cb && cb(null, 'CPU profiling stopped');
+                    cb?.(null, 'CPU profiling stopped');
                 }
             } else {
                 const snapshot = profiler.takeSnapshot();
@@ -72,20 +72,20 @@ class Module {
                     fs.mkdirSync(logsDir, { recursive: true });
                 }
 
-                const name = path.join(logsDir, utils.format(new Date()) + '.log');
+                const name = path.join(logsDir, `${utils.format(new Date())}.log`);
                 const log = fs.createWriteStream(name, { flags: 'a' });
                 let data;
 
                 // 添加错误处理
                 log.on('error', err => {
                     logger.error('Failed to write heap snapshot:', err);
-                    cb && cb(err);
+                    cb?.(err);
                 });
 
                 snapshot.serialize({
                     onData(chunk) {
                         try {
-                            chunk = chunk + '';
+                            chunk += '';
                             data = {
                                 method: 'Profiler.addHeapSnapshotChunk',
                                 params: {
@@ -112,17 +112,17 @@ class Module {
                             });
                             profiler.deleteAllSnapshots();
                             log.end(); // 确保文件流正确关闭
-                            cb && cb(null, 'Heap snapshot completed');
+                            cb?.(null, 'Heap snapshot completed');
                         } catch (err) {
                             logger.error('Error completing heap snapshot:', err);
-                            cb && cb(err);
+                            cb?.(err);
                         }
                     }
                 });
             }
         } catch (err) {
             logger.error('Profiler error:', err);
-            cb && cb(err);
+            cb?.(err);
         }
     }
 
@@ -157,7 +157,7 @@ class Module {
     }
 }
 
-function list(agent, msg, cb) {
+function list(agent, _msg, cb) {
     const servers = [];
     const idMap = agent.idMap;
 

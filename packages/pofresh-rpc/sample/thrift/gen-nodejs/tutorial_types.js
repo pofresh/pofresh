@@ -5,9 +5,9 @@
 //
 const thrift = require('thrift');
 const Thrift = thrift.Thrift;
-const Q = thrift.Q;
+const _Q = thrift.Q;
 
-const shared_ttypes = require('./shared_types');
+const _shared_ttypes = require('./shared_types');
 
 const ttypes = (module.exports = {});
 ttypes.Operation = {
@@ -41,7 +41,7 @@ Work.prototype.read = function (input) {
     input.readStructBegin();
     while (true) {
         const ret = input.readFieldBegin();
-        const fname = ret.fname;
+        const _fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
         if (ftype === Thrift.Type.STOP) {
@@ -132,7 +132,7 @@ InvalidOperation.prototype.read = function (input) {
     input.readStructBegin();
     while (true) {
         const ret = input.readFieldBegin();
-        const fname = ret.fname;
+        const _fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
         if (ftype === Thrift.Type.STOP) {

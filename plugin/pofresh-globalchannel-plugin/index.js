@@ -1,3 +1,3 @@
 module.exports = {
-    components: __dirname + '/lib/components/'
+    components: `${__dirname}/lib/components/`
 };

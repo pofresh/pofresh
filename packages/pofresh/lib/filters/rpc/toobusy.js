@@ -15,7 +15,7 @@ class Filter {
         this.name = 'toobusy';
         try {
             toobusy = require('toobusy-js');
-        } catch (e) {}
+        } catch (_e) {}
         if (toobusy) {
             toobusy.maxLag(maxLag);
             toobusy.interval(interval);
@@ -28,8 +28,8 @@ class Filter {
     before(serverId, msg, opts, next) {
         opts = opts || {};
         if (!!toobusy && toobusy()) {
-            rpcLogger.warn('Server too busy for rpc request, serverId:' + serverId + ' msg: ' + msg);
-            const err = new Error('Backend server ' + serverId + ' is too busy now!');
+            rpcLogger.warn(`Server too busy for rpc request, serverId:${serverId} msg: ${msg}`);
+            const err = new Error(`Backend server ${serverId} is too busy now!`);
             err.code = 500;
             next(err);
         } else {
@@ -37,7 +37,7 @@ class Filter {
         }
     }
 
-    after(serverId, msg, opts, next) {
+    after(_serverId, _msg, _opts, next) {
         next();
     }
 }

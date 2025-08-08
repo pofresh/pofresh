@@ -12,7 +12,7 @@ const exp = module.exports;
  * @return {Object}      proxy instance
  */
 exp.create = opts => {
-    if (!(opts && opts.origin)) {
+    if (!opts?.origin) {
         logger.warn('opts and opts.origin should not be empty.');
         return null;
     }
@@ -52,7 +52,7 @@ exp.create = opts => {
  * @param proxyCB {Functoin} proxy callback function
  * @returns function proxy
  */
-function genFunctionProxy(serviceName, methodName, origin, attach, proxyCB) {
+function genFunctionProxy(serviceName, methodName, _origin, attach, proxyCB) {
     return (() => {
         const proxy = () => {
             const args = Array.from(arguments);

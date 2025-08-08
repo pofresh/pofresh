@@ -4,7 +4,7 @@
  */
 
 const { MAX_SAFE_INTEGER } = require('./constant');
-const util = require('./util');
+const _util = require('./util');
 
 const codec = module.exports;
 
@@ -77,7 +77,6 @@ codec.encodeUInt64 = num => {
         n = num;
     } else if (typeof num === 'number') {
         if (num > MAX_SAFE_INTEGER) {
-            console.warn(`Number ${num} exceeds MAX_SAFE_INTEGER, precision may be lost`);
         }
         n = BigInt(Math.floor(num));
     } else {
@@ -255,8 +254,8 @@ codec.decodeTag = bytes => {
 codec.encodeSInt32 =
     codec.encodeSInt32 ||
     (num => {
-        let n = Number.parseInt(num);
-        if (isNaN(n)) {
+        let n = Number.parseInt(num, 10);
+        if (Number.isNaN(n)) {
             return null;
         }
         n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;

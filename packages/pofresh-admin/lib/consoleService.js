@@ -159,7 +159,7 @@ class ConsoleService extends EventEmitter {
      */
     disable(moduleId) {
         const record = this.modules[moduleId];
-        if (record && record.enable) {
+        if (record?.enable) {
             record.enable = false;
             if (record.schedule && record.jobId) {
                 schedule.cancelJob(record.jobId);
@@ -183,20 +183,20 @@ class ConsoleService extends EventEmitter {
         const m = this.modules[moduleId];
         if (!m) {
             logger.error('unknown module: %j.', moduleId);
-            cb('unknown moduleId:' + moduleId);
+            cb(`unknown moduleId:${moduleId}`);
             return;
         }
 
         if (!m.enable) {
             logger.error('module %j is disable.', moduleId);
-            cb('module ' + moduleId + ' is disable');
+            cb(`module ${moduleId} is disable`);
             return;
         }
 
         const module = m.module;
         if (!module || typeof module[method] !== 'function') {
             logger.error('module %j dose not have a method called %j.', moduleId, method);
-            cb('module ' + moduleId + ' dose not have a method called ' + method);
+            cb(`module ${moduleId} dose not have a method called ${method}`);
             return;
         }
 
@@ -224,7 +224,7 @@ class ConsoleService extends EventEmitter {
     command(command, moduleId, msg, cb) {
         const fun = this.commands[command];
         if (!fun || typeof fun !== 'function') {
-            cb('unknown command:' + command);
+            cb(`unknown command:${command}`);
             return;
         }
 
@@ -312,7 +312,7 @@ function registerRecord(service, moduleId, module) {
  * @api private
  */
 function addToSchedule(service, record) {
-    if (record && record.schedule) {
+    if (record?.schedule) {
         record.jobId = schedule.scheduleJob(
             {
                 start: Date.now() + record.delay,
@@ -374,7 +374,7 @@ function exportEvent(outer, inner, event) {
 /**
  * List current modules
  */
-function listCommand(consoleService, moduleId, msg, cb) {
+function listCommand(consoleService, _moduleId, _msg, cb) {
     const modules = consoleService.modules;
     const result = [];
     for (const moduleId in modules) {
@@ -391,7 +391,7 @@ function listCommand(consoleService, moduleId, msg, cb) {
  */
 function enableCommand(consoleService, moduleId, msg, cb) {
     if (!moduleId) {
-        logger.error('fail to enable admin module for ' + moduleId);
+        logger.error(`fail to enable admin module for ${moduleId}`);
         cb('empty moduleId');
         return;
     }
@@ -413,7 +413,7 @@ function enableCommand(consoleService, moduleId, msg, cb) {
  */
 function disableCommand(consoleService, moduleId, msg, cb) {
     if (!moduleId) {
-        logger.error('fail to disable admin module for ' + moduleId);
+        logger.error(`fail to disable admin module for ${moduleId}`);
         cb('empty moduleId');
         return;
     }
@@ -449,7 +449,7 @@ function aclControl(agent, action, moduleId, method, msg) {
     }
 
     const _client = agent.getClientById(clientId);
-    if (_client && _client.info && _client.info.level) {
+    if (_client?.info?.level) {
         const level = _client.info.level;
         if (level > 1) {
             return 'Command permission denied';

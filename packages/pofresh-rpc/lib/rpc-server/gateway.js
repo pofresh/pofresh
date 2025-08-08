@@ -40,9 +40,7 @@ class Gateway extends EventEmitter {
         this.stopped = true;
         try {
             this.acceptor.close();
-        } catch (err) {
-            console.error('acceptor close error', err);
-        }
+        } catch (_err) {}
     }
 }
 
@@ -71,7 +69,7 @@ function watchServices(gateway, dispatcher) {
  * @param opts {services: {rpcServices}, connector:conFactory(optional), router:routeFunction(optional)}
  */
 module.exports.create = opts => {
-    if (!(opts && opts.services)) {
+    if (!opts?.services) {
         throw new Error('opts and opts.services should not be empty.');
     }
 

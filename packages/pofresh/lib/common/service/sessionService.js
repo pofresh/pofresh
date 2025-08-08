@@ -62,7 +62,7 @@ class SessionService {
         const session = this.sessions[sid];
         if (!session) {
             process.nextTick(() => {
-                cb(new Error('session does not exist, sid: ' + sid));
+                cb(new Error(`session does not exist, sid: ${sid}`));
             });
             return;
         }
@@ -76,7 +76,7 @@ class SessionService {
 
             // already bound with other uid
             process.nextTick(() => {
-                cb(new Error('session has already bind with ' + session.uid));
+                cb(new Error(`session has already bind with ${session.uid}`));
             });
             return;
         }
@@ -85,7 +85,7 @@ class SessionService {
 
         if (!!this.singleSession && !!sessions) {
             process.nextTick(() => {
-                cb(new Error('singleSession is enabled, and session has already bind with uid: ' + uid));
+                cb(new Error(`singleSession is enabled, and session has already bind with uid: ${uid}`));
             });
             return;
         }
@@ -121,14 +121,14 @@ class SessionService {
 
         if (!session) {
             process.nextTick(() => {
-                cb(new Error('session does not exist, sid: ' + sid));
+                cb(new Error(`session does not exist, sid: ${sid}`));
             });
             return;
         }
 
         if (!session.uid || session.uid !== uid) {
             process.nextTick(() => {
-                cb(new Error('session has not bind with ' + session.uid));
+                cb(new Error(`session has not bind with ${session.uid}`));
             });
             return;
         }
@@ -237,7 +237,7 @@ class SessionService {
     import(sid, key, value, cb) {
         const session = this.sessions[sid];
         if (!session) {
-            utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
+            utils.invokeCallback(cb, new Error(`session does not exist, sid: ${sid}`));
             return;
         }
         session.set(key, value);
@@ -253,12 +253,14 @@ class SessionService {
     importAll(sid, settings, cb) {
         const session = this.sessions[sid];
         if (!session) {
-            utils.invokeCallback(cb, new Error('session does not exist, sid: ' + sid));
+            utils.invokeCallback(cb, new Error(`session does not exist, sid: ${sid}`));
             return;
         }
 
         for (const f in settings) {
-            session.set(f, settings[f]);
+            if (Object.hasOwn(settings, f)) {
+                session.set(f, settings[f]);
+            }
         }
         utils.invokeCallback(cb);
     }
@@ -282,13 +284,13 @@ class SessionService {
         if (sessions) {
             // notify client
             const sids = [];
-            sessions.forEach(session => {
+            for (const session of sessions) {
                 sids.push(session.id);
-            });
+            }
 
-            sids.forEach(sid => {
+            for (const sid of sids) {
                 this.sessions[sid].closed(reason);
-            });
+            }
 
             process.nextTick(() => {
                 utils.invokeCallback(cb);
@@ -359,7 +361,7 @@ class SessionService {
         const session = this.get(sid);
 
         if (!session) {
-            logger.debug('Fail to send message for non-existing session, sid: ' + sid + ' msg: ' + msg);
+            logger.debug(`Fail to send message for non-existing session, sid: ${sid} msg: ${msg}`);
             return false;
         }
 
@@ -431,10 +433,10 @@ class SessionService {
             }
         }
 
-        expiredSessions.forEach(sid => {
+        for (const sid of expiredSessions) {
             logger.info('Removing expired session: %s', sid);
             this.removeSession(sid);
-        });
+        }
 
         if (expiredSessions.length > 0) {
             logger.info('Cleaned up %d expired sessions', expiredSessions.length);
@@ -510,7 +512,7 @@ module.exports = SessionService;
  *
  * @api private
  */
-function send(service, session, msg) {
+function send(_service, session, msg) {
     session.send(msg);
 
     return true;

@@ -22,7 +22,7 @@ class Component {
         this.monitor.start(cb);
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         this.monitor.stop(cb);
     }
 

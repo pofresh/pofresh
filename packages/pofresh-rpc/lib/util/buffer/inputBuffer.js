@@ -93,22 +93,22 @@ InputBuffer.prototype.readObject = function () {
     // console.log('readObject %s', type)
     const typeMap = Utils.typeMap;
 
-    if (typeMap['null'] === type) {
+    if (typeMap.null === type) {
         // null type, do nothing
-    } else if (typeMap['buffer'] === type) {
+    } else if (typeMap.buffer === type) {
         instance = this.readBytes();
-    } else if (typeMap['array'] === type) {
+    } else if (typeMap.array === type) {
         instance = [];
         const len = this.readInt();
         for (let i = 0; i < len; i++) {
             instance.push(this.readObject());
         }
-    } else if (typeMap['string'] === type) {
+    } else if (typeMap.string === type) {
         instance = this.readString();
-    } else if (typeMap['object'] === type) {
+    } else if (typeMap.object === type) {
         const objStr = this.readString();
         instance = JSON.parse(objStr);
-    } else if (typeMap['bean'] === type) {
+    } else if (typeMap.bean === type) {
         const id = this.readString();
         const bearcat = Utils.getBearcat();
         const bean = bearcat.getBean(id);
@@ -118,11 +118,11 @@ InputBuffer.prototype.readObject = function () {
         }
         bean.readFields(this);
         instance = bean;
-    } else if (typeMap['boolean'] === type) {
+    } else if (typeMap.boolean === type) {
         instance = this.readBoolean();
-    } else if (typeMap['float'] === type) {
+    } else if (typeMap.float === type) {
         instance = this.readFloat();
-    } else if (typeMap['number'] === type) {
+    } else if (typeMap.number === type) {
         instance = this.readInt();
     } else {
         logger.error('readObject invalid read type %j', type);

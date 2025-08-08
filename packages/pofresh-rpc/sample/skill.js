@@ -66,8 +66,8 @@ SkillAction.calDamage = (equiper, equipObject, target, skill, addParas) => {
         p[13] = target.getDurableMax();
         p[14] = 1;
     }
-    if (addParas['atkType']) {
-        p[15] = addParas['atkType'];
+    if (addParas.atkType) {
+        p[15] = addParas.atkType;
     } else {
         p[15] = 0;
     }
@@ -76,7 +76,7 @@ SkillAction.calDamage = (equiper, equipObject, target, skill, addParas) => {
 };
 
 /// 计算军师技能伤害
-SkillAction.calAdviserDamage = (equiper, equipObject, target, skill, addParas) => {
+SkillAction.calAdviserDamage = (equiper, equipObject, target, skill, _addParas) => {
     const p = [];
     p[0] = equipObject;
     p[1] = target;
@@ -136,14 +136,14 @@ SkillAction.findCellsAroundPath = path => {
     const cellsMap = {};
     for (let i = 0; i < path.length; i++) {
         const cell = path[i];
-        if (!cellsMap[cell.cx + '_' + cell.cy]) {
-            cellsMap[cell.cx + '_' + cell.cy] = cell;
+        if (!cellsMap[`${cell.cx}_${cell.cy}`]) {
+            cellsMap[`${cell.cx}_${cell.cy}`] = cell;
         }
         const cells = SkillAction.wLayer.map.scopeCells(cell.cx, cell.cy, 1, false);
         for (let j = 0; j < cells.length; j++) {
             const ocell = cells[j];
-            if (!cellsMap[ocell.cx + '_' + ocell.cy]) {
-                cellsMap[ocell.cx + '_' + ocell.cy] = ocell;
+            if (!cellsMap[`${ocell.cx}_${ocell.cy}`]) {
+                cellsMap[`${ocell.cx}_${ocell.cy}`] = ocell;
             }
         }
     }
@@ -241,12 +241,12 @@ SkillAction.getActionTarget = (target, action) => {
 /// 绑定一次技能
 SkillAction.bindSkillOnce = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
-    const equipObject = paras[2]; //使用技能的军队或建筑
-    const skill = paras[3]; //技能名称
+    const _equiper = paras[1]; //技能装备的武将
+    const _equipObject = paras[2]; //使用技能的军队或建筑
+    const _skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
-    const action = paras[5];
-    const skillID = addParas['skillID'];
+    const _action = paras[5];
+    const skillID = addParas.skillID;
     const dj = target.getSatrap(); //获得目标的大将，并创建一个新技能给那个对象
     const newSkill = SkillAction.wLayer.skillMgr.createSkill(skillID, dj, null, true, target); //添加给新武将使用一次的军师技能
     _.log('bindSkillOnce', target.name);
@@ -269,14 +269,14 @@ SkillAction.addBuff = paras => {
     const skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
     const action = paras[5];
-    let buffID = addParas['buffID'];
+    let buffID = addParas.buffID;
     _.log('SkillAction addbuff', action.condition);
     if (buffID >= 10_000 && buffID <= 99_999) {
         //如果buffid只有5位，则补上玩家的等级作为buff等级
         buffID = buffID * 100 + USER.level;
     }
     //var buffArg = addParas['args'][0];  //buff通常只取第一个参数
-    const duration = addParas['duration'] || skill.duration; //如果action有duration则取action的 否则取skill的
+    const duration = addParas.duration || skill.duration; //如果action有duration则取action的 否则取skill的
 
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
         if (SkillAction.checkAffectType(obj, equipObject, action)) {
@@ -288,7 +288,7 @@ SkillAction.addBuff = paras => {
             ) {
                 const realTarget = SkillAction.getActionTarget(obj, action);
                 if (realTarget) {
-                    if (realTarget instanceof Array) {
+                    if (Array.isArray(realTarget)) {
                         //如果是数组类型，则说明取到的是武将
                         for (let i = 0; i < realTarget.length; i++) {
                             if (duration !== 0) {
@@ -352,10 +352,10 @@ SkillAction.beatBack = paras => {
 /// 恢复友军武将受伤状态
 SkillAction.cureInjury = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     const action = paras[5];
 
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
@@ -377,10 +377,10 @@ SkillAction.cureInjury = paras => {
 /// 驱散友军debuff
 SkillAction.refresh = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     const action = paras[5];
     const buffMgr = equipObject.pML.buffMgr;
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
@@ -401,10 +401,10 @@ SkillAction.refresh = paras => {
 /// 嘲讽周围部队
 SkillAction.taunt = function (paras) {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     const action = paras[5];
     const targets = []; //被嘲讽的目标数组
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
@@ -488,7 +488,7 @@ SkillAction.dotaoe = paras => {
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
-    const interval = addParas['interval'];
+    const interval = addParas.interval;
     //cx cy oriForce 需要先缓存下来，因为随着时间的推移可能会变化
     const cx = target.cx;
     const cy = target.cy;
@@ -529,13 +529,13 @@ SkillAction.dotaoe = paras => {
 /// 持续性影响的action
 SkillAction.dot = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
-    const interval = addParas['interval'];
-    const funcName = addParas['function'];
-    const args = addParas['args'];
+    const interval = addParas.interval;
+    const funcName = addParas.function;
+    const args = addParas.args;
     SkillAction.wLayer.setTimeMechine(
         null,
         skill.duration * _.TIME.SEC,
@@ -567,9 +567,9 @@ SkillAction.continueHunluan = paras => {
                     equiper,
                     equipObject,
                     skill.name,
-                    addParas['buffID'],
-                    addParas['fomulaID'],
-                    addParas['durationID']
+                    addParas.buffID,
+                    addParas.fomulaID,
+                    addParas.durationID
                 ];
                 Action.addHunLuan(p);
             }
@@ -613,12 +613,12 @@ SkillAction.changeShiQi = paras => {
     const skill = paras[3]; //技能
     const addParas = paras[4]; //技能附加参数对象
     const action = paras[5];
-    const fomulaID = addParas['fomulaID'];
+    const fomulaID = addParas.fomulaID;
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
-        if (SkillAction.checkAffectType(obj, equipObject, action) && !isNaN(obj.shiQi)) {
-            const p = [equipObject, obj, skill, equiper, addParas['isBeishui']];
+        if (SkillAction.checkAffectType(obj, equipObject, action) && !Number.isNaN(obj.shiQi)) {
+            const p = [equipObject, obj, skill, equiper, addParas.isBeishui];
             const shiqi = FOMULA.run(fomulaID, p);
-            if (isNaN(shiqi)) {
+            if (Number.isNaN(shiqi)) {
                 return;
             }
             if (shiqi > 0) {
@@ -669,7 +669,7 @@ SkillAction.suckBlood = paras => {
     }
 
     let damage = SkillAction.calDamage(equiper, equipObject, target, skill, addParas);
-    _.log('suckBlood ' + damage);
+    _.log(`suckBlood ${damage}`);
     if (damage > 0) {
         SkillAction.attackAction(damage, equipObject, target, ARMY_DEF.DAMAGE_TYPE_NORMAL);
         //target.changeTroops(-damage);
@@ -694,10 +694,10 @@ SkillAction.cure = paras => {
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
-    const fomulaID = addParas['fomulaID'];
+    const fomulaID = addParas.fomulaID;
 
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
-        if (obj.force === equipObject.force && !isNaN(obj.wounded) && !isNaN(obj.troops)) {
+        if (obj.force === equipObject.force && !Number.isNaN(obj.wounded) && !Number.isNaN(obj.troops)) {
             const fomulaP = [];
             fomulaP[0] = equipObject;
             fomulaP[1] = obj;
@@ -715,10 +715,10 @@ SkillAction.cure = paras => {
 /// 内讧，让范围内的敌人互相攻击
 SkillAction.convert = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     const oriForceMap = {}; //存储被改变force军队的原始force
     const oriObjArr = []; //存储被改变force军队的obj
     let startIdx = 1;
@@ -740,7 +740,7 @@ SkillAction.convert = paras => {
         }
     }
     SkillAction.wLayer.setTimeMechine(null, skill.duration * _.TIME.SEC, null, null, () => {
-        _(oriObjArr).each((v, k) => {
+        _(oriObjArr).each((v, _k) => {
             v.force = oriForceMap[v.objID];
             v.findAttackZoneFitEnemy();
         });
@@ -750,13 +750,13 @@ SkillAction.convert = paras => {
 /// 骄兵，让敌人出兵来攻打
 SkillAction.jiaobing = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
     const addParas = paras[4]; //技能附加参数对象
     let newTarget;
     //先搜索附近是否有能够转移目标的军队
-    SkillAction.scopeLoop(target.cx, target.cy, addParas['findEnemyScope'], obj => {
+    SkillAction.scopeLoop(target.cx, target.cy, addParas.findEnemyScope, obj => {
         if (obj.force === equipObject.force) {
             newTarget = obj;
             return true;
@@ -784,10 +784,10 @@ SkillAction.jiaobing = paras => {
 /// 点火
 SkillAction.addFire = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
-    const equipObject = paras[2]; //使用技能的军队或建筑
+    const _equiper = paras[1]; //技能装备的武将
+    const _equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
         if (obj.type === MAP_DEF.TYPE_BUILDING_TINDER) {
             //var origin = role.origin || role;
@@ -801,7 +801,7 @@ SkillAction.addFire = paras => {
                 x: obj.x,
                 y: obj.y,
                 force: obj.force,
-                keepAlive: WORLD.constConfig['fire_time']
+                keepAlive: WORLD.constConfig.fire_time
             };
             SkillAction.wLayer.fireMgr.addSkillFire(info);
             obj.destroy();
@@ -814,10 +814,10 @@ SkillAction.addFire = paras => {
 /// 灭火
 SkillAction.clearFire = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
-    const equipObject = paras[2]; //使用技能的军队或建筑
+    const _equiper = paras[1]; //技能装备的武将
+    const _equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     //_.log('clearFire',skill.scope, target.name);
     SkillAction.scopeLoop(target.cx, target.cy, skill.scope, obj => {
         //_.log(obj.type);
@@ -831,10 +831,10 @@ SkillAction.clearFire = paras => {
 /// 合兵
 SkillAction.fuse = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
     //_.log('clearFire',skill.scope, target.name);
     let smallestArmy;
     let smallestTroops = 99_999_999;
@@ -869,10 +869,10 @@ SkillAction.attackAction = (damage, attacker, target, damageType) => {
         atkType: ARMY_DEF.ATK_TYPE_SKILL, //攻击类型
         damageType: damageType ? damageType : ARMY_DEF.DAMAGE_TYPE_NORMAL //伤害类型
     };
-    if (attacker && attacker.emitter) {
+    if (attacker?.emitter) {
         attacker.emitter.emit('armyAttack', info);
     }
-    if (target && target.emitter) {
+    if (target?.emitter) {
         target.emitter.emit('armyBeAttack', info);
     }
     //    target.changeTroops(-info.damage);
@@ -896,7 +896,7 @@ SkillAction.doDamage = (target, damage, wounded) => {
         let damageCount = Math.abs(damage);
         while (damageCount !== 0) {
             const num = damageCount % 10;
-            const numSpr = cc.createSprite('yellow_' + num + '.png', {
+            const numSpr = cc.createSprite(`yellow_${num}.png`, {
                 anchor: [0.5, 0.5]
             });
             numSpr.x = numX;
@@ -917,7 +917,7 @@ SkillAction.doDamage = (target, damage, wounded) => {
         armature.y = target.y;
         target._mapLayer._effNode.addChild(armature, UI.TOPMOST_ZORDER + 9);
 
-        armature.getAnimation().setMovementEventCallFunc((armature, movementType, movementID) => {
+        armature.getAnimation().setMovementEventCallFunc((armature, _movementType, _movementID) => {
             armature.getAnimation().stop();
             armature.removeFromParent();
         });
@@ -938,7 +938,7 @@ SkillAction.doDamage = (target, damage, wounded) => {
         let damageCount = Math.abs(damage);
         while (damageCount !== 0) {
             const num = damageCount % 10;
-            const numSpr = cc.createSprite('green_' + num + '.png', {
+            const numSpr = cc.createSprite(`green_${num}.png`, {
                 anchor: [0.5, 0.5]
             });
             numSpr.x = numX;
@@ -959,7 +959,7 @@ SkillAction.doDamage = (target, damage, wounded) => {
         armature.y = target.y;
         target._mapLayer._effNode.addChild(armature, UI.TOPMOST_ZORDER + 9);
 
-        armature.getAnimation().setMovementEventCallFunc((armature, movementType, movementID) => {
+        armature.getAnimation().setMovementEventCallFunc((armature, _movementType, _movementID) => {
             armature.getAnimation().stop();
             armature.removeFromParent();
         });
@@ -1036,10 +1036,10 @@ SkillAction.charge = paras => {
 /// 入梦 by 孙梦超
 SkillAction.rumeng = paras => {
     const target = paras[0]; //技能目标
-    const equiper = paras[1]; //技能装备的武将
+    const _equiper = paras[1]; //技能装备的武将
     const equipObject = paras[2]; //使用技能的军队或建筑
     const skill = paras[3]; //技能名称
-    const addParas = paras[4]; //技能附加参数对象
+    const _addParas = paras[4]; //技能附加参数对象
 
     //_.log('兵法强度1', target.bfPower);
     SkillAction.wLayer.buffMgr.addBuff(2_301_510, target, skill.duration * _.TIME.SEC);

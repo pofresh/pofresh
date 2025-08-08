@@ -27,7 +27,7 @@ class Module {
             serverId: agent.id,
             pid: process.pid
         };
-        monitor.psmonitor.getPsInfo(params, (err, data) => {
+        monitor.psmonitor.getPsInfo(params, (_err, data) => {
             agent.notify(moduleId, { serverId: agent.id, body: data });
         });
     }
@@ -48,7 +48,7 @@ class Module {
         data[msg.serverId] = body;
     }
 
-    clientHandler(agent, msg, cb) {
+    clientHandler(agent, _msg, cb) {
         cb(null, agent.get(moduleId) || {});
     }
 }

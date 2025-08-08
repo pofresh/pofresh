@@ -36,7 +36,7 @@ function decode(msg) {
     } else {
         try {
             msg.body = JSON.parse(msg.body.toString('utf8'));
-        } catch (ex) {
+        } catch (_ex) {
             msg.body = {};
         }
     }

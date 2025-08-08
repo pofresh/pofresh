@@ -1,7 +1,7 @@
 const CountDownLatch = require('../../lib/util/countDownLatch');
-const should = require('should');
+const _should = require('should');
 
-const cbCreator = (() => {
+const _cbCreator = (() => {
     let count = 0;
 
     return {
@@ -16,8 +16,8 @@ const cbCreator = (() => {
 })();
 
 describe('countdown latch test', () => {
-    let countDownLatch1;
-    let countDownLatch2;
+    let _countDownLatch1;
+    let _countDownLatch2;
 
     describe('#count down', () => {
         it('should invoke the callback after the done method was invoked the specified times', done => {
@@ -36,11 +36,15 @@ describe('countdown latch test', () => {
 
         it('should throw exception if pass a negative or zero to the create method', () => {
             (() => {
-                CountDownLatch.createCountDownLatch(-1, () => {});
+                CountDownLatch.createCountDownLatch(-1, () => {
+                    // Mock callback for negative count test
+                });
             }).should.throw();
 
             (() => {
-                CountDownLatch.createCountDownLatch(0, () => {});
+                CountDownLatch.createCountDownLatch(0, () => {
+                    // Mock callback for zero count test
+                });
             }).should.throw();
         });
 
@@ -52,7 +56,9 @@ describe('countdown latch test', () => {
 
         it('should throw exception if try to invoke done metho of a latch that has fired cb', () => {
             const n = 3;
-            const cdl = CountDownLatch.createCountDownLatch(n, () => {});
+            const cdl = CountDownLatch.createCountDownLatch(n, () => {
+                // Mock callback for fired latch test
+            });
 
             for (let i = 0; i < n; i++) {
                 cdl.done();

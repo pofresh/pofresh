@@ -17,8 +17,8 @@ const Protobuf = module.exports;
 // Internal state
 let encoderRoot = null;
 let decoderRoot = null;
-let encoderProtos = null;
-let decoderProtos = null;
+let _encoderProtos = null;
+let _decoderProtos = null;
 
 /**
  * Create protobufjs root from parsed protos
@@ -42,13 +42,15 @@ function createProtobufRoot(protos) {
 
         // Add fields
         for (const fieldName in messageProto) {
-            if (fieldName.startsWith('__')) continue;
+            if (fieldName.startsWith('__')) {
+                continue;
+            }
 
             const fieldProto = messageProto[fieldName];
             let fieldType = convertFieldType(fieldProto.type);
 
             // Check if this field type is a nested message
-            if (messageProto.__messages && messageProto.__messages[fieldProto.type]) {
+            if (messageProto.__messages?.[fieldProto.type]) {
                 fieldType = fieldProto.type; // Use the nested message name directly
             }
 
@@ -155,13 +157,13 @@ Protobuf.encode = (route, message) => {
 Protobuf.encode2Bytes = function (route, message) {
     try {
         const buffer = this.encode(route, message);
-        if (!(buffer && buffer.length)) {
+        if (!buffer?.length) {
             return null;
         }
 
         // Convert Buffer to Uint8Array efficiently
         return new Uint8Array(buffer);
-    } catch (error) {
+    } catch (_error) {
         // Return null for backward compatibility, but could throw in strict mode
         return null;
     }
@@ -184,7 +186,7 @@ Protobuf.encodeStr = (route, message, encoding) => {
     try {
         const buffer = Protobuf.encode(route, message);
         return buffer ? buffer.toString(encoding) : null;
-    } catch (error) {
+    } catch (_error) {
         // Return null for backward compatibility
         return null;
     }
@@ -260,7 +262,7 @@ Protobuf.decodeStr = (route, encodedString, encoding) => {
     try {
         const buffer = Buffer.from(encodedString, encoding);
         return buffer ? Protobuf.decode(route, buffer) : null;
-    } catch (error) {
+    } catch (_error) {
         // Return null for backward compatibility
         return null;
     }
@@ -303,7 +305,7 @@ Protobuf.setEncoderProtos = protos => {
     }
 
     try {
-        encoderProtos = protos;
+        _encoderProtos = protos;
         encoderRoot = createProtobufRoot(protos);
     } catch (error) {
         throw new Error(`Failed to initialize encoder: ${error.message}`);
@@ -325,7 +327,7 @@ Protobuf.setDecoderProtos = protos => {
     }
 
     try {
-        decoderProtos = protos;
+        _decoderProtos = protos;
         decoderRoot = createProtobufRoot(protos);
     } catch (error) {
         throw new Error(`Failed to initialize decoder: ${error.message}`);
@@ -435,7 +437,9 @@ Protobuf.codec = {
         for (let i = 0; i < bytes.length; i++) {
             result |= (bytes[i] & 0x7f) << shift;
             shift += 7;
-            if ((bytes[i] & 0x80) === 0) break;
+            if ((bytes[i] & 0x80) === 0) {
+                break;
+            }
         }
         return result;
     },

@@ -33,14 +33,14 @@ class Http {
         if (opts.isCluster) {
             const serverId = app.getServerId();
             const params = serverId.split('-');
-            const idx = Number.parseInt(params[params.length - 1], 10);
+            const idx = Number.parseInt(params.at(-1), 10);
             if (/\d+\+\+/.test(this.port)) {
                 this.port = Number.parseInt(this.port.substr(0, this.port.length - 2), 10);
             } else {
                 assert.ok(false, 'http cluster expect http port format like "3000++"');
             }
 
-            this.port = this.port + idx;
+            this.port += idx;
         }
 
         this.useSSL = !!opts.useSSL;
@@ -71,7 +71,7 @@ class Http {
     }
 
     loadRoutes() {
-        this.http.get('/', (req, res) => {
+        this.http.get('/', (_req, res) => {
             res.send('http server ok!');
         });
 
@@ -125,7 +125,7 @@ class Http {
         process.nextTick(cb);
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         this.server.close(() => {
             // this.logger.info('Http stop', force);
             cb();

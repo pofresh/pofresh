@@ -4,8 +4,8 @@ import { server as Server } from '../../index.js';
 const WAIT_TIME = 100;
 
 const paths = [
-    { namespace: 'user', path: __dirname + '/../mock-remote/area' },
-    { namespace: 'sys', path: __dirname + '/../mock-remote/connector' }
+    { namespace: 'user', path: `${__dirname}/../mock-remote/area` },
+    { namespace: 'sys', path: `${__dirname}/../mock-remote/connector` }
 ];
 
 const port = 3333;
@@ -66,7 +66,7 @@ describe('server', () => {
             }
 
             const acceptorFactory = {
-                create(opts, cb) {
+                create(_opts, cb) {
                     return new MockAcceptor(null, cb);
                 }
             };

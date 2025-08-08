@@ -23,9 +23,9 @@ class MailBox extends BaseMailbox {
 
     connect(tracer, cb) {
         super.connect(tracer, cb);
-        tracer && tracer.info('client', __filename, 'connect', 'mqtt-mailbox try to connect');
+        tracer?.info('client', __filename, 'connect', 'mqtt-mailbox try to connect');
         if (this.connected) {
-            tracer && tracer.error('client', __filename, 'connect', 'mqtt-mailbox has already connected');
+            tracer?.error('client', __filename, 'connect', 'mqtt-mailbox has already connected');
             return cb(new Error('mailbox has already connected.'));
         }
 
@@ -44,7 +44,7 @@ class MailBox extends BaseMailbox {
 
         this.socket.connect(
             {
-                clientId: 'MQTT_RPC_' + Date.now()
+                clientId: `MQTT_RPC_${Date.now()}`
             },
             this.onConnection.bind(this)
         );

@@ -7,7 +7,6 @@ class Service {
     }
 
     doService(cb) {
-        console.log(this.app);
         cb(null, this.app.id);
     }
 }

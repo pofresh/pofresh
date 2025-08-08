@@ -71,7 +71,7 @@ class Connector extends EventEmitter {
         process.nextTick(cb);
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         this.switcher.close();
         this.listeningServer.close();
 

@@ -10,7 +10,7 @@ const masterHost = '127.0.0.1';
 const masterPort = 3333;
 
 describe('agent', () => {
-    const authServer = (msg, env, cb) => {
+    const authServer = (_msg, _env, cb) => {
         cb('ok');
     };
 
@@ -35,7 +35,7 @@ describe('agent', () => {
 
         const monitorConsole1 = {
             authServer,
-            execute(receivedModuleId, method, msg, _cb) {
+            execute(receivedModuleId, _method, msg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
                 _cb(null, msg);
@@ -44,7 +44,7 @@ describe('agent', () => {
 
         const monitorConsole2 = {
             authServer,
-            execute(receivedModuleId, method, msg, _cb) {
+            execute(receivedModuleId, _method, msg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
                 _cb(null, msg);
@@ -120,7 +120,7 @@ describe('agent', () => {
 
         const monitorConsole = {
             authServer,
-            execute(receivedModuleId, method, msg, _cb) {
+            execute(receivedModuleId, _method, _msg, _cb) {
                 reqCount++;
                 expect(receivedModuleId).toBe(moduleId);
                 _cb(new Error(errMsg));
@@ -179,7 +179,7 @@ describe('agent', () => {
 
         const monitorConsole1 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
                 expect(receivedMsg).toEqual(msg1);
@@ -188,7 +188,7 @@ describe('agent', () => {
 
         const monitorConsole2 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
                 expect(receivedMsg).toEqual(msg2);
@@ -257,7 +257,7 @@ describe('agent', () => {
 
         const monitorConsole1 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req1Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -267,7 +267,7 @@ describe('agent', () => {
 
         const monitorConsole2 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req2Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -277,7 +277,7 @@ describe('agent', () => {
 
         const monitorConsole3 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req3Count++;
                 reqType2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
@@ -353,7 +353,7 @@ describe('agent', () => {
 
         const monitorConsole1 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -362,7 +362,7 @@ describe('agent', () => {
 
         const monitorConsole2 = {
             authServer,
-            execute(receivedModuleId, method, receivedMsg, _cb) {
+            execute(receivedModuleId, _method, receivedMsg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -420,7 +420,7 @@ describe('agent', () => {
 
         const masterConsole = {
             authServer,
-            execute(moduleId, method, msg, _cb) {
+            execute(moduleId, _method, msg, _cb) {
                 reqCount++;
                 expect(orgModuleId).toBe(moduleId);
                 expect(msg).toEqual(orgMsg);

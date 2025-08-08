@@ -5,7 +5,7 @@ const records = [
     {
         namespace: 'user',
         serverType: 'test',
-        path: __dirname + '/remote/test'
+        path: `${__dirname}/remote/test`
     }
 ];
 
@@ -39,8 +39,6 @@ const client = Client.create({
 
 let start = null;
 client.start(_err => {
-    console.log('rpc client start ok.');
-
     client.addProxies(records);
     client.addServers(servers);
 
@@ -61,14 +59,11 @@ for (let i = 0; i < numRepeat; i++) {
 
 const mockData3 = {
     a: 'run',
-    b: mockData2 + Date.now() + '_',
+    b: `${mockData2 + Date.now()}_`,
     time: Date.now()
 };
 
 const payload = mockData3;
-
-// console.log(new Buffer(payload).length / 1024 + 'k');
-console.log(Buffer.from(JSON.stringify(payload)).length / 1024 + 'k');
 
 function run() {
     if (times > numRequests) {
@@ -77,13 +72,7 @@ function run() {
 
     if (times === numRequests) {
         const now = Date.now();
-        const cost = now - start;
-        console.log(
-            'run %d num requests cost: %d ops/sec',
-            numRequests,
-            cost,
-            (numRequests / (cost / 1000)).toFixed(2)
-        );
+        const _cost = now - start;
         times = 0;
         start = now;
         // return;
@@ -99,7 +88,6 @@ function run() {
 function rpcRequest(param, cb) {
     client.proxies.user.test.service.echo(null, param, 123, (_err, _resp) => {
         if (_err) {
-            console.error(_err.stack);
         }
         // console.log(resp);
         cb();

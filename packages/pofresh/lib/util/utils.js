@@ -1,5 +1,5 @@
 const os = require('os');
-const util = require('util');
+const _util = require('util');
 const exec = require('child_process').exec;
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 const Constants = require('./constants');
@@ -83,7 +83,7 @@ utils.unicodeToUtf8 = str => {
 
         // 回退到原生方法
         return unescape(encodeURIComponent(str));
-    } catch (e) {
+    } catch (_e) {
         // 异常处理
         return str;
     }
@@ -97,8 +97,8 @@ utils.ping = (host, cb) => {
     if (utils.isLocal(host)) {
         cb(true);
     } else {
-        const cmd = 'ping -w 15 ' + host;
-        exec(cmd, (err, stdout, stderr) => {
+        const cmd = `ping -w 15 ${host}`;
+        exec(cmd, (err, _stdout, _stderr) => {
             if (err) {
                 cb(false);
                 return;
@@ -118,7 +118,7 @@ utils.checkPort = function (server, cb) {
         return;
     }
 
-    const port = server.port || server.clientPort;
+    const _port = server.port || server.clientPort;
     const host = server.host;
 
     // 使用Node.js原生方式检查端口，避免命令注入
@@ -132,7 +132,7 @@ utils.checkPort = function (server, cb) {
 
         // 验证端口范围为有效数字
         const portNum = Number.parseInt(portToCheck, 10);
-        if (isNaN(portNum) || portNum < 1 || portNum > 65_535) {
+        if (Number.isNaN(portNum) || portNum < 1 || portNum > 65_535) {
             logger.error('Invalid port number: %s', portToCheck);
             callback('error');
             return;
@@ -236,7 +236,7 @@ utils.isLocal = host => {
  */
 utils.loadCluster = (app, server, serverMap) => {
     const increaseFields = {};
-    const count = Number.parseInt(server[Constants.RESERVED.CLUSTER_COUNT]);
+    const count = Number.parseInt(server[Constants.RESERVED.CLUSTER_COUNT], 10);
     let seq = app.clusterSeq[server.serverType];
     if (seq) {
         app.clusterSeq[server.serverType] = seq + count;
@@ -262,9 +262,9 @@ utils.loadCluster = (app, server, serverMap) => {
     };
     for (let i = 0, l = seq; i < count; i++, l++) {
         const cserver = clone(server);
-        cserver.id = Constants.RESERVED.CLUSTER_PREFIX + server.serverType + '-' + l;
+        cserver.id = `${Constants.RESERVED.CLUSTER_PREFIX + server.serverType}-${l}`;
         for (const k in increaseFields) {
-            const v = Number.parseInt(increaseFields[k]);
+            const v = Number.parseInt(increaseFields[k], 10);
             cserver[k] = v + i;
         }
         serverMap[cserver.id] = cserver;

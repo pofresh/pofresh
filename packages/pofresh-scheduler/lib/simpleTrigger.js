@@ -33,7 +33,9 @@ class SimpleTrigger {
     nextExecuteTime() {
         const period = this.period;
 
-        if ((this.count > 0 && this.count <= this.job.runTime) || period <= 0) return 0;
+        if ((this.count > 0 && this.count <= this.job.runTime) || period <= 0) {
+            return 0;
+        }
 
         this.nextTime += period;
 

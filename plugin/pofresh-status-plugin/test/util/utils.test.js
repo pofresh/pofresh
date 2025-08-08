@@ -6,7 +6,7 @@ describe('status plugin utils', () => {
     beforeAll(async () => {
         try {
             utils = await import('../../lib/util/utils.js');
-        } catch (error) {
+        } catch (_error) {
             // If utils file doesn't exist or has issues, create a mock
             utils = { default: {} };
         }

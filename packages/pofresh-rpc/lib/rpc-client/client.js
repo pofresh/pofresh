@@ -52,7 +52,7 @@ class Client {
 
         this._station.start(err => {
             if (err) {
-                logger.error('[pofresh-rpc] client start fail for ' + err.stack);
+                logger.error(`[pofresh-rpc] client start fail for ${err.stack}`);
                 return cb(err);
             }
             this._station.on('error', failureProcess.bind(this._station));
@@ -112,7 +112,7 @@ class Client {
      * @param {Array} records list of proxy description record
      */
     addProxies(records) {
-        if (!(records && records.length)) {
+        if (!records?.length) {
             return;
         }
         records.forEach(record => this.addProxy(record));
@@ -181,8 +181,7 @@ class Client {
         }
 
         if (this.state !== STATE_STARTED) {
-            tracer &&
-                tracer.error('client', __filename, 'rpcInvoke', 'fail to do rpc invoke for client is not running');
+            tracer?.error('client', __filename, 'rpcInvoke', 'fail to do rpc invoke for client is not running');
             logger.error('[pofresh-rpc] fail to do rpc invoke for client is not running');
             cb(new Error('[pofresh-rpc] fail to do rpc invoke for client is not running'));
             return;
@@ -263,7 +262,7 @@ function generateProxy(client, record, context) {
         if (client.opts.reload && !client.watchers[record.path]) {
             const watcher = fs.watch(record.path);
             client.watchers[record.path] = watcher;
-            watcher.on('change', (event, filename) => {
+            watcher.on('change', (_event, filename) => {
                 const name = path.basename(filename, '.js');
                 const modules = Loader.load(record.path, context);
                 if (modules) {
@@ -398,14 +397,14 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
 function rpcToSpecifiedServer(client, msg, serverType, serverId, cb) {
     if (typeof serverId !== 'string') {
         logger.error('[pofresh-rpc] serverId is not a string : %s', serverId);
-        cb(new Error('serverId is not a string :' + serverId));
+        cb(new Error(`serverId is not a string :${serverId}`));
         return;
     }
     if (serverId === '*') {
         const servers = client._routeContext.getServersByType(serverType);
         if (!servers) {
             logger.error('[pofresh-rpc] serverType %s servers not exist', serverType);
-            cb(new Error('serverType %s servers not exist: ' + serverType));
+            cb(new Error(`serverType %s servers not exist: ${serverType}`));
             return;
         }
 

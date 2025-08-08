@@ -13,10 +13,7 @@ describe('Schedule', () => {
         if (jobId) {
             try {
                 schedule.cancelJob(jobId);
-            } catch (e) {
-                // Ignore cleanup errors
-                console.error(e);
-            }
+            } catch (_e) {}
         }
         // 恢复真实时间
         vi.useRealTimers();

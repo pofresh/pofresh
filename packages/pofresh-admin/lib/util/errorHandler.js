@@ -40,7 +40,9 @@ class ErrorHandler {
         }, timeout);
 
         const wrappedCallback = (err, result) => {
-            if (called) return;
+            if (called) {
+                return;
+            }
             called = true;
 
             if (timeoutId) {

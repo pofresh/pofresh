@@ -35,7 +35,7 @@ exports.parse = msg => {
     return msg;
 };
 
-exports.isRequest = msg => msg && msg.reqId;
+exports.isRequest = msg => msg?.reqId;
 
 const cloneError = origin => {
     // copy the stack infos for Error instance json result is empty

@@ -28,7 +28,7 @@ describe('#taskManager', () => {
 
     it('should fire timeout callback if task timeout', done => {
         const key = 'key-1';
-        const fn = task => {
+        const fn = _task => {
             taskCount++;
         };
         const onTimeout = () => {
@@ -48,7 +48,7 @@ describe('#taskManager', () => {
 
     it('should not fire timeout after close the task', done => {
         const key = 'key-1';
-        const fn = task => {
+        const fn = _task => {
             taskCount++;
         };
         const onTimeout = () => {

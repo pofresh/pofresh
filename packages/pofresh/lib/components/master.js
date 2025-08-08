@@ -39,7 +39,7 @@ class Component {
      * @param  {Function}  cb
      * @return {Void}
      */
-    stop(force, cb) {
+    stop(_force, cb) {
         this.master.stop(cb);
     }
 }

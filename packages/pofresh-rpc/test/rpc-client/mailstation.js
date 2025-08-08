@@ -1,5 +1,5 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const MailStation = require('../../' + lib + '/rpc-client/mailstation');
+const MailStation = require(`../../${lib}/rpc-client/mailstation`);
 const should = require('should');
 const Server = require('../../').server;
 const Tracer = require('../../lib/util/tracer');
@@ -12,12 +12,12 @@ const records = [
     {
         namespace: 'user',
         serverType: 'area',
-        path: __dirname + '../../mock-remote/area'
+        path: `${__dirname}../../mock-remote/area`
     },
     {
         namespace: 'sys',
         serverType: 'connector',
-        path: __dirname + '../../mock-remote/connector'
+        path: `${__dirname}../../mock-remote/connector`
     }
 ];
 
@@ -178,7 +178,7 @@ describe('mail station', () => {
                 station.addServer(serverList[i]);
             }
 
-            const func = id => (err, remoteId) => {
+            const func = id => (_err, remoteId) => {
                 expect(remoteId).toBeDefined();
                 expect(remoteId).toBe(id);
                 callbackCount++;
@@ -362,7 +362,7 @@ describe('mail station', () => {
                 station.addServer(serverList[i]);
             }
 
-            const func = id => (err, remoteId) => {
+            const func = id => (_err, remoteId) => {
                 expect(remoteId);
                 expect(remoteId).toBeDefined();
                 expect(remoteId).toBe(id);

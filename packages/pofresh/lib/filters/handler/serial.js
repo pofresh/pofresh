@@ -23,7 +23,7 @@ class Filter {
                 next();
             },
             () => {
-                logger.error('[serial filter] msg timeout, msg:' + JSON.stringify(msg));
+                logger.error(`[serial filter] msg timeout, msg:${JSON.stringify(msg)}`);
             },
             this.timeout
         );
@@ -32,10 +32,10 @@ class Filter {
     /**
      * request serialization after filter
      */
-    after(err, msg, session, resp, next) {
+    after(err, msg, session, _resp, next) {
         const task = session.__serialTask__;
         if (task && !(task.done() || err)) {
-            err = new Error('task time out. msg:' + JSON.stringify(msg));
+            err = new Error(`task time out. msg:${JSON.stringify(msg)}`);
         }
         next(err);
     }

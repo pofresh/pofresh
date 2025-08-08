@@ -22,11 +22,12 @@ module.exports.getSysInfo = getSysInfo;
  */
 
 function getSysInfo(callback) {
-    if (process.platform === 'win32') return;
+    if (process.platform === 'win32') {
+        return;
+    }
     const reData = getBasicInfo();
     exec('iostat ', (err, output) => {
         if (err) {
-            console.error('getSysInfo failed! ' + err.stack);
             callback(err, reData);
         } else {
             reData.iostat = format(output);
@@ -50,7 +51,7 @@ function format(data) {
         .split(/\s+/);
     const output_values = [];
     for (let i = 0, counter = 0; i < output_array.length; i++) {
-        if (!isNaN(output_array[i])) {
+        if (!Number.isNaN(output_array[i])) {
             output_values[counter] = Number.parseFloat(output_array[i]);
             counter++;
         }

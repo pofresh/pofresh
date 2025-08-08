@@ -105,7 +105,7 @@ function showServers(handle, agent, comd, context, cb) {
         let sid, record;
         for (sid in agent.idMap) {
             record = agent.idMap[sid];
-            agent.request(record.id, moduleId, { comd, context }, (err, msg) => {
+            agent.request(record.id, moduleId, { comd, context }, (_err, msg) => {
                 serverInfo[msg.serverId] = msg.body;
                 latch.done();
             });
@@ -151,7 +151,7 @@ function showConnections(handle, agent, app, comd, context, cb) {
             for (sid in agent.idMap) {
                 record = agent.idMap[sid];
                 if (record.info.frontend === 'true') {
-                    agent.request(record.id, moduleId, { comd, context }, (err, msg) => {
+                    agent.request(record.id, moduleId, { comd, context }, (_err, msg) => {
                         serverInfo[msg.serverId] = msg.body;
                         latch.done();
                     });
@@ -160,10 +160,10 @@ function showConnections(handle, agent, app, comd, context, cb) {
         } else {
             record = agent.idMap[context];
             if (!record) {
-                return cb('the server ' + context + ' not exist');
+                return cb(`the server ${context} not exist`);
             }
             if (record.info.frontend === 'true') {
-                agent.request(record.id, moduleId, { comd, context }, (err, msg) => {
+                agent.request(record.id, moduleId, { comd, context }, (_err, msg) => {
                     const serverInfo = {};
                     serverInfo[msg.serverId] = msg.body;
                     cb(null, { msg: serverInfo });
@@ -187,7 +187,7 @@ function showLogins(handle, agent, app, comd, context, cb) {
     showConnections(handle, agent, app, comd, context, cb);
 }
 
-function showModules(handle, agent, comd, context, cb) {
+function showModules(_handle, agent, _comd, _context, cb) {
     const modules = agent.consoleService.modules;
     const result = [];
     for (const module in modules) {
@@ -232,7 +232,7 @@ function showComponents(handle, agent, app, comd, context, param, cb) {
         const res = {};
         for (const key in _components) {
             const name = getComponentName(key);
-            res[name] = clone(name, app.get(name + 'Config'));
+            res[name] = clone(name, app.get(`${name}Config`));
         }
         cb(null, res);
     }
@@ -294,7 +294,7 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
     }
     if (handle === 'monitor') {
         // 输入验证
-        if (!(param && param.filepath)) {
+        if (!param?.filepath) {
             return cb(new Error('filepath parameter is required'));
         }
 
@@ -307,7 +307,7 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
         }
 
         if (!/\.heapsnapshot$/.test(filepath)) {
-            filepath = filepath + '.heapsnapshot';
+            filepath += '.heapsnapshot';
         }
 
         checkFilePath(filepath, force, err => {
@@ -320,13 +320,13 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
                 heapdump = require('heapdump');
                 heapdump.writeSnapshot(filepath, (err, filename) => {
                     if (err) {
-                        cb(new Error('Failed to write heap snapshot: ' + err.message));
+                        cb(new Error(`Failed to write heap snapshot: ${err.message}`));
                     } else {
-                        cb(null, (filename || filepath) + ' memory dump ok');
+                        cb(null, `${filename || filepath} memory dump ok`);
                     }
                 });
             } catch (e) {
-                cb(new Error('pofresh-admin require heapdump module: ' + e.message));
+                cb(new Error(`pofresh-admin require heapdump module: ${e.message}`));
             }
         });
     }
@@ -349,7 +349,7 @@ function setApp(handle, agent, app, comd, context, param, cb) {
     if (handle === 'monitor') {
         const { key, value } = param;
         app.set(key, value);
-        cb(null, 'set ' + key + ':' + value + ' ok');
+        cb(null, `set ${key}:${value} ok`);
     }
 }
 
@@ -359,7 +359,7 @@ function enableApp(handle, agent, app, comd, context, param, cb) {
     }
     if (handle === 'monitor') {
         app.enable(param);
-        cb(null, 'enable ' + param + ' ok');
+        cb(null, `enable ${param} ok`);
     }
 }
 
@@ -369,7 +369,7 @@ function disableApp(handle, agent, app, comd, context, param, cb) {
     }
     if (handle === 'monitor') {
         app.disable(param);
-        cb(null, 'disable ' + param + ' ok');
+        cb(null, `disable ${param} ok`);
     }
 }
 
@@ -381,7 +381,7 @@ function runScript(handle, agent, app, comd, context, param, cb) {
     if (handle === 'monitor') {
         const ctx = { app, result: null };
         try {
-            vm.runInNewContext('result = ' + param, ctx, 'myApp.vm');
+            vm.runInNewContext(`result = ${param}`, ctx, 'myApp.vm');
             cb(null, util.inspect(ctx.result));
         } catch (e) {
             cb(e.stack);
@@ -401,7 +401,7 @@ function showError(handle, agent, comd, context, cb) {
     return false;
 }
 
-function clientHandle(handle, agent, app, comd, context, param, cb) {
+function clientHandle(handle, agent, _app, comd, context, param, cb) {
     if (handle === 'client') {
         if (context === 'all') {
             return cb('context error');
@@ -412,7 +412,7 @@ function clientHandle(handle, agent, app, comd, context, param, cb) {
     return false;
 }
 
-function clone(param, obj) {
+function clone(_param, obj) {
     const result = {};
     let flag = 1;
     for (const key in obj) {
@@ -446,7 +446,7 @@ function checkFilePath(filepath, force, cb) {
 function proxyCb(app, context, cb) {
     const msg = {};
     const __proxy__ = app.components.__proxy__;
-    if (__proxy__ && __proxy__.client && __proxy__.client.proxies.user) {
+    if (__proxy__?.client?.proxies.user) {
         const proxies = __proxy__.client.proxies.user;
         const server = app.getServerById(context);
         if (server) {
@@ -464,7 +464,7 @@ function proxyCb(app, context, cb) {
             }
             cb(null, msg);
         } else {
-            cb('no server with this id ' + context);
+            cb(`no server with this id ${context}`);
         }
     } else {
         cb('no proxy loaded');
@@ -474,7 +474,7 @@ function proxyCb(app, context, cb) {
 function handlerCb(app, context, cb) {
     const msg = {};
     const __server__ = app.components.__server__;
-    if (__server__ && __server__.server && __server__.server.handlerService.handlers) {
+    if (__server__?.server?.handlerService.handlers) {
         const handles = __server__.server.handlerService.handlers;
         const server = app.getServerById(context);
         if (server) {
@@ -492,7 +492,7 @@ function handlerCb(app, context, cb) {
             }
             cb(null, msg);
         } else {
-            cb('no server with this id ' + context);
+            cb(`no server with this id ${context}`);
         }
     } else {
         cb('no handler loaded');

@@ -79,12 +79,13 @@ class BackendSessionService {
         const service = 'sessionRemote';
         const method = 'kickBySid';
         const args = [sid];
+        let callback = cb;
         if (typeof reason === 'function') {
-            cb = reason;
+            callback = reason;
         } else {
             args.push(reason);
         }
-        rpcInvoke(this.app, frontendId, namespace, service, method, args, cb);
+        rpcInvoke(this.app, frontendId, namespace, service, method, args, callback);
     }
 
     /**
@@ -102,12 +103,13 @@ class BackendSessionService {
         const service = 'sessionRemote';
         const method = 'kickByUid';
         const args = [uid];
+        let callback = cb;
         if (typeof reason === 'function') {
-            cb = reason;
+            callback = reason;
         } else {
             args.push(reason);
         }
-        rpcInvoke(this.app, frontendId, namespace, service, method, args, cb);
+        rpcInvoke(this.app, frontendId, namespace, service, method, args, callback);
     }
 
     /**
@@ -216,7 +218,9 @@ function rpcInvoke(app, sid, namespace, service, method, args, cb) {
 class BackendSession {
     constructor(opts, service) {
         for (const f in opts) {
-            this[f] = opts[f];
+            if (Object.hasOwn(opts, f)) {
+                this[f] = opts[f];
+            }
         }
         this.__sessionService__ = service;
     }
@@ -303,9 +307,9 @@ class BackendSession {
      */
     export() {
         const res = {};
-        EXPORTED_FIELDS.forEach(function (field) {
+        for (const field of EXPORTED_FIELDS) {
             res[field] = this[field];
-        });
+        }
         return res;
     }
 }

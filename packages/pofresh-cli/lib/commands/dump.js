@@ -17,7 +17,7 @@ class Command {
 
         const Context = agent.getContext();
         if (Context === 'all') {
-            util.log('\n' + consts.COMANDS_CONTEXT_ERROR + '\n');
+            util.log(`\n${consts.COMANDS_CONTEXT_ERROR}\n`);
             rl.prompt();
             return;
         }
@@ -52,8 +52,10 @@ class Command {
                 context: Context
             },
             (err, data) => {
-                if (err) console.log(err);
-                else util.formatOutput(comd, data);
+                if (err) {
+                } else {
+                    util.formatOutput(comd, data);
+                }
                 rl.prompt();
             }
         );

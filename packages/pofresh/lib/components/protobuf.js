@@ -100,7 +100,7 @@ class Component {
         if (event !== 'change') {
             return;
         }
-        fs.readFile(path, 'utf8', (err, data) => {
+        fs.readFile(path, 'utf8', (_err, data) => {
             try {
                 const protos = protobuf.parse(JSON.parse(data));
                 if (type === Constants.RESERVED.SERVER) {
@@ -121,7 +121,7 @@ class Component {
         });
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         for (const type in this.watchers) {
             this.watchers[type].close();
         }

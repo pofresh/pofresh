@@ -1,4 +1,4 @@
-const statusService = require('../service/statusService');
+const _statusService = require('../service/statusService');
 const logger = require('pofresh-logger').getLogger(__filename);
 
 const Event = function (app) {

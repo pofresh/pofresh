@@ -26,7 +26,7 @@ describe('#toobusyFilter', () => {
         let exit = false;
 
         function load() {
-            service.beforeFilter(null, mockSession, (err, resp) => {
+            service.beforeFilter(null, mockSession, (err, _resp) => {
                 should.exist(mockSession);
                 if (err) {
                     exit = true;
@@ -37,8 +37,10 @@ describe('#toobusyFilter', () => {
                 return done();
             }
             const start = new Date();
-            while (new Date() - start < 250) {
-                for (let i = 0; i < 1e5; ) i++;
+            while (Date.now() - start < 250) {
+                for (let i = 0; i < 1e5; ) {
+                    i++;
+                }
             }
             setTimeout(load, 0);
         }

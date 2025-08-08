@@ -1,4 +1,4 @@
-const should = require('should');
+const _should = require('should');
 const ToobusyFilter = require('../../../lib/filters/rpc/toobusy');
 
 const mockData = {
@@ -13,16 +13,19 @@ describe('#toobusyFilter', () => {
         function load() {
             let callbackInvoked = true;
             toobusyFilter.before(mockData.serverId, mockData.msg, mockData.opts, err => {
-                if (err) callbackInvoked = false;
+                if (err) {
+                    callbackInvoked = false;
+                }
             });
 
             if (!callbackInvoked) {
-                console.log(' logic of toobusy enterd, done!');
                 return done();
             }
             const start = new Date();
-            while (new Date() - start < 250) {
-                for (let i = 0; i < 1e5; ) i++;
+            while (Date.now() - start < 250) {
+                for (let i = 0; i < 1e5; ) {
+                    i++;
+                }
             }
             setTimeout(load, 0);
         }

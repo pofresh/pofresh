@@ -95,7 +95,9 @@ function strdecode(buffer) {
             codePoint = byte1;
         } else if ((byte1 & 0xe0) === 0xc0) {
             // 2-byte sequence
-            if (offset >= end) break;
+            if (offset >= end) {
+                break;
+            }
             const byte2 = bytes[offset++];
             if ((byte2 & 0xc0) !== 0x80) {
                 // Invalid continuation byte
@@ -105,7 +107,9 @@ function strdecode(buffer) {
             }
         } else if ((byte1 & 0xf0) === 0xe0) {
             // 3-byte sequence
-            if (offset + 1 >= end) break;
+            if (offset + 1 >= end) {
+                break;
+            }
             const byte2 = bytes[offset++];
             const byte3 = bytes[offset++];
             if ((byte2 & 0xc0) !== 0x80 || (byte3 & 0xc0) !== 0x80) {
@@ -115,7 +119,9 @@ function strdecode(buffer) {
             }
         } else if ((byte1 & 0xf8) === 0xf0) {
             // 4-byte sequence
-            if (offset + 2 >= end) break;
+            if (offset + 2 >= end) {
+                break;
+            }
             const byte2 = bytes[offset++];
             const byte3 = bytes[offset++];
             const byte4 = bytes[offset++];

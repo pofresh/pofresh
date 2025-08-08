@@ -29,7 +29,7 @@ class Acceptor extends BaseAcceptor {
 
         socket.composer.on('data', data => {
             const pkg = JSON.parse(data.toString());
-            if (pkg instanceof Array) {
+            if (Array.isArray(pkg)) {
                 this.processMsgs(socket, pkg);
             } else {
                 this.processMsg(socket, pkg);

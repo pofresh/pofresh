@@ -65,13 +65,13 @@ function calculateMsgIdBytes(id) {
  */
 function encodeMsgFlag(type, compressRoute, buffer, offset, compressGzip) {
     if (![TYPE_REQUEST, TYPE_NOTIFY, TYPE_RESPONSE, TYPE_PUSH].includes(type)) {
-        throw new Error('Unknown message type: ' + type);
+        throw new Error(`Unknown message type: ${type}`);
     }
 
     buffer[offset] = (type << 1) | (compressRoute ? 1 : 0);
 
     if (compressGzip) {
-        buffer[offset] = buffer[offset] | MSG_COMPRESS_GZIP_ENCODE_MASK;
+        buffer[offset] |= MSG_COMPRESS_GZIP_ENCODE_MASK;
     }
 
     return offset + MSG_FLAG_BYTES;

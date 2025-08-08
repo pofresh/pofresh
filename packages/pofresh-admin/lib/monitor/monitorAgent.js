@@ -46,14 +46,18 @@ class MonitorAgent extends EventEmitter {
     connect(port, host, cb) {
         if (this.state > ST_INITED) {
             const err = new Error('monitor client has connected or closed.');
-            if (cb) cb(err);
+            if (cb) {
+                cb(err);
+            }
             return;
         }
 
         // 输入验证
         if (!(port && host)) {
             const err = new Error('Port and host are required');
-            if (cb) cb(err);
+            if (cb) {
+                cb(err);
+            }
             return;
         }
 
@@ -71,7 +75,7 @@ class MonitorAgent extends EventEmitter {
         try {
             this.socket = new this.Client(this.opts);
         } catch (err) {
-            return safeCallback(new Error('Failed to create client socket: ' + err.message));
+            return safeCallback(new Error(`Failed to create client socket: ${err.message}`));
         }
 
         // 添加连接超时
@@ -116,7 +120,7 @@ class MonitorAgent extends EventEmitter {
                     // a response from monitor
                     const respCb = this.callbacks[respId];
                     if (!respCb) {
-                        logger.warn('unknown resp id:' + respId);
+                        logger.warn(`unknown resp id:${respId}`);
                         return;
                     }
                     delete this.callbacks[respId];
@@ -236,7 +240,7 @@ class MonitorAgent extends EventEmitter {
      */
     notify(moduleId, msg) {
         if (this.state !== ST_REGISTERED) {
-            logger.error('agent can not notify now, state:' + this.state);
+            logger.error(`agent can not notify now, state:${this.state}`);
             return;
         }
         this.socket.send('monitor', protocol.composeRequest(null, moduleId, msg));
@@ -244,7 +248,7 @@ class MonitorAgent extends EventEmitter {
 
     request(moduleId, msg, cb) {
         if (this.state !== ST_REGISTERED) {
-            logger.error('agent can not request now, state:' + this.state);
+            logger.error(`agent can not request now, state:${this.state}`);
             return;
         }
         const reqId = this.reqId++;

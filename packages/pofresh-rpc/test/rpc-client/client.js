@@ -9,12 +9,12 @@ const records = [
     {
         namespace: 'user',
         serverType: 'area',
-        path: __dirname + '../../mock-remote/area'
+        path: `${__dirname}../../mock-remote/area`
     },
     {
         namespace: 'sys',
         serverType: 'connector',
-        path: __dirname + '../../mock-remote/connector'
+        path: `${__dirname}../../mock-remote/connector`
     }
 ];
 
@@ -111,7 +111,7 @@ describe('client', () => {
 
             const router = {
                 id: 'aaa',
-                route(msg, routeParam, servers, cb) {
+                route(_msg, _routeParam, _servers, cb) {
                     routeCount++;
                     cb(null, serverId);
                 }
@@ -127,7 +127,7 @@ describe('client', () => {
 
             client.start(err => {
                 expect(err).toBeDefined();
-                client.proxies.sys.connector.whoAmIRemote.doService(null, (err, sid) => {
+                client.proxies.sys.connector.whoAmIRemote.doService(null, (_err, sid) => {
                     callbackCount++;
                     expect(sid).toBe(serverId);
                 });

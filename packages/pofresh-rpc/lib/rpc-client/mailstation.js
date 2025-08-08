@@ -92,7 +92,7 @@ class MailStation extends EventEmitter {
      * @param {Object} serverInfo server info such as {id, host, port}
      */
     addServer(serverInfo) {
-        if (!(serverInfo && serverInfo.id)) {
+        if (!serverInfo?.id) {
             return;
         }
 
@@ -117,7 +117,7 @@ class MailStation extends EventEmitter {
      * @param {Array} serverInfos server info list
      */
     addServers(serverInfos) {
-        if (!(serverInfos && serverInfos.length)) {
+        if (!serverInfos?.length) {
             return;
         }
         serverInfos.forEach(serverInfo => this.addServer(serverInfo));
@@ -154,7 +154,7 @@ class MailStation extends EventEmitter {
      * @param  {Array} ids server id list
      */
     removeServers(ids) {
-        if (!(ids && ids.length)) {
+        if (!ids?.length) {
             return;
         }
         ids.forEach(id => this.removeServer(id));
@@ -177,7 +177,7 @@ class MailStation extends EventEmitter {
      */
     replaceServers(serverInfos) {
         this.clearStation();
-        if (!(serverInfos && serverInfos.length)) {
+        if (!serverInfos?.length) {
             return;
         }
 
@@ -207,10 +207,10 @@ class MailStation extends EventEmitter {
      */
     dispatch(tracer, serverId, msg, opts, cb) {
         cb = cb || (() => {});
-        tracer && tracer.info('client', __filename, 'dispatch', 'dispatch rpc message to the mailbox');
+        tracer?.info('client', __filename, 'dispatch', 'dispatch rpc message to the mailbox');
         tracer && (tracer.cb = cb);
         if (this.state !== STATE_STARTED) {
-            tracer && tracer.error('client', __filename, 'dispatch', 'client is not running now');
+            tracer?.error('client', __filename, 'dispatch', 'client is not running now');
             logger.error('[pofresh-rpc] client is not running now.');
             this.emit('error', constants.RPC_ERROR.SERVER_NOT_STARTED, tracer, serverId, msg, opts, cb);
             return;
@@ -218,11 +218,11 @@ class MailStation extends EventEmitter {
         const self = this;
         const mailbox = this.mailboxes[serverId];
         if (!mailbox) {
-            tracer && tracer.debug('client', __filename, 'dispatch', 'mailbox is not exist');
+            tracer?.debug('client', __filename, 'dispatch', 'mailbox is not exist');
             // try to connect remote server if mailbox instance not exist yet
             if (!lazyConnect(tracer, this, serverId, this.mailboxFactory, cb)) {
-                tracer && tracer.error('client', __filename, 'dispatch', 'fail to find remote server:' + serverId);
-                logger.error('[pofresh-rpc] fail to find remote server:' + serverId);
+                tracer?.error('client', __filename, 'dispatch', `fail to find remote server:${serverId}`);
+                logger.error(`[pofresh-rpc] fail to find remote server:${serverId}`);
                 this.emit('error', constants.RPC_ERROR.NO_TRAGET_SERVER, tracer, serverId, msg, opts, cb);
                 return;
             }
@@ -232,14 +232,14 @@ class MailStation extends EventEmitter {
         }
 
         if (this.connecting[serverId]) {
-            tracer && tracer.debug('client', __filename, 'dispatch', 'request add to connecting');
+            tracer?.debug('client', __filename, 'dispatch', 'request add to connecting');
             // if the mailbox is connecting to remote server
             addToPending(tracer, this, serverId, arguments);
             return;
         }
 
         function send(tracer, err, serverId, msg, opts) {
-            tracer && tracer.info('client', __filename, 'send', 'get corresponding mailbox and try to send message');
+            tracer?.info('client', __filename, 'send', 'get corresponding mailbox and try to send message');
             if (err) {
                 cb(err);
                 return errorHandler(tracer, self, err, serverId, msg, opts);
@@ -247,9 +247,9 @@ class MailStation extends EventEmitter {
 
             const mailbox = self.mailboxes[serverId];
             if (!mailbox) {
-                tracer && tracer.error('client', __filename, 'send', 'can not find mailbox with id:' + serverId);
-                logger.error('[pofresh-rpc] could not find mailbox with id:' + serverId);
-                cb(new Error('[pofresh-rpc] could not find mailbox with id:' + serverId));
+                tracer?.error('client', __filename, 'send', `can not find mailbox with id:${serverId}`);
+                logger.error(`[pofresh-rpc] could not find mailbox with id:${serverId}`);
+                cb(new Error(`[pofresh-rpc] could not find mailbox with id:${serverId}`));
                 self.emit('error', constants.RPC_ERROR.FAIL_FIND_MAILBOX, tracer, serverId, msg, opts);
                 return;
             }
@@ -336,9 +336,8 @@ class MailStation extends EventEmitter {
         const mailbox = this.mailboxes[serverId];
         mailbox.connect(tracer, err => {
             if (err) {
-                tracer &&
-                    tracer.error('client', __filename, 'lazyConnect', 'fail to connect to remote server: ' + serverId);
-                logger.error('[pofresh-rpc] mailbox fail to connect to remote server: ' + serverId);
+                tracer?.error('client', __filename, 'lazyConnect', `fail to connect to remote server: ${serverId}`);
+                logger.error(`[pofresh-rpc] mailbox fail to connect to remote server: ${serverId}`);
                 if (this.mailboxes[serverId]) {
                     delete this.mailboxes[serverId];
                 }
@@ -365,7 +364,7 @@ class MailStation extends EventEmitter {
  */
 function doFilter(tracer, err, serverId, msg, opts, filters, index, operate, cb) {
     if (index < filters.length) {
-        tracer && tracer.info('client', __filename, 'doFilter', 'do ' + operate + ' filter ' + filters[index].name);
+        tracer?.info('client', __filename, 'doFilter', `do ${operate} filter ${filters[index].name}`);
     }
     if (index >= filters.length || !!err) {
         cb(tracer, err, serverId, msg, opts);
@@ -405,7 +404,7 @@ function doFilter(tracer, err, serverId, msg, opts, filters, index, operate, cb)
 }
 
 function lazyConnect(tracer, station, serverId, factory, cb) {
-    tracer && tracer.info('client', __filename, 'lazyConnect', 'create mailbox and try to connect to remote server');
+    tracer?.info('client', __filename, 'lazyConnect', 'create mailbox and try to connect to remote server');
     const server = station.servers[serverId];
     const online = station.onlines[serverId];
     if (!server) {
@@ -424,37 +423,36 @@ function lazyConnect(tracer, station, serverId, factory, cb) {
 }
 
 function addToPending(tracer, station, serverId, args) {
-    tracer && tracer.info('client', __filename, 'addToPending', 'add pending requests to pending queue');
+    tracer?.info('client', __filename, 'addToPending', 'add pending requests to pending queue');
     let pending = station.pendings[serverId];
     if (!pending) {
         pending = station.pendings[serverId] = [];
     }
     if (pending.length > station.pendingSize) {
-        tracer && tracer.debug('client', __filename, 'addToPending', 'station pending too much for: ' + serverId);
+        tracer?.debug('client', __filename, 'addToPending', `station pending too much for: ${serverId}`);
         logger.warn('[pofresh-rpc] station pending too much for: %s', serverId);
         const cb = Array.from(args);
-        cb(new Error('station pending too much for: ' + serverId));
+        cb(new Error(`station pending too much for: ${serverId}`));
         return;
     }
     pending.push(args);
 }
 
 function flushPending(tracer, station, serverId) {
-    tracer && tracer.info('client', __filename, 'flushPending', 'flush pending requests to dispatch method');
+    tracer?.info('client', __filename, 'flushPending', 'flush pending requests to dispatch method');
     const pending = station.pendings[serverId];
     const mailbox = station.mailboxes[serverId];
-    if (!(pending && pending.length)) {
+    if (!pending?.length) {
         return;
     }
     if (!mailbox) {
-        tracer &&
-            tracer.error(
-                'client',
-                __filename,
-                'flushPending',
-                'fail to flush pending messages for empty mailbox: ' + serverId
-            );
-        logger.error('[pofresh-rpc] fail to flush pending messages for empty mailbox: ' + serverId);
+        tracer?.error(
+            'client',
+            __filename,
+            'flushPending',
+            `fail to flush pending messages for empty mailbox: ${serverId}`
+        );
+        logger.error(`[pofresh-rpc] fail to flush pending messages for empty mailbox: ${serverId}`);
     }
     pending.forEach(p => station.dispatch.apply(station, p));
     delete station.pendings[serverId];

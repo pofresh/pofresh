@@ -24,8 +24,10 @@ class Command {
                         args: argvs.slice(1)
                     },
                     (err, data) => {
-                        if (err) console.log(err);
-                        else util.formatOutput(comd, data);
+                        if (err) {
+                        } else {
+                            util.formatOutput(comd, data);
+                        }
                         rl.prompt();
                     }
                 );

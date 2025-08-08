@@ -1,7 +1,7 @@
 // remote service
 
 module.exports = _context => ({
-    echo(msg, data, cb) {
+    echo(msg, _data, cb) {
         // setTimeout(function() {
         // console.log('echo msg', msg);
         // console.log('echo data', data);

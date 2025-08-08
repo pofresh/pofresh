@@ -8,12 +8,12 @@ const utils = require('../../util/utils');
 module.exports = () => new Filter();
 
 class Filter {
-    before(msg, session, next) {
+    before(_msg, session, next) {
         session.__startTime__ = Date.now();
         next();
     }
 
-    after(err, msg, session, resp, next) {
+    after(err, msg, session, _resp, next) {
         const start = session.__startTime__;
         if (typeof start === 'number') {
             const timeUsed = Date.now() - start;

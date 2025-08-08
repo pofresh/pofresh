@@ -7,8 +7,9 @@ const transactionErrorLogger = require('pofresh-logger').getLogger('transaction-
 const manager = module.exports;
 
 manager.transaction = (name, conditions, handlers, retry) => {
-    if (!retry) {
-        retry = 1;
+    let retryCount = retry;
+    if (!retryCount) {
+        retryCount = 1;
     }
     if (typeof name !== 'string') {
         logger.error('transaction name is error format, name: %s.', name);
@@ -28,6 +29,10 @@ manager.transaction = (name, conditions, handlers, retry) => {
         cnames = [],
         dnames = [];
     for (const key in conditions) {
+        if (!Object.hasOwn(conditions, key)) {
+            continue;
+        }
+
         if (typeof key !== 'string' || typeof conditions[key] !== 'function') {
             logger.error(
                 'transaction conditions parameter is error format, condition name: %s, condition function: %j.',
@@ -49,21 +54,21 @@ manager.transaction = (name, conditions, handlers, retry) => {
             transactionLogger.info('[%s]:[%s] condition is executed.', name, cnames[i]);
             i++;
         },
-        err => {
-            if (err) {
+        conditionErr => {
+            if (conditionErr) {
                 process.nextTick(() => {
                     transactionLogger.error(
                         '[%s]:[%s] condition is executed with err: %j.',
                         name,
                         cnames[--i],
-                        err.stack
+                        conditionErr.stack
                     );
                     const log = {
                         name,
                         method: cnames[i],
                         time: Date.now(),
                         type: 'condition',
-                        description: err.stack
+                        description: conditionErr.stack
                     };
                     transactionErrorLogger.error(JSON.stringify(log));
                 });
@@ -72,6 +77,9 @@ manager.transaction = (name, conditions, handlers, retry) => {
             // execute handlers
             process.nextTick(() => {
                 for (const key in handlers) {
+                    if (!Object.hasOwn(handlers, key)) {
+                        continue;
+                    }
                     if (typeof key !== 'string' || typeof handlers[key] !== 'function') {
                         logger.error(
                             'transcation handlers parameter is error format, handler name: %s, handler function: %j.',
@@ -85,14 +93,14 @@ manager.transaction = (name, conditions, handlers, retry) => {
                 }
 
                 let flag = true;
-                const times = retry;
+                const times = retryCount;
 
                 // do retry if failed util retry times
                 async.whilst(
-                    () => retry > 0 && flag,
+                    () => retryCount > 0 && flag,
                     callback => {
                         let j = 0;
-                        retry--;
+                        retryCount--;
                         async.forEachSeries(
                             dmethods,
                             (method, cb) => {
@@ -107,13 +115,13 @@ manager.transaction = (name, conditions, handlers, retry) => {
                                             '[%s]:[%s]:[%s] handler is executed with err: %j.',
                                             name,
                                             dnames[--j],
-                                            times - retry,
+                                            times - retryCount,
                                             err.stack
                                         );
                                         const log = {
                                             name,
                                             method: dnames[j],
-                                            retry: times - retry,
+                                            retry: times - retryCount,
                                             time: Date.now(),
                                             type: 'handler',
                                             description: err.stack
@@ -134,9 +142,9 @@ manager.transaction = (name, conditions, handlers, retry) => {
                             }
                         );
                     },
-                    err => {
-                        if (err) {
-                            logger.error('transaction process is executed with error: %j', err);
+                    handlerErr => {
+                        if (handlerErr) {
+                            logger.error('transaction process is executed with error: %j', handlerErr);
                         }
                         // callback will not pass error
                     }

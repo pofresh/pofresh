@@ -156,7 +156,7 @@ class ChannelService {
 
         const genCB = serverId => err => {
             if (err) {
-                logger.error('[broadcast] fail to push message to serverId: ' + serverId + ', err:' + err.stack);
+                logger.error(`[broadcast] fail to push message to serverId: ${serverId}, err:${err.stack}`);
                 latch.done();
                 return;
             }
@@ -228,7 +228,7 @@ class Channel {
         const res = add(uid, sid, this.groups);
         if (res) {
             this.records[uid] = { sid, uid };
-            this.userAmount = this.userAmount + 1;
+            this.userAmount += 1;
         }
         addToStore(this.__channelService__, genKey(this.__channelService__, this.name), genValue(sid, uid));
         return res;
@@ -248,9 +248,11 @@ class Channel {
         const res = deleteFrom(uid, sid, this.groups[sid]);
         if (res) {
             delete this.records[uid];
-            this.userAmount = this.userAmount - 1;
+            this.userAmount -= 1;
         }
-        if (this.userAmount < 0) this.userAmount = 0; //robust
+        if (this.userAmount < 0) {
+            this.userAmount = 0; //robust
+        }
         removeFromStore(this.__channelService__, genKey(this.__channelService__, this.name), genValue(sid, uid));
         if (this.groups[sid] && this.groups[sid].length === 0) {
             delete this.groups[sid];
@@ -280,9 +282,11 @@ class Channel {
             groups = this.groups;
         let group, i, l;
         for (const sid in groups) {
-            group = groups[sid];
-            for (i = 0, l = group.length; i < l; i++) {
-                res.push(group[i]);
+            if (Object.hasOwn(groups, sid)) {
+                group = groups[sid];
+                for (i = 0, l = group.length; i < l; i++) {
+                    res.push(group[i]);
+                }
             }
         }
         return res;
@@ -421,7 +425,7 @@ function sendMessageByGroup(channelService, route, msg, groups, opts, cb) {
 
     const rpcCB = serverId => (err, fails) => {
         if (err) {
-            logger.error('[pushMessage] fail to dispatch msg to serverId: ' + serverId + ', err:' + err.stack);
+            logger.error(`[pushMessage] fail to dispatch msg to serverId: ${serverId}, err:${err.stack}`);
             latch.done();
             return;
         }
@@ -470,7 +474,7 @@ function restoreChannel(self, cb) {
             }
             const load = (key, name) =>
                 (() => {
-                    loadAllFromStore(self, key, (err, items) => {
+                    loadAllFromStore(self, key, (_err, items) => {
                         for (let j = 0; j < items.length; j++) {
                             const array = items[j].split(':');
                             const sid = array[0];
@@ -542,11 +546,11 @@ function removeAllFromStore(self, key) {
 
 function genKey(self, name) {
     if (name) {
-        return self.prefix + ':' + self.app.serverId + ':' + name;
+        return `${self.prefix}:${self.app.serverId}:${name}`;
     }
-    return self.prefix + ':' + self.app.serverId;
+    return `${self.prefix}:${self.app.serverId}`;
 }
 
 function genValue(sid, uid) {
-    return sid + ':' + uid;
+    return `${sid}:${uid}`;
 }

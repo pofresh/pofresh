@@ -50,7 +50,7 @@ class Socket extends EventEmitter {
     }
 
     sendRaw(msg) {
-        this.socket.send(msg, 0, msg.length, this.port, this.host, (err, bytes) => {
+        this.socket.send(msg, 0, msg.length, this.port, this.host, (err, _bytes) => {
             if (err) {
                 logger.error('send msg to remote with err: %j', err.stack);
                 return;

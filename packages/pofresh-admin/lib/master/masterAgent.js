@@ -136,7 +136,7 @@ class MasterAgent extends EventEmitter {
 
         const record = this.idMap[serverId];
         if (!record) {
-            utils.invokeCallback(cb, new Error('unknown server id:' + serverId));
+            utils.invokeCallback(cb, new Error(`unknown server id:${serverId}`));
             return false;
         }
 
@@ -146,7 +146,7 @@ class MasterAgent extends EventEmitter {
         const timeoutId = setTimeout(() => {
             if (this.callbacks[curId]) {
                 delete this.callbacks[curId];
-                if (this.reqMsgMap[serverId] && this.reqMsgMap[serverId][curId]) {
+                if (this.reqMsgMap[serverId]?.[curId]) {
                     delete this.reqMsgMap[serverId][curId];
                 }
                 utils.invokeCallback(cb, new Error('Request timeout'));
@@ -155,7 +155,7 @@ class MasterAgent extends EventEmitter {
 
         this.callbacks[curId] = (...args) => {
             clearTimeout(timeoutId);
-            if (this.reqMsgMap[serverId] && this.reqMsgMap[serverId][curId]) {
+            if (this.reqMsgMap[serverId]?.[curId]) {
                 delete this.reqMsgMap[serverId][curId];
             }
             utils.invokeCallback(cb, ...args);
@@ -196,7 +196,7 @@ class MasterAgent extends EventEmitter {
 
         const record = this.idMap[serverId];
         if (!record) {
-            utils.invokeCallback(cb, new Error('unknown server id:' + serverId));
+            utils.invokeCallback(cb, new Error(`unknown server id:${serverId}`));
             return false;
         }
 
@@ -232,7 +232,7 @@ class MasterAgent extends EventEmitter {
 
         const record = this.idMap[serverId];
         if (!record) {
-            logger.error('fail to notifyById for unknown server id:' + serverId);
+            logger.error(`fail to notifyById for unknown server id:${serverId}`);
             return false;
         }
 
@@ -256,7 +256,7 @@ class MasterAgent extends EventEmitter {
 
         const record = this.idMap[serverId];
         if (!record) {
-            logger.error('fail to notifyByServer for unknown server id:' + serverId);
+            logger.error(`fail to notifyByServer for unknown server id:${serverId}`);
             return false;
         }
 
@@ -289,7 +289,7 @@ class MasterAgent extends EventEmitter {
 
         const slaves = this.slaveMap[serverId];
         if (!slaves || slaves.length === 0) {
-            logger.error('fail to notifySlavesById for unknown server id:' + serverId);
+            logger.error(`fail to notifySlavesById for unknown server id:${serverId}`);
             return false;
         }
 
@@ -312,7 +312,7 @@ class MasterAgent extends EventEmitter {
 
         const list = this.typeMap[type];
         if (!list || list.length === 0) {
-            logger.error('fail to notifyByType for unknown server type:' + type);
+            logger.error(`fail to notifyByType for unknown server type:${type}`);
             return false;
         }
         this.broadcastMonitors(list, moduleId, msg);
@@ -349,7 +349,7 @@ class MasterAgent extends EventEmitter {
 
         const record = this.clients[clientId];
         if (!record) {
-            logger.error('fail to notifyClient for unknown client id:' + clientId);
+            logger.error(`fail to notifyClient for unknown client id:${clientId}`);
             return false;
         }
         this.sendToClient(record.socket, null, moduleId, msg);
@@ -393,12 +393,12 @@ class MasterAgent extends EventEmitter {
             if (this.clients[msg.id]) {
                 socket.send('register', {
                     code: protocol.PRO_FAIL,
-                    msg: 'id has been registered. id:' + msg.id
+                    msg: `id has been registered. id:${msg.id}`
                 });
-                return cb(new Error('id has been registered. id:' + msg.id));
+                return cb(new Error(`id has been registered. id:${msg.id}`));
             }
 
-            logger.info('client user : ' + username + ' login to master');
+            logger.info(`client user : ${username} login to master`);
             this.addConnection(msg.id, msg.type, null, user, socket);
             socket.send('register', {
                 code: protocol.PRO_OK,

@@ -138,7 +138,7 @@ class Component {
 
     doSend(reqId, route, emsg, recvs, opts, cb) {
         if (!emsg) {
-            process.nextTick(() => cb && cb(new Error('fail to send message for encode result is empty.')));
+            process.nextTick(() => cb?.(new Error('fail to send message for encode result is empty.')));
         }
 
         this.app.components.__pushScheduler__.schedule(reqId, route, emsg, recvs, opts, cb);
@@ -346,7 +346,7 @@ function getSession(self, socket) {
             self.connection.addLoginedUser(uid, {
                 loginTime: Date.now(),
                 uid,
-                address: socket.remoteAddress.ip + ':' + socket.remoteAddress.port
+                address: `${socket.remoteAddress.ip}:${socket.remoteAddress.port}`
             });
         }
         self.app.event.emit(events.BIND_SESSION, session);
@@ -362,7 +362,7 @@ function getSession(self, socket) {
     return session;
 }
 
-function onSessionClose(app, session, reason) {
+function onSessionClose(app, session, _reason) {
     taskManager.closeQueue(session.id, true);
     app.event.emit(events.CLOSE_SESSION, session);
 }
@@ -379,8 +379,12 @@ function handleMessage(self, session, msg) {
             logger.warn('try to response to a notify: %j', msg.route);
             return;
         }
-        if (!(msg.id || resp)) return;
-        if (!resp) resp = {};
+        if (!(msg.id || resp)) {
+            return;
+        }
+        if (!resp) {
+            resp = {};
+        }
         if (!!err && !resp.code) {
             resp.code = 500;
         }
@@ -441,10 +445,12 @@ function verifyMessage(self, session, msg) {
         return false;
     }
 
-    delete msg.body.__crypto__;
+    msg.body.__crypto__ = undefined;
 
     let message = JSON.stringify(msg.body);
-    if (utils.hasChineseChar(message)) message = utils.unicodeToUtf8(message);
+    if (utils.hasChineseChar(message)) {
+        message = utils.unicodeToUtf8(message);
+    }
 
     return pubKey.verifyString(message, sig);
 }

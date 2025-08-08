@@ -1,10 +1,10 @@
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __commonJS = (cb, mod) =>
+const __getOwnPropNames = Object.getOwnPropertyNames;
+const __commonJS = (cb, mod) =>
     function __require() {
         return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
     };
-var require_pofresh_protocol_es = __commonJS({
-    'pofresh-protocol.es.js'(exports, module) {
+const require_pofresh_protocol_es = __commonJS({
+    'pofresh-protocol.es.js'(_exports, module) {
         const Package = require('./package');
         const Message = require('./message');
         const { strencode, strdecode } = require('./string-codec');

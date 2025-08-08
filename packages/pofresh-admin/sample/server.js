@@ -1,7 +1,7 @@
 const MasterConsole = require('../lib/consoleService');
 const TestModule = require('./module');
 const port = 3005;
-const host = '127.0.0.1';
+const _host = '127.0.0.1';
 
 const opts = {
     port,

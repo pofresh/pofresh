@@ -7,7 +7,7 @@ const ST_INITED = 0;
 const ST_STARTED = 1;
 const ST_CLOSED = 2;
 
-const DEFAULT_PREFIX = 'POFRESH:CHANNEL';
+const _DEFAULT_PREFIX = 'POFRESH:CHANNEL';
 
 /**
  * Global channel service.
@@ -194,7 +194,7 @@ class GlobalChannelService {
      *
      * @memberOf GlobalChannelService
      */
-    pushMessage(serverType, route, msg, channelName, opts, cb) {
+    pushMessage(serverType, route, msg, channelName, _opts, cb) {
         if (this.state !== ST_STARTED) {
             utils.invokeCallback(cb, new Error('invalid state'));
             return;
@@ -223,7 +223,7 @@ class GlobalChannelService {
 
         const rpcCB = (err, fails) => {
             if (err) {
-                logger.error('[pushMessage] fail to dispatch msg, err:' + err.stack);
+                logger.error(`[pushMessage] fail to dispatch msg, err:${err.stack}`);
                 latch.done();
                 return;
             }
@@ -238,7 +238,7 @@ class GlobalChannelService {
             ((self, arg) => {
                 self.getMembersBySid(channelName, servers[arg].id, (err, uids) => {
                     if (err) {
-                        logger.error('[getMembersBySid] fail to get members, err' + err.stack);
+                        logger.error(`[getMembersBySid] fail to get members, err${err.stack}`);
                     }
                     if (uids && uids.length > 0) {
                         self.app.rpcInvoke(

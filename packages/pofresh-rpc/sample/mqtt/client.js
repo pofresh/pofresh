@@ -9,7 +9,6 @@ conn.connect(
         clientId: 'test'
     },
     () => {
-        console.log('client connected');
         start = Date.now();
         run();
     }
@@ -33,13 +32,7 @@ function run() {
 
     if (times === numRequests) {
         const now = Date.now();
-        const cost = now - start;
-        console.log(
-            'run %d num requests cost: %d ops/sec',
-            numRequests,
-            cost,
-            (numRequests / (cost / 1000)).toFixed(2)
-        );
+        const _cost = now - start;
         times = 0;
         start = now;
         return run();

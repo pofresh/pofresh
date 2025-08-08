@@ -29,14 +29,12 @@ class Acceptor extends BaseAcceptor {
                 // console.log("ws rpc server received message = " + data);
                 const msg = JSON.parse(data);
 
-                if (msg.body instanceof Array) {
+                if (Array.isArray(msg.body)) {
                     this.processMsgs(socket, msg.body);
                 } else {
                     this.processMsg(socket, msg.body);
                 }
-            } catch (e) {
-                console.error('ws rpc server process message with error: %j', e.stack);
-            }
+            } catch (_e) {}
         });
 
         socket.on('close', (_code, _message) => {

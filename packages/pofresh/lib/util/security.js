@@ -35,7 +35,7 @@ class SecurityUtils {
             const bcrypt = require('bcrypt');
             const saltRounds = 12;
             return bcrypt.hashSync(password, saltRounds);
-        } catch (e) {
+        } catch (_e) {
             // Fallback to crypto-based hashing
             const salt = crypto.randomBytes(16).toString('hex');
             const hash = crypto.pbkdf2Sync(password, salt, 10_000, 64, 'sha512').toString('hex');
@@ -56,7 +56,7 @@ class SecurityUtils {
                 const bcrypt = require('bcrypt');
                 return bcrypt.compareSync(password, hash);
             }
-        } catch (e) {
+        } catch (_e) {
             // Fallback to crypto format
             const [salt, originalHash] = hash.split(':');
             const newHash = crypto.pbkdf2Sync(password, salt, 10_000, 64, 'sha512').toString('hex');
@@ -81,13 +81,13 @@ class SecurityUtils {
             const config = require(configPath);
             const passwords = {};
 
-            config.forEach(user => {
+            for (const user of config) {
                 if (user.password === '{{GENERATE_SECURE_PASSWORD}}') {
                     const newPassword = SecurityUtils.generateSecurePassword();
                     user.password = SecurityUtils.hashPassword(newPassword);
                     passwords[user.username] = newPassword;
                 }
-            });
+            }
 
             // Write updated config
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -124,7 +124,7 @@ class SecurityUtils {
      */
     static isValidPort(port) {
         const portNum = Number.parseInt(port, 10);
-        return !isNaN(portNum) && portNum > 0 && portNum <= 65_535;
+        return !Number.isNaN(portNum) && portNum > 0 && portNum <= 65_535;
     }
 
     /**

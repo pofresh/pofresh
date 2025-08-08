@@ -1,1 +1,1 @@
-module.exports = (app, opts) => ({ name: 'mockPlugin' });
+module.exports = (_app, _opts) => ({ name: 'mockPlugin' });

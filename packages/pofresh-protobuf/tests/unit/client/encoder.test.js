@@ -69,9 +69,9 @@ describe('Client Encoder Tests', () => {
 
             // Test chunked approach
             let start = Date.now();
-            let str = '';
+            let _str = '';
             for (let j = 0; j < length; ) {
-                str += String.fromCharCode.apply(null, array.slice(j, j + 10_000));
+                _str += String.fromCharCode.apply(null, array.slice(j, j + 10_000));
                 j += 10_000;
             }
             let end = Date.now();
@@ -79,14 +79,12 @@ describe('Client Encoder Tests', () => {
 
             // Test character-by-character approach
             start = Date.now();
-            str = '';
+            _str = '';
             for (let i = 0; i < length; i++) {
-                str += String.fromCharCode(array[i]);
+                _str += String.fromCharCode(array[i]);
             }
             end = Date.now();
             const charByCharTime = end - start;
-
-            console.log(`Chunked approach: ${chunkedTime}ms, Char-by-char: ${charByCharTime}ms`);
 
             // Just verify both approaches work
             expect(chunkedTime).toBeGreaterThanOrEqual(0);

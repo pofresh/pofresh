@@ -3,7 +3,7 @@ const utils = require('../../lib/util/utils');
 const should = require('should');
 const fs = require('fs');
 
-const mockBase = process.cwd() + '/test/mock-base';
+const mockBase = `${process.cwd()}/test/mock-base`;
 
 describe('path util test', () => {
     describe('#getSysRemotePath', () => {

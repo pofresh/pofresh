@@ -51,17 +51,17 @@ class MailBox extends EventEmitter {
      * @param opts attach info to send method
      * @param cb declaration decided by remote interface
      */
-    send(tracer, msg, opts, cb) {
-        tracer && tracer.info('client', __filename, 'send', this.name + ' try to send');
+    send(tracer, msg, _opts, cb) {
+        tracer?.info('client', __filename, 'send', `${this.name} try to send`);
         if (!this.connected) {
-            tracer && tracer.error('client', __filename, 'send', this.name + ' not init');
+            tracer?.error('client', __filename, 'send', `${this.name} not init`);
             cb(tracer, new Error('ws-mailbox is not init'));
             return;
         }
 
         if (this.closed) {
-            tracer && tracer.error('client', __filename, 'send', this.name + ' has already closed');
-            cb(tracer, new Error(this.name + ' has already closed'));
+            tracer?.error('client', __filename, 'send', `${this.name} has already closed`);
+            cb(tracer, new Error(`${this.name} has already closed`));
             return;
         }
 
@@ -73,7 +73,7 @@ class MailBox extends EventEmitter {
             id,
             msg
         };
-        if (tracer && tracer.isEnabled) {
+        if (tracer?.isEnabled) {
             pkg = {
                 traceId: tracer.id,
                 seqId: tracer.seq,
@@ -111,29 +111,29 @@ class MailBox extends EventEmitter {
 
     onMessage(pkg) {
         try {
-            if (pkg instanceof Array) {
+            if (Array.isArray(pkg)) {
                 this.processMsgs(pkg);
             } else {
                 this.processMsg(pkg);
             }
         } catch (err) {
-            logger.error(this.name + ' rpc client process message with error: %s', err.stack);
+            logger.error(`${this.name} rpc client process message with error: %s`, err.stack);
             this.emit('error', err);
         }
     }
 
     onError(err) {
-        logger.error(this.name + ' rpc socket is error, remote server host: %s, port: %s', this.host, this.port);
+        logger.error(`${this.name} rpc socket is error, remote server host: %s, port: %s`, this.host, this.port);
         this.cb(err);
     }
 
     onClose(reason) {
-        logger.error(this.name + ' rpc socket is disconnect, reason: %s', reason);
+        logger.error(`${this.name} rpc socket is disconnect, reason: %s`, reason);
         const reqs = this.requests;
         let cb;
         for (const id in reqs) {
             cb = reqs[id];
-            cb(this.tracer, new Error(this.name + ' disconnect with remote server.'));
+            cb(this.tracer, new Error(`${this.name} disconnect with remote server.`));
         }
         this.emit('close', this.id);
     }
@@ -168,19 +168,19 @@ class MailBox extends EventEmitter {
 
     setCbTimeout(id, tracer, cb) {
         this.timeout[id] = setTimeout(() => {
-            logger.warn(this.name + ' rpc request is timeout, id: %s, host: %s, port: %s', id, this.host, this.port);
+            logger.warn(`${this.name} rpc request is timeout, id: %s, host: %s, port: %s`, id, this.host, this.port);
             this.clearCbTimeout(id);
             if (this.requests[id]) {
                 delete this.requests[id];
             }
-            logger.error(this.name + ' rpc callback timeout, remote server host: %s, port: %s', this.host, this.port);
-            cb && cb(tracer, new Error(this.name + ' rpc callback timeout'));
+            logger.error(`${this.name} rpc callback timeout, remote server host: %s, port: %s`, this.host, this.port);
+            cb?.(tracer, new Error(`${this.name} rpc callback timeout`));
         }, this.timeoutValue);
     }
 
     clearCbTimeout(id) {
         if (!this.timeout[id]) {
-            logger.warn(this.name + ' timer is not exsits, id: %s, host: %s, port: %s', id, this.host, this.port);
+            logger.warn(`${this.name} timer is not exsits, id: %s, host: %s, port: %s`, id, this.host, this.port);
             return;
         }
         clearTimeout(this.timeout[id]);

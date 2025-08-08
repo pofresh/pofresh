@@ -19,6 +19,4 @@ app.configure('production|development', 'connector', () => {
 // start app
 app.start();
 
-process.on('uncaughtException', err => {
-    console.error(' Caught exception: ' + err.stack);
-});
+process.on('uncaughtException', _err => {});

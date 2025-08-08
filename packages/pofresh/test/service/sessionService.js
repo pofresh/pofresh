@@ -43,7 +43,7 @@ describe('session service test', () => {
             const uid = 'py',
                 test_uid = 'test';
 
-            const session = service.create(sid, fid, socket);
+            const _session = service.create(sid, fid, socket);
 
             service.bind(sid, uid, null);
 
@@ -82,7 +82,7 @@ describe('session service test', () => {
                 socket = {};
             const uid = 'py';
 
-            const session = service.create(sid, fid, socket);
+            const _session = service.create(sid, fid, socket);
 
             service.unbind(sid, uid, err => {
                 should.exist(err);
@@ -96,7 +96,7 @@ describe('session service test', () => {
                 socket = {};
             const uid = 'py';
 
-            const session = service.create(sid, fid, socket);
+            const _session = service.create(sid, fid, socket);
             service.bind(sid, uid, null);
 
             service.unbind(sid, uid, err => {
@@ -116,9 +116,9 @@ describe('session service test', () => {
                 socket = {};
             const uid = 'changchang';
 
-            const session = service.create(sid, fid, socket);
+            const _session = service.create(sid, fid, socket);
 
-            service.bind(sid, uid, err => {
+            service.bind(sid, uid, _err => {
                 service.remove(sid);
                 should.not.exist(service.get(sid));
                 should.not.exist(service.getByUid(uid));
@@ -237,8 +237,8 @@ describe('session service test', () => {
                 eventCount++;
             });
 
-            service.bind(sid1, uid, err => {
-                service.bind(sid2, uid, err => {
+            service.bind(sid1, uid, _err => {
+                service.bind(sid2, uid, _err => {
                     service.kick(uid, err => {
                         should.not.exist(err);
                         should.not.exist(service.get(sid1));
@@ -275,8 +275,8 @@ describe('session service test', () => {
                 eventCount++;
             });
 
-            service.bind(sid1, uid, err => {
-                service.bind(sid2, uid, err => {
+            service.bind(sid1, uid, _err => {
+                service.bind(sid2, uid, _err => {
                     service.kickBySessionId(sid1, err => {
                         should.not.exist(err);
                         should.not.exist(service.get(sid1));
@@ -339,7 +339,7 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {};
-            const eventCount = 0;
+            const _eventCount = 0;
 
             const outter_session = service.create(sid, fid, socket);
 
@@ -500,7 +500,7 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {};
-            const uid = 'py';
+            const _uid = 'py';
 
             const session = service.create(sid, fid, socket);
             const fsession = session.toFrontendSession();

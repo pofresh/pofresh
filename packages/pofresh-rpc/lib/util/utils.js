@@ -59,7 +59,7 @@ Utils.checkFloat = v => v === Number(v) && v % 1 !== 0;
  * @return {Function} high order function
  * @api public
  */
-Utils.isType = type => obj => ({}).toString.call(obj) === '[object ' + type + ']';
+Utils.isType = type => obj => ({}).toString.call(obj) === `[object ${type}]`;
 
 /**
  * Utils check array
@@ -121,7 +121,7 @@ Utils.checkBoolean = Utils.isType('Boolean');
  * @return {Boolean}  true|false
  * @api public
  */
-Utils.checkBean = obj => obj && obj.$id && Utils.checkFunction(obj.writeFields) && Utils.checkFunction(obj.readFields);
+Utils.checkBean = obj => obj?.$id && Utils.checkFunction(obj.writeFields) && Utils.checkFunction(obj.readFields);
 
 Utils.checkNull = obj => !Utils.isNotNull(obj);
 
@@ -191,7 +191,7 @@ Utils.getType = object => {
             return Utils.typeMap.float;
         }
 
-        if (isNaN(object)) {
+        if (Number.isNaN(object)) {
             return Utils.typeMap.null;
         }
 

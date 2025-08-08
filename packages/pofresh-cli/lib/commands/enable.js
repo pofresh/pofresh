@@ -18,7 +18,7 @@ class Command {
 
         const Context = agent.getContext();
         if (Context === 'all') {
-            util.log('\n' + consts.COMANDS_CONTEXT_ERROR + '\n');
+            util.log(`\n${consts.COMANDS_CONTEXT_ERROR}\n`);
             rl.prompt();
             return;
         }
@@ -34,11 +34,11 @@ class Command {
 
         if (comd === 'module') {
             client.command(commandId, param, null, (err, data) => {
-                if (err) console.log(err);
-                else if (data === 1) {
-                    util.log('\ncommand ' + argv + ' ok\n');
+                if (err) {
+                } else if (data === 1) {
+                    util.log(`\ncommand ${argv} ok\n`);
                 } else {
-                    util.log('\ncommand ' + argv + ' bad\n');
+                    util.log(`\ncommand ${argv} bad\n`);
                 }
                 rl.prompt();
             });
@@ -51,8 +51,10 @@ class Command {
                     context: Context
                 },
                 (err, data) => {
-                    if (err) console.log(err);
-                    else util.log('\n' + data + '\n');
+                    if (err) {
+                    } else {
+                        util.log(`\n${data}\n`);
+                    }
                     rl.prompt();
                 }
             );

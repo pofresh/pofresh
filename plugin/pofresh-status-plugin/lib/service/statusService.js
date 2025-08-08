@@ -2,7 +2,7 @@ const DefaultStatusManager = require('../manager/statusManager');
 const utils = require('../util/utils');
 const util = require('util');
 const countDownLatch = require('../util/countDownLatch');
-const logger = require('pofresh-logger').getLogger(__filename);
+const _logger = require('pofresh-logger').getLogger(__filename);
 
 const ST_INITED = 0;
 const ST_STARTED = 1;
@@ -96,10 +96,7 @@ class StatusService {
                 );
                 return;
             }
-            const status =
-                list !== undefined && list.length >= 1
-                    ? true // online
-                    : false; // offline
+            const status = !!(list !== undefined && list.length >= 1); // offline
             utils.invokeCallback(cb, null, status);
         });
     }

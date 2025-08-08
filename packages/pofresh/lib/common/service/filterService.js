@@ -74,10 +74,10 @@ class Service {
         let index = 0,
             self = this;
 
-        function next(err) {
+        function next(nextErr) {
             //if done
             if (index >= self.afters.length) {
-                cb(err);
+                cb(nextErr);
                 return;
             }
 

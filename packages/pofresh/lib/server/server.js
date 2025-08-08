@@ -142,7 +142,7 @@ class Server {
     removeCrons(crons) {
         for (let i = 0, l = crons.length; i < l; i++) {
             const cron = crons[i];
-            const id = Number.parseInt(cron.id);
+            const id = Number.parseInt(cron.id, 10);
             if (this.jobs[id]) {
                 schedule.cancelJob(this.jobs[id]);
             } else {
@@ -277,7 +277,7 @@ function handleError(isGlobal, server, err, msg, session, resp, opts, cb) {
             handler(err, msg, resp, session, opts, cb);
         }
     } else {
-        logger.debug('no default error handler to resolve unknown exception. ' + err.stack);
+        logger.debug(`no default error handler to resolve unknown exception. ${err.stack}`);
         utils.invokeCallback(cb, err, resp, opts);
     }
 }
@@ -335,7 +335,7 @@ function doForward(app, msg, session, routeRecord, cb) {
             session.export(),
             (err, resp, opts) => {
                 if (err) {
-                    logger.error('fail to process remote message:' + err.stack);
+                    logger.error(`fail to process remote message:${err.stack}`);
                 }
                 finished = true;
                 utils.invokeCallback(cb, err, resp, opts);
@@ -343,7 +343,7 @@ function doForward(app, msg, session, routeRecord, cb) {
         );
     } catch (err) {
         if (!finished) {
-            logger.error('fail to forward message:' + err.stack);
+            logger.error(`fail to forward message:${err.stack}`);
             utils.invokeCallback(cb, err);
         }
     }

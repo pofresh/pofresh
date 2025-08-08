@@ -93,10 +93,10 @@ function isHttp(data) {
     return false;
 }
 
-function processHttp(switcher, processor, socket, data) {
+function processHttp(_switcher, processor, socket, data) {
     processor.add(socket, data);
 }
 
-function processTcp(switcher, processor, socket, data) {
+function processTcp(_switcher, processor, socket, data) {
     processor.add(socket, data);
 }

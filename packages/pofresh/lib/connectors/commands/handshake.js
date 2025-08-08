@@ -36,10 +36,7 @@ class Command {
             return;
         }
 
-        if (
-            typeof this.checkClient === 'function' &&
-            !(msg && msg.sys && this.checkClient(msg.sys.type, msg.sys.version))
-        ) {
+        if (typeof this.checkClient === 'function' && !(msg?.sys && this.checkClient(msg.sys.type, msg.sys.version))) {
             processError(socket, CODE_OLD_CLIENT);
             return;
         }

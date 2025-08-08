@@ -14,16 +14,16 @@ class Filter {
     constructor(maxLag, interval) {
         try {
             toobusy = require('toobusy-js');
-        } catch (e) {}
+        } catch (_e) {}
         if (toobusy) {
             toobusy.maxLag(maxLag);
             toobusy.interval(interval);
         }
     }
 
-    before(msg, session, next) {
+    before(msg, _session, next) {
         if (!!toobusy && toobusy()) {
-            conLogger.warn('[toobusy] reject request msg: ' + msg);
+            conLogger.warn(`[toobusy] reject request msg: ${msg}`);
             const err = new Error('Server toobusy!');
             err.code = 500;
             next(err);
@@ -32,7 +32,7 @@ class Filter {
         }
     }
 
-    after(err, msg, session, resp, next) {
+    after(_err, _msg, _session, _resp, next) {
         next();
     }
 }

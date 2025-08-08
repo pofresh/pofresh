@@ -19,7 +19,7 @@ class Acceptor extends BaseAcceptor {
 
         socket.on('message', pkg => {
             try {
-                if (pkg instanceof Array) {
+                if (Array.isArray(pkg)) {
                     this.processMsgs(socket, pkg);
                 } else {
                     this.processMsg(socket, pkg);

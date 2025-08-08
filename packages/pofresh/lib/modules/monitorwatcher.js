@@ -21,7 +21,7 @@ class Module {
     }
 
     monitorHandler(agent, msg, cb) {
-        if (!(msg && msg.action)) {
+        if (!msg?.action) {
             return;
         }
         const func = monitorMethods[msg.action];
@@ -53,9 +53,9 @@ function subscribeRequest(self, agent, id, cb) {
 
 // ----------------- monitor request methods -------------------------
 
-function addServer(self, agent, msg, cb) {
+function addServer(self, _agent, msg, cb) {
     logger.debug('[%s] receive addServer signal: %j', self.app.serverId, msg);
-    if (!(msg && msg.server)) {
+    if (!msg?.server) {
         logger.warn('monitorWatcher addServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -64,9 +64,9 @@ function addServer(self, agent, msg, cb) {
     utils.invokeCallback(cb, Constants.SIGNAL.OK);
 }
 
-function removeServer(self, agent, msg, cb) {
+function removeServer(self, _agent, msg, cb) {
     logger.debug('%s receive removeServer signal: %j', self.app.serverId, msg);
-    if (!(msg && msg.id)) {
+    if (!msg?.id) {
         logger.warn('monitorWatcher removeServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -75,9 +75,9 @@ function removeServer(self, agent, msg, cb) {
     utils.invokeCallback(cb, Constants.SIGNAL.OK);
 }
 
-function replaceServer(self, agent, msg, cb) {
+function replaceServer(self, _agent, msg, cb) {
     logger.debug('%s receive replaceServer signal: %j', self.app.serverId, msg);
-    if (!(msg && msg.servers)) {
+    if (!msg?.servers) {
         logger.warn('monitorWatcher replaceServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -86,7 +86,7 @@ function replaceServer(self, agent, msg, cb) {
     utils.invokeCallback(cb, Constants.SIGNAL.OK);
 }
 
-function startOver(self, agent, msg, cb) {
+function startOver(self, _agent, _msg, cb) {
     const fun = self.app.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTALL];
     if (fun) {
         fun.call(null, self.app);
@@ -98,14 +98,14 @@ function startOver(self, agent, msg, cb) {
 // ----------------- common methods -------------------------
 
 function addServers(self, servers) {
-    if (!(servers && servers.length)) {
+    if (!servers?.length) {
         return;
     }
     self.app.addServers(servers);
 }
 
 function removeServers(self, ids) {
-    if (!(ids && ids.length)) {
+    if (!ids?.length) {
         return;
     }
     self.app.removeServers(ids);

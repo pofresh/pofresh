@@ -1,7 +1,7 @@
 const Client = require('..').client;
 
 // remote service interface path info list
-const records = [{ namespace: 'user', serverType: 'test', path: __dirname + '/remote/test' }];
+const records = [{ namespace: 'user', serverType: 'test', path: `${__dirname}/remote/test` }];
 
 const context = {
     serverId: 'test-server-1'
@@ -24,8 +24,6 @@ const routeFunc = (_routeParam, _msg, routeContext, cb) => {
 const client = Client.create({ routeContext, router: routeFunc, context });
 
 client.start(_err => {
-    console.log('rpc client start ok.');
-
     client.addProxies(records);
     client.addServers(servers);
 
@@ -34,16 +32,10 @@ client.start(_err => {
     // m = fs.readFileSync('./skill.js').toString();
     m = ['onReloadSkill', ['210108'], { type: 'push', userOptions: {}, isPush: true }];
 
-    client.proxies.user.test.service.echo.toServer('test-server-1', m, 'aaa', (err, resp, data) => {
+    client.proxies.user.test.service.echo.toServer('test-server-1', m, 'aaa', (err, _resp, _data) => {
         if (err) {
-            console.error(err.stack);
         }
-
-        console.log('client resp', resp);
-        console.log('client data', data);
     });
 });
 
-process.on('uncaughtException', err => {
-    console.error(err);
-});
+process.on('uncaughtException', _err => {});

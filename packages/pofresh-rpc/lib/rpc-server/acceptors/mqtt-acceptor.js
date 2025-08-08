@@ -27,7 +27,7 @@ class Acceptor extends BaseAcceptor {
             let isArray = false;
             try {
                 pkg = JSON.parse(pkg);
-                if (pkg instanceof Array) {
+                if (Array.isArray(pkg)) {
                     this.processMsgs(socket, pkg);
                     isArray = true;
                 } else {

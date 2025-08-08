@@ -1,6 +1,15 @@
 {
-    "permissions": {
-        "allow": ["Bash(rm:*)"],
-        "deny": []
-    }
+  "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(pnpm:*)",
+      "Bash(npm:*)"
+    ],
+    "deny": []
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": "f6197bbf6b1a468fbe28a0ab42beea6c.DLoctiTMk4m3rTPI",
+    "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+    "ANTHROPIC_MODEL": "GLM-4.5-Air"
+  }
 }

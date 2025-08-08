@@ -29,8 +29,6 @@ class Client extends EventEmitter {
             return utils.invokeCallback(cb, 'client has been connected');
         }
 
-        console.log('try to connect ' + host + ':' + port);
-
         this.id = id;
         this.socket = new this.ClientClass({ id });
         this.socket.on('connect', () => {
@@ -78,14 +76,11 @@ class Client extends EventEmitter {
             this.emit('error', err);
         });
 
-        this.socket.on('disconnect', reason => {
+        this.socket.on('disconnect', _reason => {
             this.state = Client.ST_CLOSED;
-            console.log('client disconnect, reason: ', reason);
         });
 
-        this.socket.on('reconnect', cnt => {
-            console.log('client reconnect: ', cnt);
-        });
+        this.socket.on('reconnect', _cnt => {});
 
         this.socket.connect(host, port);
     }

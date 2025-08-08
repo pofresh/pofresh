@@ -83,7 +83,9 @@ class Service {
     getStatisticsInfo() {
         const list = [];
         for (const uid in this.logined) {
-            list.push(this.logined[uid]);
+            if (Object.hasOwn(this.logined, uid)) {
+                list.push(this.logined[uid]);
+            }
         }
 
         return {

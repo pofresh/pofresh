@@ -10,7 +10,7 @@ const mockData = {
 describe('#rpcLogFilter', () => {
     it('should do after filter by before filter', done => {
         const rpcLogFilter = RpcLogFilter();
-        rpcLogFilter.before(mockData.serverId, mockData.msg, mockData.opts, (serverId, msg, opts) => {
+        rpcLogFilter.before(mockData.serverId, mockData.msg, mockData.opts, (_serverId, _msg, _opts) => {
             rpcLogFilter.after(mockData.serverId, mockData.msg, mockData.opts, () => {
                 should.exist(mockData.opts.__start_time__);
                 done();

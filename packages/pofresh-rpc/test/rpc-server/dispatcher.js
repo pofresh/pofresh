@@ -1,5 +1,5 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const Dispatcher = require('../../' + lib + '/rpc-server/dispatcher');
+const Dispatcher = require(`../../${lib}/rpc-server/dispatcher`);
 const should = require('should');
 const Tracer = require('../../lib/util/tracer');
 

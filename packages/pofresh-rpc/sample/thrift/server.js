@@ -31,13 +31,10 @@ const server = thrift.createServer(Calculator, {
     },
 
     add(n1, n2, result) {
-        console.log('add(', n1, ',', n2, ')');
         result(null, n1 + n2);
     },
 
     calculate(logid, work, result) {
-        console.log('calculate(', logid, ',', work, ')');
-
         let val = 0;
         if (work.op === ttypes.Operation.ADD) {
             val = work.num1 + work.num2;
@@ -64,19 +61,17 @@ const server = thrift.createServer(Calculator, {
 
         const entry = new SharedStruct();
         entry.key = logid;
-        entry.value = '' + val;
+        entry.value = `${val}`;
         data[logid] = entry;
 
         result(null, val);
     },
 
     getStruct(key, result) {
-        console.log('getStruct(', key, ')');
         result(null, data[key]);
     },
 
     zip(result) {
-        console.log('zip()');
         result(null);
     }
 });

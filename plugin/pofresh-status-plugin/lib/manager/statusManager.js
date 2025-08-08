@@ -18,14 +18,12 @@ class StatusManager {
         // if (this.opts.auth_pass) {
         //   this.redis.auth(this.opts.auth_pass);
         // }
-        this.redis.on('error', err => {
-            console.error('[status-plugin][redis]' + err.stack);
-        });
+        this.redis.on('error', _err => {});
         this.redis.once('ready', cb);
         this.redis.connect();
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         if (this.redis) {
             this.redis.end();
             this.redis = null;
@@ -84,8 +82,8 @@ const execMultiCommands = (redis, cmds, cb) => {
     });
 };
 
-const genKey = (self, uid) => self.prefix + ':' + uid;
+const genKey = (self, uid) => `${self.prefix}:${uid}`;
 
-const genCleanKey = self => self.prefix + '*';
+const genCleanKey = self => `${self.prefix}*`;
 
 module.exports = StatusManager;

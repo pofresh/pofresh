@@ -7,7 +7,7 @@ module.exports = opts => new Command(opts);
 module.exports.commandId = 'help';
 
 class Command {
-    handle(agent, comd, argv, rl) {
+    handle(_agent, comd, argv, rl) {
         if (!comd) {
             util.errorHandle(argv, rl);
             return;

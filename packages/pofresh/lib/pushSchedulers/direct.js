@@ -1,11 +1,11 @@
 const utils = require('../util/utils');
 
 class Service {
-    constructor(app, opts) {
+    constructor(app, _opts) {
         this.app = app;
     }
 
-    schedule(reqId, route, msg, recvs, opts, cb) {
+    schedule(_reqId, _route, msg, recvs, opts, cb) {
         opts = opts || {};
         if (opts.type === 'broadcast') {
             doBroadcast(this, msg, opts.userOptions);

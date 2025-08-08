@@ -9,9 +9,7 @@ const net = require('net'),
 server.on('connection', stream => {
     const conn = mqttCon(stream);
 
-    conn.on('connect', () => {
-        console.log('connected');
-    });
+    conn.on('connect', () => {});
 
     conn.on('publish', packet => {
         // console.log(packet);
@@ -24,9 +22,8 @@ server.on('connection', stream => {
         conn.pingresp();
     });
 
-    conn.on('error', err => console.log(err));
+    conn.on('error', _err => {});
     // conn is your MQTT connection!
 });
 
 server.listen(1883);
-console.log('server started.');

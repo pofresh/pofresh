@@ -10,10 +10,10 @@ class Command {
     }
 
     init() {
-        fs.readdirSync(__dirname + '/commands').forEach(filename => {
+        fs.readdirSync(`${__dirname}/commands`).forEach(filename => {
             if (/\.js$/.test(filename)) {
                 const name = filename.substring(0, filename.lastIndexOf('.'));
-                this.commands[name] = require('./commands/' + name);
+                this.commands[name] = require(`./commands/${name}`);
             }
         });
     }
@@ -47,7 +47,7 @@ class Command {
                     },
                     (err, _data) => {
                         if (err) {
-                            util.log('Error killing servers: ' + err);
+                            util.log(`Error killing servers: ${err}`);
                         } else {
                             util.log('All servers killed successfully');
                         }

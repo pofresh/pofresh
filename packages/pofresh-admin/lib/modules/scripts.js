@@ -60,7 +60,7 @@ class Module {
             logger.warn('Unsafe script rejected:', scriptValidation.errors);
             return ErrorHandler.safeCallback(
                 cb,
-                new Error('Script contains unsafe content: ' + scriptValidation.errors.join(', '))
+                new Error(`Script contains unsafe content: ${scriptValidation.errors.join(', ')}`)
             );
         }
 
@@ -106,7 +106,7 @@ class Module {
     clientHandler(agent, msg, cb) {
         const fun = this.commands[msg.command];
         if (!fun || typeof fun !== 'function') {
-            cb('unknown command:' + msg.command);
+            cb(`unknown command:${msg.command}`);
             return;
         }
 
@@ -117,7 +117,7 @@ class Module {
 /**
  * List server id and scripts file name
  */
-function list(scriptModule, agent, msg, cb) {
+function list(scriptModule, agent, _msg, cb) {
     const servers = [];
     const scripts = [];
     const idMap = agent.idMap;
@@ -143,7 +143,7 @@ function list(scriptModule, agent, msg, cb) {
 /**
  * Get the content of the script file
  */
-function get(scriptModule, agent, msg, cb) {
+function get(scriptModule, _agent, msg, cb) {
     const filename = msg.filename;
     if (!filename) {
         cb('empty filename');
@@ -152,8 +152,8 @@ function get(scriptModule, agent, msg, cb) {
 
     fs.readFile(path.join(scriptModule.root, filename), 'utf-8', (err, data) => {
         if (err) {
-            logger.error('fail to read script file:' + filename + ', ' + err.stack);
-            cb('fail to read script with name:' + filename);
+            logger.error(`fail to read script file:${filename}, ${err.stack}`);
+            cb(`fail to read script with name:${filename}`);
         }
 
         cb(null, data);
@@ -163,12 +163,12 @@ function get(scriptModule, agent, msg, cb) {
 /**
  * Save a script file that posted from admin console
  */
-function save(scriptModule, agent, msg, cb) {
+function save(scriptModule, _agent, msg, cb) {
     const filepath = path.join(scriptModule.root, msg.filename);
     fs.writeFile(filepath, msg.body, err => {
         if (err) {
-            logger.error('fail to write script file:' + msg.filename + ', ' + err.stack);
-            cb('fail to write script file:' + msg.filename);
+            logger.error(`fail to write script file:${msg.filename}, ${err.stack}`);
+            cb(`fail to write script file:${msg.filename}`);
             return;
         }
         cb();
@@ -178,10 +178,10 @@ function save(scriptModule, agent, msg, cb) {
 /**
  * Run the script on the specified server
  */
-function run(scriptModule, agent, msg, cb) {
+function run(_scriptModule, agent, msg, cb) {
     agent.request(msg.serverId, moduleId, msg, (err, res) => {
         if (err) {
-            logger.error('fail to run script for ' + err.stack);
+            logger.error(`fail to run script for ${err.stack}`);
             return;
         }
         cb(null, res);

@@ -9,7 +9,7 @@ const options = global.cliOptions || {};
 const username = options.username || 'monitor';
 const password = options.password || 'monitor';
 const host = options.host || 'localhost';
-const port = Number.parseInt(options.port) || 3005;
+const port = Number.parseInt(options.port, 10) || 3005;
 const context = 'all';
 let client = null;
 
@@ -21,10 +21,10 @@ function doConnect() {
         password,
         md5: true
     });
-    const id = 'pofresh_cli_' + Date.now();
+    const id = `pofresh_cli_${Date.now()}`;
     client.connect(id, host, port, err => {
         if (err) {
-            util.log('\n' + err + '\n');
+            util.log(`\n${err}\n`);
             process.exit(0);
         } else {
             consts.ASCII_LOGO.forEach(logo => util.log(logo));
@@ -47,7 +47,7 @@ function doConnect() {
 
 function startCli() {
     const rl = readline.createInterface(process.stdin, process.stdout, completer);
-    const PROMPT = username + consts.PROMPT + context + '>';
+    const PROMPT = `${username + consts.PROMPT + context}>`;
     rl.setPrompt(PROMPT);
     rl.prompt();
 
@@ -75,7 +75,7 @@ function startCli() {
                 break;
         }
     }).on('close', () => {
-        util.log('bye ' + username);
+        util.log(`bye ${username}`);
         process.exit(0);
     });
 }

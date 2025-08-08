@@ -40,9 +40,7 @@ class Connector extends EventEmitter {
         const sio = require('socket.io')(httpServer, opts);
 
         const port = this.port;
-        httpServer.listen(port, () => {
-            console.log('sio Server listening at port %d', port);
-        });
+        httpServer.listen(port, () => {});
         sio.set('resource', '/socket.io');
         sio.set('transports', this.opts.transports);
         sio.set('heartbeat timeout', this.heartbeatTimeout);
@@ -62,7 +60,7 @@ class Connector extends EventEmitter {
     /**
      * Stop connector
      */
-    stop(force, cb) {
+    stop(_force, cb) {
         this.wsocket.server.close();
         process.nextTick(cb);
     }
@@ -119,7 +117,7 @@ function decode(msg) {
     };
 }
 
-function composeResponse(msgId, route, msgBody) {
+function composeResponse(msgId, _route, msgBody) {
     return {
         id: msgId,
         body: msgBody

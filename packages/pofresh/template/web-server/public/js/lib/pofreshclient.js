@@ -20,17 +20,16 @@
     // that to be increased. Set to zero for unlimited.
     const defaultMaxListeners = 10;
     EventEmitter.prototype.setMaxListeners = function (n) {
-        if (!this._events) this._events = {};
+        if (!this._events) {
+            this._events = {};
+        }
         this._maxListeners = n;
     };
 
     EventEmitter.prototype.emit = function () {
         const type = arguments[0];
         // If there is no 'error' event listener then throw.
-        if (
-            type === 'error' &&
-            (!(this._events && this._events.error) || (isArray(this._events.error) && !this._events.error.length))
-        ) {
+        if (type === 'error' && (!this._events?.error || (isArray(this._events.error) && !this._events.error.length))) {
             if (this.domain) {
                 const er = arguments[1];
                 er.domain_emitter = this;
@@ -47,9 +46,13 @@
             return false;
         }
 
-        if (!this._events) return false;
+        if (!this._events) {
+            return false;
+        }
         const handler = this._events[type];
-        if (!handler) return false;
+        if (!handler) {
+            return false;
+        }
 
         if (typeof handler === 'function') {
             if (this.domain) {
@@ -70,7 +73,9 @@
                 default: {
                     const l = arguments.length;
                     const args = new Array(l - 1);
-                    for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
+                    for (let i = 1; i < l; i++) {
+                        args[i - 1] = arguments[i];
+                    }
                     handler.apply(this, args);
                 }
             }
@@ -85,7 +90,9 @@
             }
             const l = arguments.length;
             const args = new Array(l - 1);
-            for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
+            for (let i = 1; i < l; i++) {
+                args[i - 1] = arguments[i];
+            }
 
             const listeners = handler.slice();
             for (let i = 0, l = listeners.length; i < l; i++) {
@@ -104,7 +111,9 @@
             throw new Error('addListener only takes instances of Function');
         }
 
-        if (!this._events) this._events = {};
+        if (!this._events) {
+            this._events = {};
+        }
 
         // To avoid recursion in the case that type == "newListeners"! Before
         // adding it to the listeners, first emit "newListeners".
@@ -132,13 +141,6 @@
 
             if (m && m > 0 && this._events[type].length > m) {
                 this._events[type].warned = true;
-                console.error(
-                    '(node) warning: possible EventEmitter memory ' +
-                        'leak detected. %d listeners added. ' +
-                        'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length
-                );
-                console.trace();
             }
         }
 
@@ -170,7 +172,9 @@
         }
 
         // does not use listeners(), so no side effect of creating _events[type]
-        if (!(this._events && this._events[type])) return this;
+        if (!this._events?.[type]) {
+            return this;
+        }
 
         const list = this._events[type];
 
@@ -183,7 +187,9 @@
                 }
             }
 
-            if (position < 0) return this;
+            if (position < 0) {
+                return this;
+            }
             list.splice(position, 1);
         } else if (list === listener || (list.listener && list.listener === listener)) {
             delete this._events[type];
@@ -198,8 +204,10 @@
             return this;
         }
 
-        const events = this._events && this._events[type];
-        if (!events) return this;
+        const events = this._events?.[type];
+        if (!events) {
+            return this;
+        }
 
         if (isArray(events)) {
             events.splice(0);
@@ -211,8 +219,12 @@
     };
 
     EventEmitter.prototype.listeners = function (type) {
-        if (!this._events) this._events = {};
-        if (!this._events[type]) this._events[type] = [];
+        if (!this._events) {
+            this._events = {};
+        }
+        if (!this._events[type]) {
+            this._events[type] = [];
+        }
         if (!isArray(this._events[type])) {
             this._events[type] = [this._events[type]];
         }
@@ -220,7 +232,7 @@
     };
 })();
 
-((exports, global) => {
+((exports, _global) => {
     const Protocol = exports;
 
     const HEADER = 5;
@@ -286,7 +298,7 @@
     const bt2Str = (byteArray, start, end) => {
         let result = '';
         for (let i = start; i < byteArray.length && i < end; i++) {
-            result = result + String.fromCharCode(byteArray[i]);
+            result += String.fromCharCode(byteArray[i]);
         }
         return result;
     };
@@ -314,38 +326,33 @@
         const host = params.host;
         const port = params.port;
 
-        let url = 'ws://' + host;
+        let url = `ws://${host}`;
         if (port) {
-            url += ':' + port;
+            url += `:${port}`;
         }
 
         socket = io(url, { 'force new connection': true, reconnect: false });
 
         socket.on('connect', () => {
-            console.log('[pofresh.init] websocket connected!');
             if (cb) {
                 cb(socket);
             }
         });
 
-        socket.on('reconnect', () => {
-            console.log('reconnect');
-        });
+        socket.on('reconnect', () => {});
 
         socket.on('message', data => {
             if (typeof data === 'string') {
                 data = JSON.parse(data);
             }
-            if (data instanceof Array) {
+            if (Array.isArray(data)) {
                 processMessageBatch(pofresh, data);
             } else {
                 processMessage(pofresh, data);
             }
         });
 
-        socket.on('error', err => {
-            console.log(err);
-        });
+        socket.on('error', _err => {});
 
         socket.on('disconnect', reason => {
             pofresh.emit('disconnect', reason);
@@ -388,14 +395,13 @@
     };
 
     const processMessage = (pofresh, msg) => {
-        let route;
+        let _route;
         if (msg.id) {
             //if have a id then find the callback function with the request
             const cb = callbacks[msg.id];
 
             delete callbacks[msg.id];
             if (typeof cb !== 'function') {
-                console.log('[pofresh.processMessage] cb is not a function for request ' + msg.id);
                 return;
             }
 

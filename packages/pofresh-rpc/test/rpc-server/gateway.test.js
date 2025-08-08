@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { server as Server } from '../../index.js';
 
 const paths = [
-    { namespace: 'user', path: __dirname + '/../mock-remote/area' },
-    { namespace: 'sys', path: __dirname + '/../mock-remote/connector' }
+    { namespace: 'user', path: `${__dirname}/../mock-remote/area` },
+    { namespace: 'sys', path: `${__dirname}/../mock-remote/connector` }
 ];
 
 describe('gateway', () => {

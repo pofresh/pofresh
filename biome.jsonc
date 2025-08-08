@@ -1,63 +1,63 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
-    "extends": ["ultracite"],
-    "files": {
-        "ignoreUnknown": true,
-        "includes": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
-        "experimentalScannerIgnores": [
-            "**/node_modules/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/*.min.js",
-            "**/public/js/lib/**",
-            "**/template/**/public/**"
-        ]
-    },
-    "linter": {
-        "enabled": true,
-        "rules": {
-            "style": {
-                "useNodejsImportProtocol": "off",
-                "useFilenamingConvention": {
-                    "level": "error",
-                    "options": {
-                        "filenameCases": ["camelCase"],
-                        "requireAscii": true,
-                        "strictCase": false
-                    }
-                }
-            }
-        },
-        "domains": {
-            "test": "all"
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
+  "extends": ["ultracite"],
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"],
+    "experimentalScannerIgnores": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/*.min.js",
+      "**/public/js/lib/**",
+      "**/template/**/public/**"
+    ]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "useNodejsImportProtocol": "off",
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "filenameCases": ["camelCase"],
+            "requireAscii": true,
+            "strictCase": false
+          }
         }
+      }
     },
-    "formatter": {
-        "enabled": true,
-        "formatWithErrors": true,
-        "indentStyle": "space",
-        "indentWidth": 4,
-        "lineWidth": 120
-    },
-    "javascript": {
-        "formatter": {
-            "quoteStyle": "single",
-            "trailingCommas": "none",
-            "semicolons": "always",
-            "arrowParentheses": "asNeeded",
-            "bracketSpacing": true
-        },
-        "globals": [
-            "arguments",
-            "console",
-            "process",
-            "Buffer",
-            "__dirname",
-            "__filename",
-            "global",
-            "require",
-            "module",
-            "exports"
-        ]
+    "domains": {
+      "test": "all"
     }
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": true,
+    "indentStyle": "space",
+    "indentWidth": 4,
+    "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "none",
+      "semicolons": "always",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true
+    },
+    "globals": [
+      "arguments",
+      "console",
+      "process",
+      "Buffer",
+      "__dirname",
+      "__filename",
+      "global",
+      "require",
+      "module",
+      "exports"
+    ]
+  }
 }

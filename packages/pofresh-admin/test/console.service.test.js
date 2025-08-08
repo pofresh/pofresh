@@ -66,7 +66,7 @@ describe('console service', () => {
             });
 
             monitorConsole1.register(monitorConfig1.moduleId, {
-                monitorHandler(agent, msg, cb) {
+                monitorHandler(_agent, msg, cb) {
                     req1Count++;
                     expect(msg).toBeDefined();
                     expect(msg).toEqual(msg1);

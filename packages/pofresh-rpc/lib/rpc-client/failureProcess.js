@@ -38,10 +38,10 @@ module.exports = function (code, tracer, serverId, msg, opts, cb) {
  *
  * @api private
  */
-function failover(code, tracer, serverId, msg, opts, cb) {
+function failover(_code, tracer, serverId, msg, opts, cb) {
     let servers;
     const serverType = msg.serverType;
-    if (tracer && tracer.servers) {
+    if (tracer?.servers) {
         servers = tracer.servers;
     } else {
         servers = this.serversMap[serverType];
@@ -55,7 +55,7 @@ function failover(code, tracer, serverId, msg, opts, cb) {
 
     if (!servers.length) {
         logger.error('[pofresh-rpc] rpc failed with all this type of servers, with serverType: %s', serverType);
-        cb(new Error('rpc failed with all this type of servers, with serverType: ' + serverType));
+        cb(new Error(`rpc failed with all this type of servers, with serverType: ${serverType}`));
         return;
     }
     this.dispatch.call(this, tracer, servers[0], msg, opts, cb);
@@ -93,7 +93,7 @@ function failsafe(code, tracer, serverId, msg, opts, cb) {
                     this.connect(tracer, serverId, cb);
                 }, retryConnectTime * tracer.retryTimes);
             } else {
-                cb(new Error('rpc client failed to connect to remote server: ' + serverId));
+                cb(new Error(`rpc client failed to connect to remote server: ${serverId}`));
             }
             break;
         case constants.RPC_ERROR.FAIL_FIND_MAILBOX:
@@ -103,7 +103,7 @@ function failsafe(code, tracer, serverId, msg, opts, cb) {
                     this.dispatch.call(this, tracer, serverId, msg, opts, cb);
                 }, retryConnectTime * tracer.retryTimes);
             } else {
-                cb(new Error('rpc client failed to send message to remote server: ' + serverId));
+                cb(new Error(`rpc client failed to send message to remote server: ${serverId}`));
             }
             break;
         case constants.RPC_ERROR.FILTER_ERROR:
@@ -126,10 +126,10 @@ function failsafe(code, tracer, serverId, msg, opts, cb) {
  *
  * @api private
  */
-function failback(code, tracer, serverId, msg, opts, cb) {
+function failback(code, _tracer, serverId, msg, _opts, cb) {
     // todo record message in background and send the message at timing
     logger.error('rpc failed with error, remote server: %s, msg: %j, error code: %s', serverId, msg, code);
-    cb && cb(new Error('rpc failed with error code: ' + code));
+    cb?.(new Error(`rpc failed with error code: ${code}`));
 }
 
 /**
@@ -144,7 +144,7 @@ function failback(code, tracer, serverId, msg, opts, cb) {
  *
  * @api private
  */
-function failfast(code, tracer, serverId, msg, opts, cb) {
+function failfast(code, _tracer, serverId, msg, _opts, cb) {
     logger.error('rpc failed with error, remote server: %s, msg: %j, error code: %s', serverId, msg, code);
-    cb && cb(new Error('rpc failed with error code: ' + code));
+    cb?.(new Error(`rpc failed with error code: ${code}`));
 }

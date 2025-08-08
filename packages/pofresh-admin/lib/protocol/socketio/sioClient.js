@@ -6,7 +6,7 @@ const IOClient = require('socket.io-client');
 class SIOClient extends EventEmitter {
     constructor(opts) {
         super();
-        this.clientId = 'SOCKET_ADMIN_' + Date.now();
+        this.clientId = `SOCKET_ADMIN_${Date.now()}`;
         this.id = opts.id;
         this.host = null;
         this.port = null;
@@ -63,7 +63,7 @@ class SIOClient extends EventEmitter {
         }, this.timeout || 10_000);
 
         try {
-            this.socket = IOClient('ws://' + host + ':' + port, {
+            this.socket = IOClient(`ws://${host}:${port}`, {
                 forceNew: true,
                 reconnection: true,
                 reconnectionDelay: this.reconnectDelay,
@@ -72,7 +72,7 @@ class SIOClient extends EventEmitter {
             });
         } catch (err) {
             clearTimeout(connectTimeout);
-            return safeCallback(new Error('Failed to create socket: ' + err.message));
+            return safeCallback(new Error(`Failed to create socket: ${err.message}`));
         }
 
         this.socket.on('register', msg => {
@@ -111,7 +111,7 @@ class SIOClient extends EventEmitter {
 
         this.socket.on('connect_error', err => {
             clearTimeout(connectTimeout);
-            const errorMsg = '[SIOClient] socket connect_error, remote server ' + host + ':' + port;
+            const errorMsg = `[SIOClient] socket connect_error, remote server ${host}:${port}`;
             logger.error('%s socket error: %s, remote server host: %s, port: %s', this.id, err, host, port);
             this.emit('error', new Error(errorMsg));
             if (!callbackInvoked) {
@@ -148,7 +148,7 @@ class SIOClient extends EventEmitter {
 
         this.connected = false;
         this.closed = true;
-        delete this.socket;
+        this.socket = undefined;
         this.socket = null;
     }
 

@@ -1,4 +1,4 @@
-const logger = require('pofresh-logger').getLogger('pofresh-admin', 'test_module');
+const _logger = require('pofresh-logger').getLogger('pofresh-admin', 'test_module');
 
 const DEFAULT_INTERVAL = 5; // in second
 const DEFAULT_DELAY = 1; // in second
@@ -17,24 +17,24 @@ class Module {
         this.delay = opts.delay || DEFAULT_DELAY;
     }
 
-    monitorHandler(agent, msg, cb) {
+    monitorHandler(_agent, _msg, cb) {
         cb(null, 'ok');
     }
 
-    masterHandler(agent, msg, cb) {
+    masterHandler(agent, msg, _cb) {
         if (!msg) {
             // agent.notifyAll(moduleId);
             const sendMsg = {
                 id: Date.now()
             };
-            agent.request('test-server-1', moduleId, sendMsg, (err, r) => {
+            agent.request('test-server-1', moduleId, sendMsg, (_err, _r) => {
                 // Handle response in production
             });
             return;
         }
     }
 
-    clientHandler(agent, msg, cb) {
+    clientHandler(_agent, _msg, _cb) {
         // Handle client messages in production
     }
 }

@@ -160,7 +160,7 @@ starter.sshrun = (cmd, host, cb) => {
     }
     args.push(cmd);
 
-    logger.info('Executing ' + cmd + ' on ' + host + ':22');
+    logger.info(`Executing ${cmd} on ${host}:22`);
     spawnProcess(Constants.COMMAND.SSH, host, args, cb);
     return;
 };
@@ -173,7 +173,7 @@ starter.sshrun = (cmd, host, cb) => {
  *
  */
 starter.localrun = (cmd, host, options, callback) => {
-    logger.info('Executing ' + cmd + ' ' + options + ' locally');
+    logger.info(`Executing ${cmd} ${options} locally`);
     spawnProcess(cmd, host, options, callback);
 };
 
@@ -190,7 +190,7 @@ function spawnProcess(command, host, options, cb) {
 
     if (env === Constants.RESERVED.ENV_DEV) {
         child = cp.spawn(command, options);
-        const prefix = command === Constants.COMMAND.SSH ? '[' + host + '] ' : '';
+        const prefix = command === Constants.COMMAND.SSH ? `[${host}] ` : '';
 
         child.stderr.on('data', chunk => {
             const msg = chunk.toString();

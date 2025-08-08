@@ -13,7 +13,7 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-    entry(msg, session, next) {
+    entry(_msg, _session, next) {
         next(null, { code: 200, msg: 'game server is ok.' });
     }
 
@@ -25,7 +25,7 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-    publish(msg, session, next) {
+    publish(_msg, _session, next) {
         const result = {
             topic: 'publish',
             payload: JSON.stringify({ code: 200, msg: 'publish message is ok.' })
@@ -41,7 +41,7 @@ class Handler {
      * @param  {Function} next    next step callback
      * @return {Void}
      */
-    subscribe(msg, session, next) {
+    subscribe(_msg, _session, next) {
         const result = {
             topic: 'subscribe',
             payload: JSON.stringify({ code: 200, msg: 'subscribe message is ok.' })

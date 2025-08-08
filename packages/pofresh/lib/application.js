@@ -326,7 +326,7 @@ Application.load = function (name, component, opts) {
     }
 
     if (name && this.components[name]) {
-        // ignore duplicat component
+        // ignore duplicate component
         logger.warn('ignore duplicate component: %j', name);
         return;
     }
@@ -356,11 +356,12 @@ Application.loadConfigBaseApp = function (key, val, reload) {
     let realPath;
     if (fs.existsSync(originPath)) {
         realPath = originPath;
-        let file = require(originPath);
+        const file = require(originPath);
+        let config = file;
         if (file[env]) {
-            file = file[env];
+            config = file[env];
         }
-        this.set(key, file);
+        this.set(key, config);
     } else if (fs.existsSync(presentPath)) {
         realPath = presentPath;
         const pfile = require(presentPath);
@@ -389,11 +390,11 @@ Application.loadConfigBaseApp = function (key, val, reload) {
  */
 Application.loadConfig = function (key, val) {
     const env = this.get(Constants.RESERVED.ENV);
-    val = require(val);
-    if (val[env]) {
-        val = val[env];
+    let config = require(val);
+    if (config[env]) {
+        config = config[env];
     }
-    this.set(key, val);
+    this.set(key, config);
 };
 
 /**
@@ -553,23 +554,24 @@ Application.stop = function (force) {
  * @return {Application} for chaining
  * @memberOf Application
  */
-Application.configure = function (env, type, fn) {
+Application.configure = function (_env, _type, _fn) {
     const args = [].slice.call(arguments);
-    fn = args.pop();
-    env = type = Constants.RESERVED.ALL;
+    const callback = args.pop();
+    let currentEnv = Constants.RESERVED.ALL;
+    let currentType = Constants.RESERVED.ALL;
 
     if (args.length > 0) {
-        env = args[0];
+        currentEnv = args[0];
     }
     if (args.length > 1) {
-        type = args[1];
+        currentType = args[1];
     }
 
     if (
-        (env === Constants.RESERVED.ALL || contains(this.settings.env, env)) &&
-        (type === Constants.RESERVED.ALL || contains(this.settings.serverType, type))
+        (currentEnv === Constants.RESERVED.ALL || containsValue(this.settings.env, currentEnv)) &&
+        (currentType === Constants.RESERVED.ALL || containsValue(this.settings.serverType, currentType))
     ) {
-        fn.call(this);
+        callback.call(this);
     }
     return this;
 };
@@ -589,22 +591,26 @@ Application.registerAdmin = function (moduleId, module, opts) {
         this.set(Constants.KEYWORDS.MODULE, modules);
     }
 
+    let currentModuleId = moduleId;
+    let currentModule = module;
+    let currentOpts = opts;
+
     if (typeof moduleId !== 'string') {
-        opts = module;
-        module = moduleId;
-        if (module) {
-            moduleId = module.moduleId;
+        currentOpts = module;
+        currentModule = moduleId;
+        if (currentModule) {
+            currentModuleId = currentModule.moduleId;
         }
     }
 
-    if (!moduleId) {
+    if (!currentModuleId) {
         return;
     }
 
-    modules[moduleId] = {
-        moduleId,
-        module,
-        opts
+    modules[currentModuleId] = {
+        moduleId: currentModuleId,
+        module: currentModule,
+        opts: currentOpts
     };
 };
 
@@ -794,8 +800,8 @@ Application.getServersByType = function (serverType) {
  * @memberOf Application
  */
 Application.isFrontend = function (server) {
-    server = server || this.getCurServer();
-    return !!server && server.frontend === 'true';
+    const currentServer = server || this.getCurServer();
+    return !!currentServer && currentServer.frontend === 'true';
 };
 
 /**
@@ -807,8 +813,8 @@ Application.isFrontend = function (server) {
  * @memberOf Application
  */
 Application.isBackend = function (server) {
-    server = server || this.getCurServer();
-    return !!server && !server.frontend;
+    const currentServer = server || this.getCurServer();
+    return !!currentServer && !currentServer.frontend;
 };
 
 /**
@@ -828,11 +834,11 @@ Application.isMaster = function () {
  * @memberOf Application
  */
 Application.addServers = function (servers) {
-    if (!(servers && servers.length)) {
+    if (!servers?.length) {
         return;
     }
 
-    let item, slist;
+    let _item, _slist;
     // 使用现代数组方法优化循环
     servers.forEach(server => {
         // update global server map
@@ -860,14 +866,16 @@ Application.addServers = function (servers) {
  * @memberOf Application
  */
 Application.removeServers = function (ids) {
-    if (!(ids && ids.length)) {
+    if (!ids?.length) {
         return;
     }
 
     // 使用现代数组方法优化循环
     ids.forEach(id => {
         const item = this.servers[id];
-        if (!item) return;
+        if (!item) {
+            return;
+        }
 
         // clean global server map
         delete this.servers[id];
@@ -917,7 +925,7 @@ Application.replaceServers = function (servers) {
  * @memberOf Application
  */
 Application.addCrons = function (crons) {
-    if (!(crons && crons.length)) {
+    if (!crons?.length) {
         logger.warn('crons is not defined.');
         return;
     }
@@ -931,7 +939,7 @@ Application.addCrons = function (crons) {
  * @memberOf Application
  */
 Application.removeCrons = function (crons) {
-    if (!(crons && crons.length)) {
+    if (!crons?.length) {
         logger.warn('ids is not defined.');
         return;
     }
@@ -948,7 +956,9 @@ function replaceServer(slist, serverInfo) {
 }
 
 function removeServer(slist, id) {
-    if (!slist?.length) return;
+    if (!slist?.length) {
+        return;
+    }
 
     const index = slist.findIndex(s => s.id === id);
     if (index !== -1) {
@@ -956,7 +966,7 @@ function removeServer(slist, id) {
     }
 }
 
-function contains(str, settings) {
+function containsValue(str, settings) {
     if (!settings) {
         return false;
     }

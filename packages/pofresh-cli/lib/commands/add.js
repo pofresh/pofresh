@@ -27,7 +27,7 @@ class Command {
                     },
                     (err, data) => {
                         if (err) {
-                            util.log('Error adding server: ' + err);
+                            util.log(`Error adding server: ${err}`);
                         } else {
                             util.formatOutput(comd, data);
                             util.log('Server added successfully');

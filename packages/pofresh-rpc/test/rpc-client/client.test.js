@@ -5,12 +5,12 @@ const records = [
     {
         namespace: 'user',
         serverType: 'area',
-        path: __dirname + '/../mock-remote/area'
+        path: `${__dirname}/../mock-remote/area`
     },
     {
         namespace: 'sys',
         serverType: 'connector',
-        path: __dirname + '/../mock-remote/connector'
+        path: `${__dirname}/../mock-remote/connector`
     }
 ];
 

@@ -10,13 +10,13 @@ class MailBox extends BaseMailbox {
     connect(tracer, cb) {
         this.tracer = tracer;
         this.cb = cb;
-        tracer && tracer.info('client', __filename, 'connect', 'sio-mailbox try to connect');
+        tracer?.info('client', __filename, 'connect', 'sio-mailbox try to connect');
         if (this.connected) {
-            tracer && tracer.error('client', __filename, 'connect', 'sio-mailbox has already connected');
+            tracer?.error('client', __filename, 'connect', 'sio-mailbox has already connected');
             cb(new Error('sio-mailbox has already connected.'));
             return;
         }
-        this.socket = client('ws://' + this.host + ':' + this.port, {
+        this.socket = client(`ws://${this.host}:${this.port}`, {
             'force new connection': true,
             reconnection: false
         });

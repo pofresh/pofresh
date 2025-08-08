@@ -60,7 +60,7 @@ class Module {
     clientHandler(agent, msg, cb) {
         agent.request(msg.serverId, moduleId, msg, (err, res) => {
             if (err) {
-                logger.error('fail to run log for ' + err.stack);
+                logger.error(`fail to run log for ${err.stack}`);
                 return;
             }
             cb(null, res);
@@ -85,7 +85,7 @@ function fetchLogs(root, msg, callback) {
                 last = item.slice(item.indexOf('{'));
             } else {
                 log = item.replace(/^\s+|\s+$/g, '').split(/\s+/);
-                last = log[log.length - 1];
+                last = log.at(-1);
             }
 
             if (last) {
@@ -111,5 +111,5 @@ function fetchLogs(root, msg, callback) {
 }
 
 function getLogFileName(logfile, serverId) {
-    return logfile + '-' + serverId + '.log';
+    return `${logfile}-${serverId}.log`;
 }

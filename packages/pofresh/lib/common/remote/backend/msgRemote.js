@@ -80,13 +80,13 @@ class Remote {
         };
 
         const connector = this.app.components.__connector__.connector;
-        connector.runDecode(dmsg, socket, (err, msg) => {
-            if (err) {
-                return cb(err);
+        connector.runDecode(dmsg, socket, (decodeErr, msg) => {
+            if (decodeErr) {
+                return cb(decodeErr);
             }
 
-            server.handle(msg, backendSession, (err, resp, opts) => {
-                utils.invokeCallback(cb, err, resp, opts);
+            server.handle(msg, backendSession, (handleErr, resp, opts) => {
+                utils.invokeCallback(cb, handleErr, resp, opts);
             });
         });
     }

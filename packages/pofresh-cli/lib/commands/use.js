@@ -26,10 +26,10 @@ class Command {
         const user = msg.user || 'admin';
 
         if (comd === 'all') {
-            util.log('\nswitch to server: ' + comd + '\n');
+            util.log(`\nswitch to server: ${comd}\n`);
             Context = comd;
             agent.setContext(Context);
-            const PROMPT = user + consts.PROMPT + Context + '>';
+            const PROMPT = `${user + consts.PROMPT + Context}>`;
             rl.setPrompt(PROMPT);
             rl.prompt();
             return;
@@ -43,17 +43,17 @@ class Command {
             },
             (err, data) => {
                 if (err) {
-                    util.log('Error retrieving server list: ' + err);
+                    util.log(`Error retrieving server list: ${err}`);
                 } else {
-                    const _msg = data['msg'];
+                    const _msg = data.msg;
                     if (_msg[comd]) {
-                        util.log('\nSwitched to server: ' + comd + '\n');
+                        util.log(`\nSwitched to server: ${comd}\n`);
                         Context = comd;
                         agent.setContext(Context);
-                        const PROMPT = user + consts.PROMPT + Context + '>';
+                        const PROMPT = `${user + consts.PROMPT + Context}>`;
                         rl.setPrompt(PROMPT);
                     } else {
-                        util.log('\nError: Server "' + comd + '" not found in pofresh clusters\n');
+                        util.log(`\nError: Server "${comd}" not found in pofresh clusters\n`);
                     }
                 }
                 rl.prompt();

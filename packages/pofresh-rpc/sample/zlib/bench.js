@@ -15,8 +15,7 @@ function run() {
     }
 
     const now = Date.now();
-    const cost = now - start;
-    console.log('run %d num requests cost: %d ops/sec', num, cost, (num / (cost / 1000)).toFixed(2));
+    const _cost = now - start;
     run();
 }
 

@@ -28,7 +28,7 @@ class Connector extends EventEmitter {
     start(cb) {
         this.mqttServer = mqtt.createServer();
         this.mqttServer.on('client', client => {
-            client.on('error', err => {
+            client.on('error', _err => {
                 client.stream.destroy();
             });
 
@@ -36,7 +36,7 @@ class Connector extends EventEmitter {
                 client.stream.destroy();
             });
 
-            client.on('disconnect', packet => {
+            client.on('disconnect', _packet => {
                 client.stream.destroy();
             });
 
@@ -47,7 +47,7 @@ class Connector extends EventEmitter {
                 });
             }
 
-            client.on('connect', packet => {
+            client.on('connect', _packet => {
                 client.connack({ returnCode: 0 });
                 const mqttsocket = new MQTTSocket(curId++, client, this.adaptor);
                 this.emit('connection', mqttsocket);
@@ -78,14 +78,14 @@ class Connector extends EventEmitter {
 
 module.exports = Connector;
 
-function composeResponse(msgId, route, msgBody) {
+function composeResponse(msgId, _route, msgBody) {
     return {
         id: msgId,
         body: msgBody
     };
 }
 
-function composePush(route, msgBody) {
+function composePush(_route, msgBody) {
     const msg = generate.publish(msgBody);
     if (!msg) {
         logger.error('invalid mqtt publish message: %j', msgBody);

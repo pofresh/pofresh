@@ -42,11 +42,12 @@ class Job {
             jobCount++;
             this.runTime++;
             const late = Date.now() - this.executeTime();
-            if (late > warnLimit)
-                logger.warn('run Job count ' + jobCount + ' late :' + late + ' lateCount ' + ++lateCount);
+            if (late > warnLimit) {
+                logger.warn(`run Job count ${jobCount} late :${late} lateCount ${++lateCount}`);
+            }
             this.func(this.data);
         } catch (e) {
-            logger.error('Job run error for exception ! ' + e.stack);
+            logger.error(`Job run error for exception ! ${e.stack}`);
         }
     }
 

@@ -32,7 +32,7 @@ class Command {
                     },
                     (err, data) => {
                         if (err) {
-                            util.log('Error stopping server: ' + err);
+                            util.log(`Error stopping server: ${err}`);
                         } else {
                             util.formatOutput(comd, data);
                             util.log('Server stopped successfully');

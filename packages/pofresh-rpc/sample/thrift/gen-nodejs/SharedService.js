@@ -21,15 +21,15 @@ SharedService_getStruct_args.prototype.read = function (input) {
     input.readStructBegin();
     while (true) {
         const ret = input.readFieldBegin();
-        const fname = ret.fname;
+        const _fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
-        if (ftype == Thrift.Type.STOP) {
+        if (ftype === Thrift.Type.STOP) {
             break;
         }
         switch (fid) {
             case 1:
-                if (ftype == Thrift.Type.I32) {
+                if (ftype === Thrift.Type.I32) {
                     this.key = input.readI32();
                 } else {
                     input.skip(ftype);
@@ -70,15 +70,15 @@ SharedService_getStruct_result.prototype.read = function (input) {
     input.readStructBegin();
     while (true) {
         const ret = input.readFieldBegin();
-        const fname = ret.fname;
+        const _fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
-        if (ftype == Thrift.Type.STOP) {
+        if (ftype === Thrift.Type.STOP) {
             break;
         }
         switch (fid) {
             case 0:
-                if (ftype == Thrift.Type.STRUCT) {
+                if (ftype === Thrift.Type.STRUCT) {
                     this.success = new ttypes.SharedStruct();
                     this.success.read(input);
                 } else {
@@ -153,7 +153,7 @@ SharedServiceClient.prototype.send_getStruct = function (key) {
 SharedServiceClient.prototype.recv_getStruct = function (input, mtype, rseqid) {
     const callback = this._reqs[rseqid] || (() => {});
     delete this._reqs[rseqid];
-    if (mtype == Thrift.MessageType.EXCEPTION) {
+    if (mtype === Thrift.MessageType.EXCEPTION) {
         const x = new Thrift.TApplicationException();
         x.read(input);
         input.readMessageEnd();
@@ -173,14 +173,14 @@ SharedServiceProcessor = exports.Processor = function (handler) {
 };
 SharedServiceProcessor.prototype.process = function (input, output) {
     const r = input.readMessageBegin();
-    if (this['process_' + r.fname]) {
-        return this['process_' + r.fname].call(this, r.rseqid, input, output);
+    if (this[`process_${r.fname}`]) {
+        return this[`process_${r.fname}`].call(this, r.rseqid, input, output);
     }
     input.skip(Thrift.Type.STRUCT);
     input.readMessageEnd();
     const x = new Thrift.TApplicationException(
         Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
-        'Unknown function ' + r.fname
+        `Unknown function ${r.fname}`
     );
     output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
     x.write(output);
@@ -194,8 +194,8 @@ SharedServiceProcessor.prototype.process_getStruct = function (seqid, input, out
     input.readMessageEnd();
     if (this._handler.getStruct.length === 1) {
         Q.fcall(this._handler.getStruct, args.key).then(
-            result => {
-                var result = new SharedService_getStruct_result({ success: result });
+            _result => {
+                const result = new SharedService_getStruct_result({ success: result });
                 output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);
                 result.write(output);
                 output.writeMessageEnd();
@@ -210,12 +210,12 @@ SharedServiceProcessor.prototype.process_getStruct = function (seqid, input, out
             }
         );
     } else {
-        this._handler.getStruct(args.key, (err, result) => {
+        this._handler.getStruct(args.key, (err, _result) => {
             if (err == null) {
-                var result = new SharedService_getStruct_result(err != null ? err : { success: result });
+                const result = new SharedService_getStruct_result(err != null ? err : { success: result });
                 output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);
             } else {
-                var result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
+                const _result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
                 output.writeMessageBegin('getStruct', Thrift.MessageType.EXCEPTION, seqid);
             }
             result.write(output);

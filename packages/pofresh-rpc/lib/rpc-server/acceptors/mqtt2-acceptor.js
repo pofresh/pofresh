@@ -76,7 +76,7 @@ class Acceptor extends BaseAcceptor {
                 pkg.traceId,
                 pkg.seqId
             );
-            tracer.info('server', __filename, 'processMsg', this.name + ' receive message and try to process message');
+            tracer.info('server', __filename, 'processMsg', `${this.name} receive message and try to process message`);
         }
         this.cb(tracer, pkg.msg, function () {
             // var args = Array.prototype.slice.call(arguments, 0);
@@ -92,7 +92,7 @@ class Acceptor extends BaseAcceptor {
             }
 
             let resp;
-            if (tracer && tracer.isEnabled) {
+            if (tracer?.isEnabled) {
                 resp = {
                     traceId: tracer.id,
                     seqId: tracer.seq,

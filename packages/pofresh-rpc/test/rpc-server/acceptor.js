@@ -1,6 +1,6 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const Acceptor = require('../../' + lib + '/rpc-server/acceptor');
-const Client = require('../../' + lib + '/rpc-client/mailboxes/sio-mailbox');
+const Acceptor = require(`../../${lib}/rpc-server/acceptor`);
+const Client = require(`../../${lib}/rpc-client/mailboxes/sio-mailbox`);
 
 const WAIT_TIME = 100;
 
@@ -79,7 +79,7 @@ describe('acceptor', () => {
                 args: [1, 'a', { param: 100 }]
             };
 
-            const acceptor = Acceptor.create(null, (tracer, msg, cb) => {
+            const acceptor = Acceptor.create(null, (_tracer, msg, cb) => {
                 msg.should.eql(orgMsg);
                 callbackCount++;
                 cb(null, msg);
@@ -90,7 +90,7 @@ describe('acceptor', () => {
 
             const client = Client.create(server);
             client.connect(null, () => {
-                client.send(null, orgMsg, null, (log, error, backMsg) => {
+                client.send(null, orgMsg, null, (_log, _error, backMsg) => {
                     backMsg[1].should.eql(orgMsg);
                     clientCallbackCount++;
                 });
@@ -119,7 +119,7 @@ describe('acceptor', () => {
                 args: [2, 'a', { param: 100 }]
             };
 
-            const acceptor = Acceptor.create(null, (tracer, msg, cb) => {
+            const acceptor = Acceptor.create(null, (_tracer, msg, cb) => {
                 callbackCount++;
                 cb(null, msg);
             });
@@ -128,11 +128,11 @@ describe('acceptor', () => {
 
             const client = Client.create(server);
             client.connect(null, () => {
-                client.send(null, orgMsg1, null, (log, error, backMsg) => {
+                client.send(null, orgMsg1, null, (_log, _error, backMsg) => {
                     backMsg[1].should.eql(orgMsg1);
                     clientCallbackCount++;
                 });
-                client.send(null, orgMsg2, null, (log, error, backMsg) => {
+                client.send(null, orgMsg2, null, (_log, _error, backMsg) => {
                     backMsg[1].should.eql(orgMsg2);
                     clientCallbackCount++;
                 });

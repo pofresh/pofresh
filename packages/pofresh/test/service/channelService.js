@@ -3,7 +3,7 @@ const pofresh = require('../../');
 const ChannelService = require('../../lib/common/service/channelService');
 
 const channelName = 'test_channel';
-const mockBase = process.cwd() + '/test';
+const mockBase = `${process.cwd()}/test`;
 const mockApp = { serverId: 'test-server-1' };
 
 describe('channel manager test', () => {
@@ -61,7 +61,8 @@ describe('channel manager test', () => {
     });
 
     describe('#pushMessageByUids', () => {
-        it('should push message to the right frontend server', done => {
+        it('should push message to the right frontend server', () => {
+            return new Promise(resolve => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -75,8 +76,10 @@ describe('channel manager test', () => {
             ];
             const mockMsg = { key: 'some remote message' };
             const uidMap = {};
-            for (const i in mockUids) {
-                uidMap[mockUids[i].uid] = mockUids[i];
+            for (const mockUid of mockUids) {
+                if (Object.hasOwn(mockUid, 'uid')) {
+                    uidMap[mockUid.uid] = mockUid;
+                }
             }
 
             let invokeCount = 0;
@@ -84,13 +87,12 @@ describe('channel manager test', () => {
             const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 const args = rmsg.args;
-                const route = args[0];
+                const _route = args[0];
                 const msg = args[1];
                 const uids = args[2];
                 mockMsg.should.eql(msg);
 
-                for (let j = 0, l = uids.length; j < l; j++) {
-                    const uid = uids[j];
+                for (const uid of uids) {
                     const r2 = uidMap[uid];
                     r2.sid.should.equal(sid);
                 }
@@ -104,11 +106,13 @@ describe('channel manager test', () => {
 
             channelService.pushMessageByUids(orgRoute, mockMsg, mockUids, () => {
                 invokeCount.should.equal(2);
-                done();
+                resolve();
+            });
             });
         });
 
-        it('should return an err if uids is empty', done => {
+        it('should return an err if uids is empty', () => {
+            return new Promise(resolve => {
             const mockMsg = { key: 'some remote message' };
             const app = pofresh.createApp({ base: mockBase });
             const channelService = new ChannelService(app);
@@ -116,11 +120,13 @@ describe('channel manager test', () => {
             channelService.pushMessageByUids(mockMsg, null, err => {
                 should.exist(err);
                 err.message.should.equal('uids should not be empty');
-                done();
+                resolve();
+            });
             });
         });
 
-        it('should return err if all message fail to push', done => {
+        it('should return err if all message fail to push', () => {
+            return new Promise(_resolve => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -139,7 +145,7 @@ describe('channel manager test', () => {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = (sid, rmsg, cb) => {
+            const mockRpcInvoke = (_sid, _rmsg, cb) => {
                 invokeCount++;
                 cb(new Error('[TestMockError] mock rpc error'));
             };
@@ -175,7 +181,7 @@ describe('channel manager test', () => {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = (sid, rmsg, cb) => {
+            const mockRpcInvoke = (_sid, rmsg, cb) => {
                 invokeCount++;
                 if (rmsg.args[2].indexOf(uid1) >= 0) {
                     cb(null, [uid1]);

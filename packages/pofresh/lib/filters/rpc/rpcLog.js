@@ -15,7 +15,7 @@ class Filter {
     /**
      * Before filter for rpc
      */
-    before(serverId, msg, opts, next) {
+    before(_serverId, _msg, opts, next) {
         opts = opts || {};
         opts.__start_time__ = Date.now();
         next();
@@ -24,7 +24,7 @@ class Filter {
     /**
      * After filter for rpc
      */
-    after(serverId, msg, opts, next) {
+    after(_serverId, msg, opts, next) {
         if (!!opts && !!opts.__start_time__) {
             const start = opts.__start_time__;
             const end = Date.now();

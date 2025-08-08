@@ -1,6 +1,6 @@
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
 const should = require('should');
-const Mailbox = require('../../' + lib + '/rpc-client/mailboxes/ws-mailbox');
+const Mailbox = require(`../../${lib}/rpc-client/mailboxes/ws-mailbox`);
 const Server = require('../../').server;
 const Tracer = require('../../lib/util/tracer');
 
@@ -10,12 +10,12 @@ const paths = [
     {
         namespace: 'user',
         serverType: 'area',
-        path: __dirname + '../../mock-remote/area'
+        path: `${__dirname}../../mock-remote/area`
     },
     {
         namespace: 'sys',
         serverType: 'connector',
-        path: __dirname + '../../mock-remote/connector'
+        path: `${__dirname}../../mock-remote/connector`
     }
 ];
 
@@ -93,7 +93,7 @@ describe('ws mailbox test', () => {
             const mailbox = Mailbox.create(server);
             mailbox.connect(tracer, _err => {
                 expect(_err).toBeUndefined();
-                mailbox.send(tracer, msg, null, (_tracer, err, res) => {
+                mailbox.send(tracer, msg, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(msg.args[0] + 1);
                     mailbox.close();
@@ -131,19 +131,19 @@ describe('ws mailbox test', () => {
             mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg1, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg2, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg3, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
@@ -189,19 +189,19 @@ describe('ws mailbox test', () => {
             mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg1, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg2, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg3, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
@@ -256,19 +256,19 @@ describe('ws mailbox test', () => {
             mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg1, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg2, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
+                mailbox.send(tracer, msg3, null, (_tracer, _err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
@@ -312,7 +312,7 @@ describe('ws mailbox test', () => {
             mailbox.connect(tracer, err => {
                 should.not.exist(err);
                 mailbox.close();
-                mailbox.send(tracer, msg, null, (tracer, err) => {
+                mailbox.send(tracer, msg, null, (_tracer, err) => {
                     expect(err);
                     done();
                 });

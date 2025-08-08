@@ -91,7 +91,7 @@ describe('util', () => {
             const map = { zebra: 1, apple: 1, banana: 1 };
             const result = util.tabComplete([], '', map, 'complete');
             expect(result[0]).toBe('apple');
-            expect(result[result.length - 1]).toBe('zebra');
+            expect(result.at(-1)).toBe('zebra');
         });
     });
 

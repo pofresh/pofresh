@@ -64,8 +64,9 @@ function decodeTimeStr(timeStr, type) {
                 decodeRangeTime(result, time);
             } else if (time.match(/^\d+\/\d+/)) {
                 decodePeriodTime(result, time, type);
-            } else if (isNaN(time)) return null;
-            else {
+            } else if (Number.isNaN(time)) {
+                return null;
+            } else {
                 const num = Number(time);
                 result[num] = num;
             }
@@ -74,7 +75,7 @@ function decodeTimeStr(timeStr, type) {
         decodeRangeTime(result, timeStr);
     } else if (timeStr.match(/^\d+\/\d+/)) {
         decodePeriodTime(result, timeStr, type);
-    } else if (isNaN(timeStr)) {
+    } else if (Number.isNaN(timeStr)) {
         return null;
     } else {
         const num = Number(timeStr);
@@ -100,16 +101,24 @@ function nextCronTime(value, cronTime) {
     value += 1;
 
     if (typeof cronTime === 'number') {
-        if (cronTime === -1) return value;
+        if (cronTime === -1) {
+            return value;
+        }
         return cronTime;
     }
-    if (typeof cronTime === 'object' && cronTime instanceof Array) {
-        if (value <= cronTime[0] || value > cronTime[cronTime.length - 1]) return cronTime[0];
+    if (typeof cronTime === 'object' && Array.isArray(cronTime)) {
+        if (value <= cronTime[0] || value > cronTime.at(-1)) {
+            return cronTime[0];
+        }
 
-        for (let i = 0; i < cronTime.length; i++) if (value <= cronTime[i]) return cronTime[i];
+        for (let i = 0; i < cronTime.length; i++) {
+            if (value <= cronTime[i]) {
+                return cronTime[i];
+            }
+        }
     }
 
-    logger.warn('Compute next Time error! value :' + value + ' cronTime : ' + cronTime);
+    logger.warn(`Compute next Time error! value :${value} cronTime : ${cronTime}`);
     return null;
 }
 
@@ -123,10 +132,16 @@ function timeMatch(value, cronTime) {
     if (typeof cronTime === 'number') {
         return cronTime === -1 || value === cronTime;
     }
-    if (typeof cronTime === 'object' && cronTime instanceof Array) {
-        if (value < cronTime[0] || value > cronTime[cronTime.length - 1]) return false;
+    if (typeof cronTime === 'object' && Array.isArray(cronTime)) {
+        if (value < cronTime[0] || value > cronTime.at(-1)) {
+            return false;
+        }
 
-        for (let i = 0; i < cronTime.length; i++) if (value === cronTime[i]) return true;
+        for (let i = 0; i < cronTime.length; i++) {
+            if (value === cronTime[i]) {
+                return true;
+            }
+        }
     }
 
     return false;
@@ -142,7 +157,6 @@ function decodeRangeTime(map, timeStr) {
     times[0] = Number(times[0]);
     times[1] = Number(times[1]);
     if (times[0] > times[1]) {
-        console.log('Error time range');
         return null;
     }
 
@@ -161,7 +175,9 @@ function decodePeriodTime(map, timeStr, type) {
     const remind = Number(times[0]);
     const period = Number(times[1]);
 
-    if (period === 0) return;
+    if (period === 0) {
+        return;
+    }
 
     for (let i = remind; i <= max; i += period) {
         // if (i % period == remind)
@@ -189,12 +205,18 @@ function getDomLimit(year, month) {
  * @return boolean all the numbers are in the data range
  */
 function checkNum(nums, min, max) {
-    if (nums === null) return false;
+    if (nums === null) {
+        return false;
+    }
 
-    if (nums === -1) return true;
+    if (nums === -1) {
+        return true;
+    }
 
     for (let i = 0; i < nums.length; i++) {
-        if (nums[i] < min || nums[i] > max) return false;
+        if (nums[i] < min || nums[i] > max) {
+            return false;
+        }
     }
 
     return true;

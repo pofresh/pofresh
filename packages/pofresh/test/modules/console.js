@@ -62,18 +62,16 @@ describe('console module test', () => {
     describe('#clientHandler', () => {
         let _exit;
         let _setTimeout;
-        let exitCount = 0;
+        let _exitCount = 0;
 
-        before(done => {
+        before(() => {
             _exit = process.exit;
             _setTimeout = setTimeout;
-            done();
         });
 
-        after(done => {
+        after(() => {
             process.exit = _exit;
             setTimeout = _setTimeout;
-            done();
         });
 
         const opts = {
@@ -95,7 +93,7 @@ describe('console module test', () => {
                 get(value) {
                     switch (value) {
                         case 'main':
-                            return __dirname + '/../../index.js';
+                            return `${__dirname}/../../index.js`;
                         case 'env':
                             return 'dev';
                     }
@@ -109,74 +107,83 @@ describe('console module test', () => {
             }
         };
         const module = new consoleModule(opts);
-        it('should execute kill command', done => {
-            const msg = { signal: 'kill' };
-            process.exit = () => {
-                exitCount++;
-            };
-            setTimeout = (cb, timeout) => {
-                if (timeout > 3000) {
-                    timeout = 3000;
-                }
-                _setTimeout(cb, timeout);
-            };
-
-            const agent1 = {
-                request(recordId, moduleId, msg, cb) {
-                    cb('chat-server-1');
-                },
-                idMap: {
-                    'chat-server-1': {
-                        type: 'chat',
-                        id: 'chat-server-1'
+        it('should execute kill command', () => {
+            return new Promise(resolve => {
+                const msg = { signal: 'kill' };
+                process.exit = () => {
+                    _exitCount++;
+                };
+                const originalSetTimeout = setTimeout;
+                global.setTimeout = (cb, timeout) => {
+                    if (timeout > 3000) {
+                        timeout = 3000;
                     }
-                }
-            };
-            module.clientHandler(agent1, msg, (err, result) => {
-                should.not.exist(err);
-                should.exist(result.code);
-            });
+                    originalSetTimeout(cb, timeout);
+                };
 
-            const agent2 = {
-                request(recordId, moduleId, msg, cb) {
-                    cb(null);
-                },
-                idMap: {
-                    'chat-server-1': {
-                        type: 'chat',
-                        id: 'chat-server-1'
+                const agent1 = {
+                    request(_recordId, _moduleId, _msg, cb) {
+                        cb('chat-server-1');
+                    },
+                    idMap: {
+                        'chat-server-1': {
+                            type: 'chat',
+                            id: 'chat-server-1'
+                        }
                     }
-                }
-            };
-            module.clientHandler(agent2, msg, (err, result) => {
-                should.not.exist(err);
-                should.exist(result.code);
-                result.code.should.eql('remained');
-                done();
+                };
+                module.clientHandler(agent1, msg, (err, result) => {
+                    should.not.exist(err);
+                    should.exist(result.code);
+                });
+
+                const agent2 = {
+                    request(_recordId, _moduleId, _msg, cb) {
+                        cb(null);
+                    },
+                    idMap: {
+                        'chat-server-1': {
+                            type: 'chat',
+                            id: 'chat-server-1'
+                        }
+                    }
+                };
+                module.clientHandler(agent2, msg, (err, result) => {
+                    should.not.exist(err);
+                    should.exist(result.code);
+                    result.code.should.eql('remained');
+                    resolve();
+                });
             });
         }).timeout(5000);
 
-        it('should execute stop command', done => {
-            const msg1 = { signal: 'stop', ids: ['chat-server-1'] };
-            const msg2 = { signal: 'stop', ids: [] };
-            const agent = {
-                notifyById(serverId, moduleId, msg) {},
-                notifyAll(moduleId, msg) {}
-            };
-            module.clientHandler(agent, msg1, (err, result) => {
-                result.status.should.eql('part');
-            });
+        it('should execute stop command', () => {
+            return new Promise(resolve => {
+                const msg1 = { signal: 'stop', ids: ['chat-server-1'] };
+                const msg2 = { signal: 'stop', ids: [] };
+                const agent = {
+                    notifyById(_serverId, _moduleId, _msg) {
+                        // Mock implementation
+                    },
+                    notifyAll(_moduleId, _msg) {
+                        // Mock implementation
+                    }
+                };
+                module.clientHandler(agent, msg1, (_err, result) => {
+                    result.status.should.eql('part');
+                });
 
-            module.clientHandler(agent, msg2, (err, result) => {
-                result.status.should.eql('all');
-                done();
+                module.clientHandler(agent, msg2, (_err, result) => {
+                    result.status.should.eql('all');
+                    resolve();
+                });
             });
         }).timeout(5000);
 
         it('should execute list command', () => {
             const msg = { signal: 'list' };
             const agent = {
-                request(recordId, moduleId, msg, cb) {
+                request(_recordId, _moduleId, _msg, cb) {
                     cb({ serverId: 'chat-server-1', body: { server: {} } });
                 },
                 idMap: {
@@ -186,7 +193,7 @@ describe('console module test', () => {
                     }
                 }
             };
-            module.clientHandler(agent, msg, (err, result) => {
+            module.clientHandler(agent, msg, (_err, result) => {
                 should.exist(result.msg);
             });
         });
@@ -205,7 +212,7 @@ describe('console module test', () => {
                 should.not.exist(err);
                 result.length.should.eql(0);
             });
-            module.clientHandler(agent, msg2, (err, result) => {
+            module.clientHandler(agent, msg2, (_err, result) => {
                 result.status.should.eql('ok');
             });
         });
@@ -214,12 +221,14 @@ describe('console module test', () => {
             const msg1 = { signal: 'blacklist', args: ['127.0.0.1'] };
             const msg2 = { signal: 'blacklist', args: ['abc'] };
             const agent = {
-                notifyAll(moduleId, msg) {}
+                notifyAll(_moduleId, _msg) {
+                    // Mock implementation
+                }
             };
-            module.clientHandler(agent, msg1, (err, result) => {
+            module.clientHandler(agent, msg1, (_err, result) => {
                 result.status.should.eql('ok');
             });
-            module.clientHandler(agent, msg2, (err, result) => {
+            module.clientHandler(agent, msg2, (err, _result) => {
                 should.exist(err);
             });
         });
@@ -228,14 +237,14 @@ describe('console module test', () => {
             const msg1 = { signal: 'restart', ids: ['chat-server-1'] };
             const msg2 = { signal: 'restart', type: 'chat', ids: [] };
             const agent = {
-                request(recordId, moduleId, msg, cb) {
+                request(_recordId, _moduleId, _msg, cb) {
                     cb(null);
                 }
             };
-            module.clientHandler(agent, msg1, (err, result) => {
+            module.clientHandler(agent, msg1, (err, _result) => {
                 should.exist(err);
             });
-            module.clientHandler(agent, msg2, (err, result) => {
+            module.clientHandler(agent, msg2, (err, _result) => {
                 should.exist(err);
             });
         });

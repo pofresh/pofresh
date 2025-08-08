@@ -44,7 +44,7 @@ class PushScheduler {
      * @param {Function} cb
      * @return {Void}
      */
-    stop(force, cb) {
+    stop(_force, cb) {
         if (this.isSelectable) {
             for (const k in this.scheduler) {
                 const sch = this.scheduler[k];

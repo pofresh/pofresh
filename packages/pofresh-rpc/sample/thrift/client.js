@@ -21,7 +21,7 @@ const thrift = require('thrift');
 // var ThriftTransports = require('thrift/transport');
 // var ThriftProtocols = require('thrift/protocol');
 const Calculator = require('./gen-nodejs/Calculator');
-const ttypes = require('./gen-nodejs/tutorial_types');
+const _ttypes = require('./gen-nodejs/tutorial_types');
 
 const transport = thrift.TBufferedTransport();
 const protocol = thrift.TBinaryProtocol();
@@ -42,8 +42,8 @@ const num_requests = 20_000;
 let times = 0;
 let start = Date.now();
 
-const rpcRequest = (msg, cb) => {
-    client.ping((err, response) => {
+const rpcRequest = (_msg, cb) => {
+    client.ping((_err, _response) => {
         cb();
     });
 };
@@ -53,15 +53,9 @@ function run() {
         return;
     }
 
-    if (times == num_requests) {
+    if (times === num_requests) {
         const now = Date.now();
-        const cost = now - start;
-        console.log(
-            'run %d num requests cost: %d ops/sec',
-            num_requests,
-            cost,
-            (num_requests / (cost / 1000)).toFixed(2)
-        );
+        const _cost = now - start;
         times = 0;
         start = now;
         // return;

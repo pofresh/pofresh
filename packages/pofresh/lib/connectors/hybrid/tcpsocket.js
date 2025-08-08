@@ -136,7 +136,7 @@ function readHead(socket, data, offset) {
         // if head segment finished
         const size = socket.headHandler(socket.headBuffer);
         if (size < 0) {
-            throw new Error('invalid body size: ' + size);
+            throw new Error(`invalid body size: ${size}`);
         }
         // check if header contains a valid type
         if (checkTypeData(socket.headBuffer[0])) {

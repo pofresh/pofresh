@@ -7,7 +7,7 @@ const handlers = {};
 const ST_INITED = 0;
 const ST_WAIT_ACK = 1;
 const ST_WORKING = 2;
-const ST_CLOSED = 3;
+const _ST_CLOSED = 3;
 
 function handleHandshake(socket, pkg) {
     if (socket.state !== ST_INITED) {
@@ -15,12 +15,12 @@ function handleHandshake(socket, pkg) {
     }
     try {
         socket.emit('handshake', JSON.parse(protocol.strdecode(pkg.body)));
-    } catch (ex) {
+    } catch (_ex) {
         socket.emit('handshake', {});
     }
 }
 
-function handleHandshakeAck(socket, pkg) {
+function handleHandshakeAck(socket, _pkg) {
     if (socket.state !== ST_WAIT_ACK) {
         return;
     }
@@ -28,7 +28,7 @@ function handleHandshakeAck(socket, pkg) {
     socket.emit('heartbeat');
 }
 
-function handleHeartbeat(socket, pkg) {
+function handleHeartbeat(socket, _pkg) {
     if (socket.state !== ST_WORKING) {
         return;
     }

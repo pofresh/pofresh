@@ -238,7 +238,7 @@ class PerformanceMonitor extends EventEmitter {
         const heapUsed = recent.map(m => m.heapUsed);
 
         return {
-            current: recent[recent.length - 1].heapUsed,
+            current: recent.at(-1).heapUsed,
             average: heapUsed.reduce((a, b) => a + b, 0) / heapUsed.length,
             max: Math.max(...heapUsed),
             min: Math.min(...heapUsed)
@@ -257,7 +257,7 @@ class PerformanceMonitor extends EventEmitter {
         const percentages = recent.map(c => c.percent);
 
         return {
-            current: recent[recent.length - 1].percent,
+            current: recent.at(-1).percent,
             average: percentages.reduce((a, b) => a + b, 0) / percentages.length,
             max: Math.max(...percentages),
             min: Math.min(...percentages)

@@ -5,9 +5,9 @@
 //
 const thrift = require('thrift');
 const Thrift = thrift.Thrift;
-const Q = thrift.Q;
+const _Q = thrift.Q;
 
-const ttypes = (module.exports = {});
+const _ttypes = (module.exports = {});
 SharedStruct = module.exports.SharedStruct = function (args) {
     this.key = null;
     this.value = null;
@@ -25,22 +25,22 @@ SharedStruct.prototype.read = function (input) {
     input.readStructBegin();
     while (true) {
         const ret = input.readFieldBegin();
-        const fname = ret.fname;
+        const _fname = ret.fname;
         const ftype = ret.ftype;
         const fid = ret.fid;
-        if (ftype == Thrift.Type.STOP) {
+        if (ftype === Thrift.Type.STOP) {
             break;
         }
         switch (fid) {
             case 1:
-                if (ftype == Thrift.Type.I32) {
+                if (ftype === Thrift.Type.I32) {
                     this.key = input.readI32();
                 } else {
                     input.skip(ftype);
                 }
                 break;
             case 2:
-                if (ftype == Thrift.Type.STRING) {
+                if (ftype === Thrift.Type.STRING) {
                     this.value = input.readString();
                 } else {
                     input.skip(ftype);

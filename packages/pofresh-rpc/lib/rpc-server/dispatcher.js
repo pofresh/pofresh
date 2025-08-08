@@ -17,25 +17,25 @@ class Dispatcher extends EventEmitter {
      * @param cb(...) callback function that should be invoked as soon as the rpc finished
      */
     route(tracer, msg, cb) {
-        tracer && tracer.info('server', __filename, 'route', 'route message to appropriate service object');
+        tracer?.info('server', __filename, 'route', 'route message to appropriate service object');
         const namespace = this.services[msg.namespace];
         if (!namespace) {
-            tracer && tracer.error('server', __filename, 'route', 'no such namespace:' + msg.namespace);
-            cb(new Error('no such namespace:' + msg.namespace));
+            tracer?.error('server', __filename, 'route', `no such namespace:${msg.namespace}`);
+            cb(new Error(`no such namespace:${msg.namespace}`));
             return;
         }
 
         const service = namespace[msg.service];
         if (!service) {
-            tracer && tracer.error('server', __filename, 'route', 'no such service:' + msg.service);
-            cb(new Error('no such service:' + msg.service));
+            tracer?.error('server', __filename, 'route', `no such service:${msg.service}`);
+            cb(new Error(`no such service:${msg.service}`));
             return;
         }
 
         const method = service[msg.method];
         if (!method) {
-            tracer && tracer.error('server', __filename, 'route', 'no such method:' + msg.method);
-            cb(new Error('no such method:' + msg.method));
+            tracer?.error('server', __filename, 'route', `no such method:${msg.method}`);
+            cb(new Error(`no such method:${msg.method}`));
             return;
         }
 

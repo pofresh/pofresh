@@ -11,7 +11,7 @@ assert;
     type: 'json';
 }
 
-function toBuffer(arr) {
+function _toBuffer(arr) {
     const buffer = Buffer.alloc(arr.length);
     for (let i = 0; i < arr.length; i++) {
         buffer.writeUInt8(arr[i], i);

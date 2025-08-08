@@ -4,24 +4,24 @@ const FilterService = require('../../lib/common/service/filterService');
 const WAIT_TIME = 50;
 
 const mockFilter1 = {
-    before(msg, session, cb) {
+    before(_msg, session, cb) {
         session.beforeCount1++;
         cb();
     },
 
-    after(err, msg, session, resp, cb) {
+    after(_err, _msg, session, _resp, cb) {
         session.afterCount1++;
         cb();
     }
 };
 
 const mockFilter2 = {
-    before(msg, session, cb) {
+    before(_msg, session, cb) {
         session.beforeCount2++;
         cb();
     },
 
-    after(err, msg, session, resp, cb) {
+    after(_err, _msg, session, _resp, cb) {
         session.afterCount2++;
         cb();
     }
@@ -77,11 +77,11 @@ describe('filter service test', () => {
             let beforeCount = 0,
                 afterCount = 0;
 
-            service.before((msg, session, cb) => {
+            service.before((_msg, session, cb) => {
                 session.beforeCount++;
                 cb();
             });
-            service.after((err, msg, session, resp, cb) => {
+            service.after((_err, _msg, session, _resp, cb) => {
                 session.afterCount++;
                 cb();
             });
@@ -135,7 +135,7 @@ describe('filter service test', () => {
             const error = 'some error message';
             const response = { key: 'some value' };
             const respFilter = {
-                before(msg, session, cb) {
+                before(_msg, _session, cb) {
                     cb(error, response);
                 }
             };

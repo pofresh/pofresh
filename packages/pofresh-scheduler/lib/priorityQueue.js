@@ -53,7 +53,9 @@ class PriorityQueue {
         const queue = this._queue;
         const compare = this._comparator;
 
-        if (this._tailPos === 0) return null;
+        if (this._tailPos === 0) {
+            return null;
+        }
 
         const headNode = queue[0];
 
@@ -92,7 +94,9 @@ class PriorityQueue {
      * @return The first element
      */
     peek() {
-        if (this._tailPos === 0) return null;
+        if (this._tailPos === 0) {
+            return null;
+        }
         return this._queue[0];
     }
 

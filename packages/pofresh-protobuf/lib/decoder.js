@@ -117,7 +117,7 @@ function decodeMessage(msg, protos, length) {
 
         const wireType = head.wireType;
         const tag = head.tag;
-        const fieldName = protos.__tags && protos.__tags[tag];
+        const fieldName = protos.__tags?.[tag];
 
         if (!(fieldName && protos[fieldName])) {
             // Skip unknown fields instead of breaking
@@ -280,14 +280,14 @@ function decodeFieldValue(type, protos, wireType) {
                 throw new Error(`Invalid wire type ${wireType} for message type ${type}`);
             }
 
-            const nestedProtos = protos.__messages && protos.__messages[type];
-            const legacyProtos = Decoder.protos && Decoder.protos['message ' + type];
+            const nestedProtos = protos.__messages?.[type];
+            const legacyProtos = Decoder.protos?.[`message ${type}`];
             const messageProtos = nestedProtos || legacyProtos;
 
             if (messageProtos) {
                 const lengthBytes = readVarint();
                 const messageLength = codec.decodeUInt32(lengthBytes);
-                const startOffset = offset;
+                const _startOffset = offset;
                 const endOffset = offset + messageLength;
 
                 if (endOffset > buffer.length) {

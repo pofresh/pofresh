@@ -71,7 +71,7 @@ function onServerLeave(module, id, type) {
 
 // ----------------- monitor request methods -------------------------
 
-function subscribe(module, agent, msg, cb) {
+function subscribe(module, _agent, msg, cb) {
     if (!msg) {
         utils.invokeCallback(cb, new Error('masterWatcher subscribe empty message.'));
         return;
@@ -81,7 +81,7 @@ function subscribe(module, agent, msg, cb) {
     utils.invokeCallback(cb, null, module.watchdog.query());
 }
 
-function unsubscribe(module, agent, msg, cb) {
+function unsubscribe(module, _agent, msg, cb) {
     if (!msg) {
         utils.invokeCallback(cb, new Error('masterWatcher unsubscribe empty message.'));
         return;
@@ -90,11 +90,11 @@ function unsubscribe(module, agent, msg, cb) {
     utils.invokeCallback(cb);
 }
 
-function query(module, agent, msg, cb) {
+function query(module, _agent, _msg, cb) {
     utils.invokeCallback(cb, null, module.watchdog.query());
 }
 
-function record(module, agent, msg, cb) {
+function record(module, _agent, msg, cb) {
     if (!msg) {
         utils.invokeCallback(cb, new Error('masterWatcher record empty message.'));
         return;

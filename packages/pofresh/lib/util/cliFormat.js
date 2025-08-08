@@ -16,7 +16,7 @@ const exp = module.exports;
  * @return {String}
  */
 exp.stringifyRows = (rows, colors = []) => {
-    if (!(rows && rows.length && rows[0].length)) {
+    if (!(rows?.length && rows[0].length)) {
         return '';
     }
     rows[0].forEach((header, index) => {

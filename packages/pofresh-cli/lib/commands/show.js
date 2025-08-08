@@ -25,7 +25,7 @@ class Command {
         }
 
         if (Context === 'all' && consts.CONTEXT_COMMAND[comd]) {
-            util.log('\n' + consts.COMANDS_CONTEXT_ERROR + '\n');
+            util.log(`\n${consts.COMANDS_CONTEXT_ERROR}\n`);
             rl.prompt();
             return;
         }
@@ -43,7 +43,7 @@ class Command {
             },
             (err, data) => {
                 if (err) {
-                    util.log('Error retrieving information: ' + err);
+                    util.log(`Error retrieving information: ${err}`);
                 } else {
                     util.formatOutput(comd, data);
                 }

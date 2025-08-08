@@ -20,13 +20,11 @@ app.configure('development', 'gamehttp', () => {
     // });
 
     httpTool.filter(require('./app/filters/log')());
-    httpTool.afterFilter((req, res) => {
+    httpTool.afterFilter((_req, res) => {
         res.send(res.get('resp'));
     });
 });
 // start app
 app.start();
 
-process.on('uncaughtException', err => {
-    console.error(' Caught exception: ' + err.stack);
-});
+process.on('uncaughtException', _err => {});

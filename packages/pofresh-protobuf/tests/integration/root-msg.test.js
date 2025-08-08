@@ -17,10 +17,8 @@ describe('Root Message Integration Tests', () => {
         it('should correctly encode and decode complex root messages', () => {
             for (const route in tc) {
                 const msg = tc[route];
-                console.log('Testing route:', route, 'with message:', msg);
 
                 const buffer = protobuf.encode(route, msg);
-                console.log('Encoded buffer for', route, ':', buffer);
 
                 const decodeMsg = protobuf.decode(route, buffer);
                 expect(util.equal(msg, decodeMsg)).toBe(true);

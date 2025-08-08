@@ -2,7 +2,7 @@ const should = require('should');
 const pofresh = require('../../');
 const ChannelService = require('../../lib/common/service/channelService');
 
-const mockBase = process.cwd() + '/test';
+const mockBase = `${process.cwd()}/test`;
 const channelName = 'test_channel';
 const mockApp = { serverId: 'test-server-1' };
 
@@ -105,54 +105,57 @@ describe('channel test', () => {
     });
 
     describe('#pushMessage', () => {
-        it('should push message to the right frontend server by sid', done => {
-            const sid1 = 'sid1',
-                sid2 = 'sid2';
-            const uid1 = 'uid1',
-                uid2 = 'uid2',
-                uid3 = 'uid3';
-            const mockUids = [
-                { sid: sid1, uid: uid1 },
-                { sid: sid2, uid: uid2 },
-                { sid: sid2, uid: uid3 }
-            ];
-            const mockMsg = { key: 'some remote message' };
-            const uidMap = {};
-            for (const i in mockUids) {
-                uidMap[mockUids[i].uid] = mockUids[i];
-            }
-
-            let invokeCount = 0;
-
-            const mockRpcInvoke = (sid, rmsg, cb) => {
-                invokeCount++;
-                const args = rmsg.args;
-                const route = args[0];
-                const msg = args[1];
-                const uids = args[2];
-                mockMsg.should.eql(msg);
-
-                for (let j = 0, l = uids.length; j < l; j++) {
-                    const uid = uids[j];
-                    const r2 = uidMap[uid];
-                    r2.sid.should.equal(sid);
+        it('should push message to the right frontend server by sid', () => {
+            return new Promise(resolve => {
+                const sid1 = 'sid1',
+                    sid2 = 'sid2';
+                const uid1 = 'uid1',
+                    uid2 = 'uid2',
+                    uid3 = 'uid3';
+                const mockUids = [
+                    { sid: sid1, uid: uid1 },
+                    { sid: sid2, uid: uid2 },
+                    { sid: sid2, uid: uid3 }
+                ];
+                const mockMsg = { key: 'some remote message' };
+                const uidMap = {};
+                for (const mockUid of mockUids) {
+                    if (Object.hasOwn(mockUid, 'uid')) {
+                        uidMap[mockUid.uid] = mockUid;
+                    }
                 }
 
-                cb();
-            };
+                let invokeCount = 0;
 
-            const app = pofresh.createApp({ base: mockBase });
-            app.rpcInvoke = mockRpcInvoke;
-            const channelService = new ChannelService(app);
+                const mockRpcInvoke = (sid, rmsg, cb) => {
+                    invokeCount++;
+                    const args = rmsg.args;
+                    const _route = args[0];
+                    const msg = args[1];
+                    const uids = args[2];
+                    mockMsg.should.eql(msg);
 
-            const channel = channelService.createChannel(channelName);
-            for (let i = 0, l = mockUids.length; i < l; i++) {
-                channel.add(mockUids[i].uid, mockUids[i].sid);
-            }
+                    for (const uid of uids) {
+                        const r2 = uidMap[uid];
+                        r2.sid.should.equal(sid);
+                    }
 
-            channel.pushMessage(mockMsg, () => {
-                invokeCount.should.equal(2);
-                done();
+                    cb();
+                };
+
+                const app = pofresh.createApp({ base: mockBase });
+                app.rpcInvoke = mockRpcInvoke;
+                const channelService = new ChannelService(app);
+
+                const channel = channelService.createChannel(channelName);
+                for (const mockUid of mockUids) {
+                    channel.add(mockUid.uid, mockUid.sid);
+                }
+
+                channel.pushMessage(mockMsg, () => {
+                    invokeCount.should.equal(2);
+                    resolve();
+                });
             });
         });
         it('should fail if channel has destroied', () => {

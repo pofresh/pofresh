@@ -19,7 +19,7 @@ class Command {
 
         const Context = agent.getContext();
         if (Context === 'all') {
-            util.log('\n' + consts.COMANDS_CONTEXT_ERROR + '\n');
+            util.log(`\n${consts.COMANDS_CONTEXT_ERROR}\n`);
             rl.prompt();
             return;
         }
@@ -42,7 +42,7 @@ class Command {
         try {
             file = fs.readFileSync(comd, 'utf8');
         } catch (_e) {
-            util.log('\nError reading script file: ' + _e.message + '\n');
+            util.log(`\nError reading script file: ${_e.message}\n`);
             rl.prompt();
             return;
         }
@@ -56,14 +56,14 @@ class Command {
             },
             (err, msg) => {
                 if (err) {
-                    util.log('Error executing script: ' + err);
+                    util.log(`Error executing script: ${err}`);
                 } else {
                     try {
                         const parsedMsg = JSON.parse(msg);
                         util.formatOutput(commandId, parsedMsg);
                     } catch {
                         // If not JSON, display as plain text
-                        util.log('\n' + msg + '\n');
+                        util.log(`\n${msg}\n`);
                     }
                 }
                 rl.prompt();

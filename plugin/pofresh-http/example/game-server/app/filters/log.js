@@ -1,11 +1,9 @@
 class LogFilter {
-    before(req, res, next) {
-        console.log('[http request]:', req.method, req.url);
+    before(_req, _res, next) {
         next();
     }
 
-    after(req, res, next) {
-        console.log('[http response]:', req.method, req.url, res.get('resp'));
+    after(_req, _res, next) {
         next();
     }
 }

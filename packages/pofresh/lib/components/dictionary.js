@@ -44,7 +44,7 @@ class Component {
                 const handler = handlers[name];
                 for (const key in handler) {
                     if (typeof handler[key] === 'function') {
-                        routes.push(serverType + '.' + name + '.' + key);
+                        routes.push(`${serverType}.${name}.${key}`);
                     }
                 }
             }

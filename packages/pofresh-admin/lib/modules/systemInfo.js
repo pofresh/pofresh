@@ -24,7 +24,7 @@ class Module {
 
     monitorHandler(agent) {
         //collect data
-        monitor.sysmonitor.getSysInfo((err, data) => {
+        monitor.sysmonitor.getSysInfo((_err, data) => {
             agent.notify(moduleId, { serverId: agent.id, body: data });
         });
     }
@@ -69,7 +69,7 @@ class Module {
         data[msg.serverId] = oneData;
     }
 
-    clientHandler(agent, msg, cb) {
+    clientHandler(agent, _msg, cb) {
         cb(null, agent.get(moduleId) || {});
     }
 }

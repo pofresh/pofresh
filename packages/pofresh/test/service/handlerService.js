@@ -30,14 +30,14 @@ describe('handler service test', () => {
             // mock datas
             const mockHandlers = {
                 testHandler: {
-                    testMethod(msg, session, next) {
+                    testMethod(msg, _session, next) {
                         invoke1Count++;
                         msg.should.eql(mockMsg);
                         next();
                     }
                 },
                 test2Handler: {
-                    testMethod(msg, session, next) {
+                    testMethod(_msg, _session, next) {
                         invoke2Count++;
                         next();
                     }

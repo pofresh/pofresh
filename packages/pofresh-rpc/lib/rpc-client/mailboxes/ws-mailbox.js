@@ -16,15 +16,15 @@ class MailBox extends BaseMailbox {
 
     connect(tracer, cb) {
         super.connect(tracer, cb);
-        tracer && tracer.info('client', __filename, 'connect', 'ws-mailbox try to connect');
+        tracer?.info('client', __filename, 'connect', 'ws-mailbox try to connect');
         if (this.connected) {
-            tracer && tracer.error('client', __filename, 'connect', 'ws-mailbox has already connected');
+            tracer?.error('client', __filename, 'connect', 'ws-mailbox has already connected');
             cb(new Error('ws-mailbox has already connected.'));
             return;
         }
 
         try {
-            this.socket = new WSClient('ws://' + this.host + ':' + this.port);
+            this.socket = new WSClient(`ws://${this.host}:${this.port}`);
         } catch (e) {
             this.onError(e);
         }
@@ -74,7 +74,6 @@ class MailBox extends BaseMailbox {
         if (this._kpLastPingTime > 0) {
             if (this._kpLastPongTime < this._kpLastPingTime) {
                 if (now - this._kpLastPingTime > KEEP_ALIVE_TIMEOUT) {
-                    console.error('ws-mailbox rpc client checkKeepAlive error because > KEEP_ALIVE_TIMEOUT');
                     this.close();
                     return;
                 }

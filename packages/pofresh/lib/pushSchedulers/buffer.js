@@ -17,7 +17,7 @@ class Service {
         });
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         if (this.tid) {
             clearInterval(this.tid);
             this.tid = null;
@@ -27,7 +27,7 @@ class Service {
         });
     }
 
-    schedule(reqId, route, msg, recvs, opts, cb) {
+    schedule(_reqId, _route, msg, recvs, opts, cb) {
         opts = opts || {};
         if (opts.type === 'broadcast') {
             doBroadcast(this, msg, opts.userOptions);

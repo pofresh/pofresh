@@ -19,7 +19,7 @@ function require(path, parent, orig) {
     if (resolved === null) {
         orig = orig || path;
         parent = parent || 'root';
-        const err = new Error('Failed to require "' + orig + '" from "' + parent + '"');
+        const err = new Error(`Failed to require "${orig}" from "${parent}"`);
         err.path = orig;
         err.parent = parent;
         err.require = true;
@@ -70,9 +70,9 @@ require.resolve = path => {
     if (path.charAt(0) === '/') {
         path = path.slice(1);
     }
-    const index = path + '/index.js';
+    const index = `${path}/index.js`;
 
-    const paths = [path, path + '.js', path + '.json', path + '/index.js', path + '/index.json'];
+    const paths = [path, `${path}.js`, `${path}.json`, `${path}/index.js`, `${path}/index.json`];
 
     for (let i = 0; i < paths.length; i++) {
         const path = paths[i];
@@ -138,7 +138,7 @@ require.register = (path, definition) => {
 
 require.alias = (from, to) => {
     if (!has.call(require.modules, from)) {
-        throw new Error('Failed to alias "' + from + '", it does not exist');
+        throw new Error(`Failed to alias "${from}", it does not exist`);
     }
     require.aliases[to] = from;
 };
@@ -183,16 +183,22 @@ require.relative = parent => {
 
     localRequire.resolve = path => {
         const c = path.charAt(0);
-        if (c == '/') return path.slice(1);
-        if (c == '.') return require.normalize(p, path);
+        if (c === '/') {
+            return path.slice(1);
+        }
+        if (c === '.') {
+            return require.normalize(p, path);
+        }
 
         // resolve deps by returning
         // the dep in the nearest "deps"
         // directory
         const segs = parent.split('/');
         let i = lastIndexOf(segs, 'deps') + 1;
-        if (!i) i = 0;
-        path = segs.slice(0, i + 1).join('/') + '/deps/' + path;
+        if (!i) {
+            i = 0;
+        }
+        path = `${segs.slice(0, i + 1).join('/')}/deps/${path}`;
         return path;
     };
 
@@ -204,18 +210,22 @@ require.relative = parent => {
 
     return localRequire;
 };
-require.register('component-indexof/index.js', (exports, require, module) => {
+require.register('component-indexof/index.js', (_exports, _require, module) => {
     const indexOf = [].indexOf;
 
     module.exports = (arr, obj) => {
-        if (indexOf) return arr.indexOf(obj);
+        if (indexOf) {
+            return arr.indexOf(obj);
+        }
         for (let i = 0; i < arr.length; ++i) {
-            if (arr[i] === obj) return i;
+            if (arr[i] === obj) {
+                return i;
+            }
         }
         return -1;
     };
 });
-require.register('component-emitter/index.js', (exports, require, module) => {
+require.register('component-emitter/index.js', (_exports, require, module) => {
     /**
      * Module dependencies.
      */
@@ -235,7 +245,9 @@ require.register('component-emitter/index.js', (exports, require, module) => {
      */
 
     function Emitter(obj) {
-        if (obj) return mixin(obj);
+        if (obj) {
+            return mixin(obj);
+        }
     }
 
     /**
@@ -316,17 +328,21 @@ require.register('component-emitter/index.js', (exports, require, module) => {
 
                 // specific event
                 const callbacks = this._callbacks[event];
-                if (!callbacks) return this;
+                if (!callbacks) {
+                    return this;
+                }
 
                 // remove all handlers
-                if (arguments.length == 1) {
+                if (arguments.length === 1) {
                     delete this._callbacks[event];
                     return this;
                 }
 
                 // remove specific handler
                 const i = index(callbacks, fn._off || fn);
-                if (~i) callbacks.splice(i, 1);
+                if (~i) {
+                    callbacks.splice(i, 1);
+                }
                 return this;
             };
 
@@ -378,14 +394,14 @@ require.register('component-emitter/index.js', (exports, require, module) => {
         return !!this.listeners(event).length;
     };
 });
-require.register('pofresh-protocol/lib/protocol.test.js', function (exports, require, module) {
-    ((exports, ByteArray, global) => {
+require.register('pofresh-protocol/lib/protocol.test.js', function (_exports, _require, module) {
+    ((exports, ByteArray, _global) => {
         const Protocol = exports;
 
         const PKG_HEAD_BYTES = 4;
         const MSG_FLAG_BYTES = 1;
         const MSG_ROUTE_CODE_BYTES = 2;
-        const MSG_ID_MAX_BYTES = 5;
+        const _MSG_ID_MAX_BYTES = 5;
         const MSG_ROUTE_LEN_BYTES = 1;
 
         const MSG_ROUTE_CODE_MAX = 0xff_ff;
@@ -680,7 +696,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
                 type !== Message.TYPE_RESPONSE &&
                 type !== Message.TYPE_PUSH
             ) {
-                throw new Error('unkonw message type: ' + type);
+                throw new Error(`unkonw message type: ${type}`);
             }
 
             buffer[offset] = (type << 1) | (compressRoute ? 1 : 0);
@@ -729,7 +745,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
         this
     );
 });
-require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function (exports, require, module) {
+require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function (_exports, _require, module) {
     /* ProtocolBuffer client 0.1.0*/
 
     /**
@@ -741,7 +757,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
      * Protocol buffer root
      * In browser, it will be window.protbuf
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const Protobuf = exports;
 
         Protobuf.init = opts => {
@@ -763,7 +779,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
     /**
      * constants
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const constants = (exports.constants = {});
 
         constants.TYPES = {
@@ -780,7 +796,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
     /**
      * util module
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const Util = (exports.util = {});
 
         Util.isSimpleType = type =>
@@ -796,7 +812,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
     /**
      * codec module
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const Codec = (exports.codec = {});
 
         const buffer = new ArrayBuffer(8);
@@ -805,8 +821,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         const uInt8Array = new Uint8Array(buffer);
 
         Codec.encodeUInt32 = n => {
-            n = Number.parseInt(n);
-            if (isNaN(n) || n < 0) {
+            n = Number.parseInt(n, 10);
+            if (Number.isNaN(n) || n < 0) {
                 return null;
             }
 
@@ -816,7 +832,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
                 const next = Math.floor(n / 128);
 
                 if (next !== 0) {
-                    tmp = tmp + 128;
+                    tmp += 128;
                 }
                 result.push(tmp);
                 n = next;
@@ -826,8 +842,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         };
 
         Codec.encodeSInt32 = n => {
-            n = Number.parseInt(n);
-            if (isNaN(n)) {
+            n = Number.parseInt(n, 10);
+            if (Number.isNaN(n)) {
                 return null;
             }
             n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;
@@ -839,8 +855,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             let n = 0;
 
             for (let i = 0; i < bytes.length; i++) {
-                const m = Number.parseInt(bytes[i]);
-                n = n + (m & 0x7f) * 2 ** (7 * i);
+                const m = Number.parseInt(bytes[i], 10);
+                n += (m & 0x7f) * 2 ** (7 * i);
                 if (m < 128) {
                     return n;
                 }
@@ -986,7 +1002,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
     /**
      * encoder module
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const protobuf = exports;
         const MsgEncoder = (exports.encoder = {});
 
@@ -1173,7 +1189,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
     /**
      * decoder module
      */
-    ((exports, global) => {
+    ((exports, _global) => {
         const protobuf = exports;
         const MsgDecoder = (exports.decoder = {});
 
@@ -1209,7 +1225,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         function decodeMsg(msg, protos, length) {
             while (offset < length) {
                 const head = getHead();
-                const type = head.type;
+                const _type = head.type;
                 const tag = head.tag;
                 const name = protos.__tags[tag];
 
@@ -1233,7 +1249,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         /**
          * Test if the given msg is finished
          */
-        function isFinish(msg, protos) {
+        function _isFinish(_msg, protos) {
             return !protos.__tags[peekHead().tag];
         }
 
@@ -1333,7 +1349,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         }
     })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 });
-require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js', (exports, require, module) => {
+require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js', (_exports, _require, module) => {
     (() => {
         const JS_WS_CLIENT_TYPE = 'js-websocket';
         const JS_WS_CLIENT_VERSION = '0.0.1';
@@ -1344,7 +1360,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         const EventEmitter = window.EventEmitter;
 
         const RES_OK = 200;
-        const RES_FAIL = 500;
+        const _RES_FAIL = 500;
         const RES_OLD_CLIENT = 501;
 
         if (typeof Object.create !== 'function') {
@@ -1390,9 +1406,9 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             const host = params.host;
             const port = params.port;
 
-            let url = 'ws://' + host;
+            let url = `ws://${host}`;
             if (port) {
-                url += ':' + port;
+                url += `:${port}`;
             }
 
             handshakeBuffer.user = params.user;
@@ -1401,8 +1417,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         };
 
         const initWebSocket = (url, cb) => {
-            console.log('connect to ' + url);
-            const onopen = event => {
+            const onopen = _event => {
                 const obj = Package.encode(Package.TYPE_HANDSHAKE, Protocol.strencode(JSON.stringify(handshakeBuffer)));
                 send(obj);
             };
@@ -1415,11 +1430,9 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             };
             const onerror = event => {
                 pofresh.emit('io-error', event);
-                console.error('socket error: ', event);
             };
             const onclose = event => {
                 pofresh.emit('close', event);
-                console.error('socket close: ', event);
             };
             socket = new WebSocket(url);
             socket.binaryType = 'arraybuffer';
@@ -1431,9 +1444,12 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
 
         pofresh.disconnect = () => {
             if (socket) {
-                if (socket.disconnect) socket.disconnect();
-                if (socket.close) socket.close();
-                console.log('disconnect');
+                if (socket.disconnect) {
+                    socket.disconnect();
+                }
+                if (socket.close) {
+                    socket.close();
+                }
                 socket = null;
             }
 
@@ -1483,7 +1499,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }
 
             let compressRoute = 0;
-            if (pofresh.dict && pofresh.dict[route]) {
+            if (pofresh.dict?.[route]) {
                 route = pofresh.dict[route];
                 compressRoute = 1;
             }
@@ -1497,9 +1513,9 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             socket.send(packet.buffer);
         };
 
-        const handler = {};
+        const _handler = {};
 
-        const heartbeat = data => {
+        const heartbeat = _data => {
             if (!heartbeatInterval) {
                 // no heartbeat
                 return;
@@ -1530,7 +1546,6 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             if (gap > gapThreshold) {
                 heartbeatTimeoutId = setTimeout(heartbeatTimeoutCb, gap);
             } else {
-                console.error('server heartbeat timeout');
                 pofresh.emit('heartbeat timeout');
                 pofresh.disconnect();
             }
@@ -1607,7 +1622,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             return;
         };
 
-        const processMessageBatch = (pofresh, msgs) => {
+        const _processMessageBatch = (pofresh, msgs) => {
             for (let i = 0, l = msgs.length; i < l; i++) {
                 processMessage(pofresh, msgs[i]);
             }
@@ -1635,7 +1650,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         };
 
         const handshakeInit = data => {
-            if (data.sys && data.sys.heartbeat) {
+            if (data.sys?.heartbeat) {
                 heartbeatInterval = data.sys.heartbeat * 1000; // heartbeat interval
                 heartbeatTimeout = heartbeatInterval * 2; // max heartbeat timeout
             } else {
@@ -1652,7 +1667,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
 
         //Initilize data used in pofresh client
         const initData = data => {
-            if (!(data && data.sys)) {
+            if (!data?.sys) {
                 return;
             }
             pofresh.data = pofresh.data || {};
@@ -1687,7 +1702,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         module.exports = pofresh;
     })();
 });
-require.register('boot/index.js', (exports, require, module) => {
+require.register('boot/index.js', (_exports, require, _module) => {
     const Emitter = require('emitter');
     window.EventEmitter = Emitter;
 

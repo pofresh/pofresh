@@ -127,7 +127,7 @@ class Module {
     }
 }
 
-function kill(app, agent, msg, cb) {
+function kill(_app, agent, msg, cb) {
     let sid, record;
     const serverIds = [];
     const count = utils.size(agent.idMap);
@@ -202,7 +202,7 @@ function restart(app, agent, msg, cb) {
     if (!serverIds.length && type) {
         servers = app.getServersByType(type);
         if (!servers) {
-            utils.invokeCallback(cb, new Error('restart servers with unknown server type: ' + type));
+            utils.invokeCallback(cb, new Error(`restart servers with unknown server type: ${type}`));
             return;
         }
         for (let i = 0; i < servers.length; i++) {
@@ -234,9 +234,9 @@ function restart(app, agent, msg, cb) {
                     return;
                 }
                 setTimeout(() => {
-                    runServer(app, msg, (err, status) => {
+                    runServer(app, msg, (err, _status) => {
                         if (err) {
-                            logger.error('restart ' + id + ' failed.');
+                            logger.error(`restart ${id} failed.`);
                         } else {
                             successIds.push(id);
                             successFlag = true;
@@ -279,12 +279,12 @@ function add(app, msg, cb) {
     reset(ServerInfo);
 }
 
-function addCron(app, agent, msg, cb) {
+function addCron(_app, agent, msg, cb) {
     const cron = parseArgs(msg, CronInfo, cb);
     sendCronInfo(cron, agent, msg, CronInfo, cb);
 }
 
-function removeCron(app, agent, msg, cb) {
+function removeCron(_app, agent, msg, cb) {
     const cron = parseArgs(msg, RemoveCron, cb);
     sendCronInfo(cron, agent, msg, RemoveCron, cb);
 }
@@ -293,7 +293,7 @@ function blacklist(agent, msg, cb) {
     const ips = msg.args;
     for (let i = 0; i < ips.length; i++) {
         if (!new RegExp(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g).test(ips[i])) {
-            utils.invokeCallback(cb, new Error('blacklist ip: ' + ips[i] + ' is error format.'), null);
+            utils.invokeCallback(cb, new Error(`blacklist ip: ${ips[i]} is error format.`), null);
             return;
         }
     }

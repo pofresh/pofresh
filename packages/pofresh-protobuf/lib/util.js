@@ -19,7 +19,7 @@ util.isSimpleType = type => SIMPLE_TYPES.has(type);
  * @param {*} value - The value to validate
  * @returns {boolean} True if valid number
  */
-util.isValidNumber = value => typeof value === 'number' && !isNaN(value) && isFinite(value);
+util.isValidNumber = value => typeof value === 'number' && !Number.isNaN(value) && Number.isFinite(value);
 
 /**
  * Validate if a value is a valid string
@@ -43,7 +43,7 @@ util.isValidBoolean = value => typeof value === 'boolean';
  */
 util.toInt = value => {
     const num = Number.parseInt(value, 10);
-    if (isNaN(num)) {
+    if (Number.isNaN(num)) {
         throw new Error(`Cannot convert '${value}' to integer`);
     }
     return num;
@@ -57,7 +57,7 @@ util.toInt = value => {
  */
 util.toFloat = value => {
     const num = Number.parseFloat(value);
-    if (isNaN(num)) {
+    if (Number.isNaN(num)) {
         throw new Error(`Cannot convert '${value}' to float`);
     }
     return num;

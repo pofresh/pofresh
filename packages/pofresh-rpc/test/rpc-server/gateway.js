@@ -1,7 +1,7 @@
 const should = require('should');
 const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
-const Gateway = require('../../' + lib + '/rpc-server/gateway');
-const Client = require('../../' + lib + '/rpc-client/mailboxes/sio-mailbox');
+const Gateway = require(`../../${lib}/rpc-server/gateway`);
+const Client = require(`../../${lib}/rpc-client/mailboxes/sio-mailbox`);
 
 const WAIT_TIME = 100;
 
@@ -102,7 +102,7 @@ describe('gateway', () => {
 
             const client = Client.create(server);
             client.connect(null, () => {
-                client.send(null, msg, null, (tracer, err, result) => {
+                client.send(null, msg, null, (_tracer, _err, result) => {
                     result[1].should.eql(value + 1);
                     clientCallbackCount++;
                 });
@@ -133,7 +133,7 @@ describe('gateway', () => {
 
             const client = Client.create(server);
             client.connect(null, () => {
-                client.send(null, msg, null, (tracer, err, result) => {
+                client.send(null, msg, null, (_tracer, _err, result) => {
                     expect(result[0]);
                     should.not.exist(result[1]);
                     clientCallbackCount++;
@@ -171,12 +171,12 @@ describe('gateway', () => {
 
             const client = Client.create(server);
             client.connect(null, () => {
-                client.send(null, msg1, null, (tracer, err, result) => {
+                client.send(null, msg1, null, (_tracer, _err, result) => {
                     result[1].should.eql(value + 1);
                     clientCallbackCount++;
                 });
 
-                client.send(null, msg2, null, (tracer, err, result) => {
+                client.send(null, msg2, null, (_tracer, _err, result) => {
                     result[1].should.eql(value + 2);
                     clientCallbackCount++;
                 });

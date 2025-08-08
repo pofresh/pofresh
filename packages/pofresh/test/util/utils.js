@@ -28,7 +28,9 @@ describe('utils test', () => {
             const obj = {
                 p1: 'str',
                 p2: 1,
-                m1() {}
+                m1() {
+                    // Mock method
+                }
             };
 
             utils.size(obj).should.equal(2);

@@ -21,7 +21,7 @@ class ConsistentHash {
     addNode(node) {
         this.nodes.push(node);
         for (let i = 0; i < this.replicas; i++) {
-            const key = hash(this.algorithm, (node.id || node) + ':' + i);
+            const key = hash(this.algorithm, `${node.id || node}:${i}`);
             this.keys.push(key);
             this.ring[key] = node;
         }
@@ -37,7 +37,7 @@ class ConsistentHash {
         }
 
         for (let j = 0; j < this.replicas; j++) {
-            const key = hash(this.algorithm, (node.id || node) + ':' + j);
+            const key = hash(this.algorithm, `${node.id || node}:${j}`);
             delete this.ring[key];
             for (let k = 0; k < this.keys.length; k++) {
                 if (this.keys[k] === key) {

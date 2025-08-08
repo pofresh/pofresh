@@ -21,7 +21,7 @@ class MasterSocket {
     }
 
     onRegister(msg) {
-        if (!(msg && msg.type)) {
+        if (!msg?.type) {
             return;
         }
         const serverId = msg.id;
@@ -97,7 +97,7 @@ class MasterSocket {
             const cb = this.agent.callbacks[respId];
             delete this.agent.callbacks[respId];
             if (!cb) {
-                logger.warn('unknown resp id:' + respId);
+                logger.warn(`unknown resp id:${respId}`);
                 return;
             }
             return cb(msg.error, msg.body);
@@ -124,7 +124,7 @@ class MasterSocket {
 
         const type = this.type;
         if (type !== Constants.TYPE_CLIENT) {
-            logger.error('invalid message to client, but current connect type is ' + type);
+            logger.error(`invalid message to client, but current connect type is ${type}`);
             return;
         }
 
@@ -160,7 +160,7 @@ class MasterSocket {
 
     onReconnect(msg, pid) {
         // reconnect a new connection
-        if (!(msg && msg.type)) {
+        if (!msg?.type) {
             return;
         }
 
@@ -176,7 +176,7 @@ class MasterSocket {
             // id has been registered
             socket.send('reconnect_ok', {
                 code: protocol.PRO_FAIL,
-                msg: 'id has been registered. id:' + serverId
+                msg: `id has been registered. id:${serverId}`
             });
             return;
         }
@@ -221,7 +221,7 @@ class MasterSocket {
         }
 
         if (type === Constants.TYPE_CLIENT && this.registered) {
-            logger.info('client user ' + username + ' exit');
+            logger.info(`client user ${username} exit`);
         }
 
         this.registered = false;

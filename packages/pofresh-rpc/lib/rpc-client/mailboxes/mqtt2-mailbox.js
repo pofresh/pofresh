@@ -30,9 +30,9 @@ class MailBox extends BaseMailbox {
 
     connect(tracer, cb) {
         super.connect(tracer, cb);
-        tracer && tracer.info('client', __filename, 'connect', 'mqtt2-mailbox try to connect');
+        tracer?.info('client', __filename, 'connect', 'mqtt2-mailbox try to connect');
         if (this.connected) {
-            tracer && tracer.error('client', __filename, 'connect', 'mqtt2-mailbox has already connected');
+            tracer?.error('client', __filename, 'connect', 'mqtt2-mailbox has already connected');
             return cb(new Error('mqtt2-mailbox has already connected.'));
         }
 
@@ -41,7 +41,7 @@ class MailBox extends BaseMailbox {
 
         this.socket.connect(
             {
-                clientId: 'MQTT_RPC_' + Date.now()
+                clientId: `MQTT_RPC_${Date.now()}`
             },
             this.onConnection.bind(this)
         );
@@ -93,17 +93,17 @@ class MailBox extends BaseMailbox {
      * @param opts {} attach info to send method
      * @param cb declaration decided by remote interface
      */
-    send(tracer, msg, opts, cb) {
-        tracer && tracer.info('client', __filename, 'send', 'mqtt2-mailbox try to send');
+    send(tracer, msg, _opts, cb) {
+        tracer?.info('client', __filename, 'send', 'mqtt2-mailbox try to send');
         if (!this.connected) {
-            tracer && tracer.error('client', __filename, 'send', 'mqtt2-mailbox not init');
-            cb(tracer, new Error(this.serverId + ' mqtt2-mailbox is not init ' + this.id));
+            tracer?.error('client', __filename, 'send', 'mqtt2-mailbox not init');
+            cb(tracer, new Error(`${this.serverId} mqtt2-mailbox is not init ${this.id}`));
             return;
         }
 
         if (this.closed) {
-            tracer && tracer.error('client', __filename, 'send', 'mailbox has already closed');
-            cb(tracer, new Error(this.serverId + ' mqtt2-mailbox has already closed ' + this.id));
+            tracer?.error('client', __filename, 'send', 'mailbox has already closed');
+            cb(tracer, new Error(`${this.serverId} mqtt2-mailbox has already closed ${this.id}`));
             return;
         }
 
@@ -112,7 +112,7 @@ class MailBox extends BaseMailbox {
         this.setCbTimeout(id, tracer, cb);
 
         let pkg;
-        if (tracer && tracer.isEnabled) {
+        if (tracer?.isEnabled) {
             pkg = {
                 traceId: tracer.id,
                 seqId: tracer.seq,

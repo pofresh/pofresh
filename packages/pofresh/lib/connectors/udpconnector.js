@@ -7,8 +7,8 @@ const Kick = require('./commands/kick');
 const Handshake = require('./commands/handshake');
 const Heartbeat = require('./commands/heartbeat');
 const protocol = require('pofresh-protocol');
-const Package = protocol.Package;
-const Message = protocol.Message;
+const _Package = protocol.Package;
+const _Message = protocol.Message;
 const coder = require('./common/coder');
 const EventEmitter = require('events');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
@@ -33,7 +33,7 @@ class Connector extends EventEmitter {
 
     start(cb) {
         this.tcpServer = net.createServer();
-        this.socket = dgram.createSocket(this.type, (msg, peer) => {
+        this.socket = dgram.createSocket(this.type, (_msg, peer) => {
             const key = genKey(peer);
             if (!this.clients[key]) {
                 const udpsocket = new UdpSocket(curId++, this.socket, peer);
@@ -72,7 +72,7 @@ class Connector extends EventEmitter {
         process.nextTick(cb);
     }
 
-    stop(force, cb) {
+    stop(_force, cb) {
         this.socket.close();
         process.nextTick(cb);
     }
@@ -92,5 +92,5 @@ Connector.encode = coder.encode;
 module.exports = Connector;
 
 function genKey(peer) {
-    return peer.address + ':' + peer.port;
+    return `${peer.address}:${peer.port}`;
 }

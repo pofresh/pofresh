@@ -18,7 +18,7 @@ let serverMap = {};
  * @param {string} str - The message to log
  */
 function log(str) {
-    process.stdout.write(str + '\n');
+    process.stdout.write(`${str}\n`);
 }
 
 function help() {
@@ -37,7 +37,7 @@ function help() {
 }
 
 function errorHandle(comd, rl) {
-    log('\nUnknown command: ' + comd);
+    log(`\nUnknown command: ${comd}`);
     log('Type "help" for help information\n');
     rl.prompt();
 }
@@ -53,7 +53,9 @@ function argsFilter(argv) {
     }
 
     const getArg = argv => {
-        if (!argv) return [];
+        if (!argv) {
+            return [];
+        }
         const argvs = argv.split(' ');
         // Filter out empty strings and spaces more efficiently
         return argvs.filter(arg => arg.trim() !== '');
@@ -63,7 +65,7 @@ function argsFilter(argv) {
         for (let i = 1; i < lines.length - 1; i++) {
             head = head.concat(lines[i]);
         }
-        const bottom = getArg(lines[lines.length - 1]);
+        const bottom = getArg(lines.at(-1));
         return head.concat(bottom);
     }
     return getArg(argv);
@@ -100,9 +102,9 @@ function formatOutput(comd, data) {
             (server, callback) => {
                 callback(null, server[0]);
             },
-            (err, _results) => {
+            (_err, _results) => {
                 results = header.concat(_results);
-                log('\n' + cliff.stringifyRows(results, color) + '\n');
+                log(`\n${cliff.stringifyRows(results, color)}\n`);
             }
         );
     }
@@ -121,7 +123,7 @@ function formatOutput(comd, data) {
             sumloginedCount += server.loginedCount;
         }
         rows.push(['sum connections', sumConnCount, sumloginedCount]);
-        log('\n' + cliff.stringifyRows(rows, color) + '\n');
+        log(`\n${cliff.stringifyRows(rows, color)}\n`);
         return;
     }
 
@@ -148,14 +150,14 @@ function formatOutput(comd, data) {
             for (let i = 0; i < loginedList.length; i++) {
                 rows.push([formatDate(new Date(loginedList[i].loginTime)), loginedList[i].uid, loginedList[i].address]);
             }
-            log('\n' + cliff.stringifyRows(rows, color) + '\n');
+            log(`\n${cliff.stringifyRows(rows, color)}\n`);
         }
         return;
     }
 
     if (comd === 'modules') {
-        log('\n' + consts.MODULE_INFO);
-        log(data.msg + '\n');
+        log(`\n${consts.MODULE_INFO}`);
+        log(`${data.msg}\n`);
         return;
     }
 
@@ -179,9 +181,9 @@ function formatOutput(comd, data) {
                 server.sys,
                 server.gue
             ]);
-            log('\n' + cliff.stringifyRows(rows, color) + '\n');
+            log(`\n${cliff.stringifyRows(rows, color)}\n`);
         } else {
-            log('\n' + consts.STATUS_ERROR + '\n');
+            log(`\n${consts.STATUS_ERROR}\n`);
         }
         return;
     }
@@ -194,7 +196,7 @@ function formatOutput(comd, data) {
         comd === 'exec' ||
         comd === 'run'
     ) {
-        log('\n' + cliff.inspect(data) + '\n');
+        log(`\n${cliff.inspect(data)}\n`);
         return;
     }
 
@@ -207,12 +209,12 @@ function formatOutput(comd, data) {
     }
 
     if (comd === 'proxy' || comd === 'handler') {
-        log('\n' + cliff.inspect(data) + '\n');
+        log(`\n${cliff.inspect(data)}\n`);
         return;
     }
 
     if (comd === 'memory' || comd === 'cpu') {
-        log(data + '\n');
+        log(`${data}\n`);
     }
 }
 
@@ -230,13 +232,13 @@ function formatDate(date, friendly) {
         const timeStd = [1000, 60 * 1000, 60 * 60 * 1000, 24 * 60 * 60 * 1000];
         if (mseconds < timeStd[3]) {
             if (mseconds > 0 && mseconds < timeStd[1]) {
-                return Math.floor(mseconds / timeStd[0]).toString() + ' 秒前';
+                return `${Math.floor(mseconds / timeStd[0]).toString()} 秒前`;
             }
             if (mseconds > timeStd[1] && mseconds < timeStd[2]) {
-                return Math.floor(mseconds / timeStd[1]).toString() + ' 分钟前';
+                return `${Math.floor(mseconds / timeStd[1]).toString()} 分钟前`;
             }
             if (mseconds > timeStd[2]) {
-                return Math.floor(mseconds / timeStd[2]).toString() + ' 小时前';
+                return `${Math.floor(mseconds / timeStd[2]).toString()} 小时前`;
             }
         }
     }
@@ -247,7 +249,7 @@ function formatDate(date, friendly) {
     minute = (minute < 10 ? '0' : '') + minute;
     second = (second < 10 ? '0' : '') + second;
 
-    return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }
 
 function getColor(len) {
@@ -292,7 +294,7 @@ function tabComplete(hits, line, map, comd) {
     for (const k in map) {
         let t = k;
         if (comd !== 'complete') {
-            t = comd + ' ' + k;
+            t = `${comd} ${k}`;
         }
         if (t.indexOf(line) === 0) {
             hits.push(t);
@@ -320,7 +322,7 @@ function validateInput(input, type) {
         case 'string':
             return typeof input === 'string' && input.trim().length > 0;
         case 'number':
-            return !isNaN(input) && isFinite(input);
+            return !Number.isNaN(input) && Number.isFinite(input);
         case 'array':
             return Array.isArray(input) && input.length > 0;
         default:

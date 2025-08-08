@@ -8,7 +8,7 @@ class MqttClient extends EventEmitter {
     constructor(opts) {
         super();
 
-        this.clientId = 'MQTT_ADMIN_' + Date.now();
+        this.clientId = `MQTT_ADMIN_${Date.now()}`;
         this.id = opts.id;
         this.requests = {};
         this.connectedTimes = 1;
@@ -91,9 +91,8 @@ class MqttClient extends EventEmitter {
             this.setSocketClose();
         });
 
-        this.socket.on('error', err => {
+        this.socket.on('error', _err => {
             logger.error('mqtt socket is error, remote server host: %s, port: %s', host, port);
-            console.log('err', err);
             // this.emit('error', new Error('[MqttClient] socket is error, remote server ' + host + ':' + port));
             this.setSocketClose();
         });
@@ -137,7 +136,7 @@ class MqttClient extends EventEmitter {
         this.lastPong = -1;
         this.connected = false;
         this.closed = true;
-        delete this.socket;
+        this.socket = undefined;
         this.socket = null;
 
         if (this.connectedTimes > 1) {

@@ -52,7 +52,9 @@ class CronTrigger {
             if (!decoder.timeMatch(date.getMonth(), cronTrigger[MONTH])) {
                 const nextMonth = decoder.nextCronTime(date.getMonth(), cronTrigger[MONTH]);
 
-                if (nextMonth === null) return null;
+                if (nextMonth === null) {
+                    return null;
+                }
 
                 if (nextMonth <= date.getMonth()) {
                     date.setFullYear(date.getFullYear() + 1);
@@ -81,7 +83,9 @@ class CronTrigger {
 
                 do {
                     const nextDom = decoder.nextCronTime(date.getDate(), cronTrigger[DOM]);
-                    if (nextDom === null) return null;
+                    if (nextDom === null) {
+                        return null;
+                    }
 
                     //If the date is in the next month, add month
                     if (nextDom <= date.getDate() || nextDom > domLimit) {

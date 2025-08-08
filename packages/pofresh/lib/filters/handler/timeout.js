@@ -33,7 +33,7 @@ class Filter {
         next();
     }
 
-    after(err, msg, session, resp, next) {
+    after(err, _msg, session, _resp, next) {
         const timeout = this.timeouts[session.__timeout__];
         if (timeout) {
             clearTimeout(timeout);

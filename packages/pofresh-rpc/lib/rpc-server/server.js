@@ -24,7 +24,7 @@ function loadRemoteServices(paths, context) {
  * @return {Object}      rpc server instance
  */
 module.exports.create = opts => {
-    if (!(opts && opts.port) || opts.port < 0 || !opts.paths) {
+    if (!opts?.port || opts.port < 0 || !opts.paths) {
         throw new Error('opts.port or opts.paths invalid.');
     }
     opts.services = loadRemoteServices(opts.paths, opts.context);

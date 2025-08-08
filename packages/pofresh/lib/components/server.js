@@ -51,7 +51,7 @@ class Component {
      * @param {Function}  cb
      * @return {Void}
      */
-    stop(force, cb) {
+    stop(_force, cb) {
         this.server.stop();
         process.nextTick(cb);
     }

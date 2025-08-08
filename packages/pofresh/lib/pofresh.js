@@ -72,7 +72,7 @@ pofresh.pushSchedulers.__defineGetter__('buffer', load.bind(null, './pushSchedul
 pofresh.createApp = opts => {
     const app = application;
     app.init(opts);
-    this.app = app;
+    module.exports.app = app;
     return app;
 };
 
@@ -88,7 +88,7 @@ Object.defineProperty(pofresh, 'app', {
 /**
  * Auto-load bundled components with getters.
  */
-fs.readdirSync(__dirname + '/components').forEach(filename => {
+fs.readdirSync(`${__dirname}/components`).forEach(filename => {
     if (!/\.js$/.test(filename)) {
         return;
     }
@@ -99,7 +99,7 @@ fs.readdirSync(__dirname + '/components').forEach(filename => {
     pofresh.__defineGetter__(name, _load);
 });
 
-fs.readdirSync(__dirname + '/filters/handler').forEach(filename => {
+fs.readdirSync(`${__dirname}/filters/handler`).forEach(filename => {
     if (!/\.js$/.test(filename)) {
         return;
     }
@@ -110,7 +110,7 @@ fs.readdirSync(__dirname + '/filters/handler').forEach(filename => {
     pofresh.__defineGetter__(name, _load);
 });
 
-fs.readdirSync(__dirname + '/filters/rpc').forEach(filename => {
+fs.readdirSync(`${__dirname}/filters/rpc`).forEach(filename => {
     if (!/\.js$/.test(filename)) {
         return;
     }

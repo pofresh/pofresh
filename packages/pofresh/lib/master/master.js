@@ -45,7 +45,7 @@ class Server {
 
         this.masterConsole.on('error', err => {
             if (err) {
-                logger.error('masterConsole encounters with error: ' + err.stack);
+                logger.error(`masterConsole encounters with error: ${err.stack}`);
             }
         });
 
