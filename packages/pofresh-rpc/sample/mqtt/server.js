@@ -6,21 +6,21 @@ const net = require('net'),
 // const i = 1;
 
 // const start = 0;
-server.on('connection', function (stream) {
+server.on('connection', stream => {
     const conn = mqttCon(stream);
 
-    conn.on('connect', function () {
+    conn.on('connect', () => {
         console.log('connected');
     });
 
-    conn.on('publish', function (packet) {
+    conn.on('publish', packet => {
         // console.log(packet);
         conn.puback({
             messageId: packet.messageId
         });
     });
 
-    conn.on('pingreq', function () {
+    conn.on('pingreq', () => {
         conn.pingresp();
     });
 

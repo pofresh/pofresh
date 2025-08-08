@@ -9,15 +9,33 @@ const WAIT_TIME = 100;
 
 // proxy records
 const records = [
-    { namespace: 'user', serverType: 'area', path: __dirname + '../../mock-remote/area' },
-    { namespace: 'sys', serverType: 'connector', path: __dirname + '../../mock-remote/connector' }
+    {
+        namespace: 'user',
+        serverType: 'area',
+        path: __dirname + '../../mock-remote/area'
+    },
+    {
+        namespace: 'sys',
+        serverType: 'connector',
+        path: __dirname + '../../mock-remote/connector'
+    }
 ];
 
 // server info list
 const serverList = [
     { id: 'area-server-1', type: 'area', host: '127.0.0.1', port: 3333 },
-    { id: 'connector-server-1', type: 'connector', host: '127.0.0.1', port: 4444 },
-    { id: 'connector-server-2', type: 'connector', host: '127.0.0.1', port: 5555 }
+    {
+        id: 'connector-server-1',
+        type: 'connector',
+        host: '127.0.0.1',
+        port: 4444
+    },
+    {
+        id: 'connector-server-2',
+        type: 'connector',
+        host: '127.0.0.1',
+        port: 5555
+    }
 ];
 
 // rpc description message
@@ -29,10 +47,10 @@ const msg = {
     args: []
 };
 
-describe('mail station', function () {
+describe('mail station', () => {
     let gateways = [];
 
-    beforeEach(function (done) {
+    beforeEach(done => {
         gateways = [];
         //start remote logger
         let item, opts;
@@ -51,7 +69,7 @@ describe('mail station', function () {
         done();
     });
 
-    afterEach(function (done) {
+    afterEach(done => {
         //stop remote servers
         for (let i = 0; i < gateways.length; i++) {
             gateways[i].stop();
@@ -60,12 +78,12 @@ describe('mail station', function () {
         setTimeout(() => process.exit(), WAIT_TIME);
     });
 
-    describe('#create', function () {
-        it('should be ok for pass an empty opts to the factory method', function (done) {
+    describe('#create', () => {
+        it('should be ok for pass an empty opts to the factory method', done => {
             const station = MailStation.create();
             expect(station);
 
-            station.start(function (err) {
+            station.start(err => {
                 should.not.exist(err);
                 station.stop();
                 done();
@@ -74,7 +92,7 @@ describe('mail station', function () {
             station.should.have.property('mailboxFactory');
         });
 
-        it('should change the default mailbox by pass the mailboxFactory to the create function', function () {
+        it('should change the default mailbox by pass the mailboxFactory to the create function', () => {
             const mailboxFactory = {
                 create(_opts, _cb) {
                     return null;
@@ -82,7 +100,7 @@ describe('mail station', function () {
             };
 
             const opts = {
-                mailboxFactory: mailboxFactory
+                mailboxFactory
             };
 
             const station = MailStation.create(opts);
@@ -93,8 +111,8 @@ describe('mail station', function () {
         });
     });
 
-    describe('#addServer', function () {
-        it('should add the server info into the mail station', function () {
+    describe('#addServer', () => {
+        it('should add the server info into the mail station', () => {
             const station = MailStation.create();
             expect(station);
 
@@ -115,9 +133,9 @@ describe('mail station', function () {
         });
     });
 
-    describe('#dispatch', function () {
+    describe('#dispatch', () => {
         // eslint-disable-next-line max-len
-        it('should send request to the right remote server and get the response from callback function', function (done) {
+        it('should send request to the right remote server and get the response from callback function', done => {
             let callbackCount = 0;
             let count = 0;
             const station = MailStation.create();
@@ -127,16 +145,14 @@ describe('mail station', function () {
                 station.addServer(serverList[i]);
             }
 
-            const func = function (id) {
-                return function (_err, remoteId) {
-                    expect(remoteId).toBeDefined();
-                    expect(remoteId).toBe(id);
-                    callbackCount++;
-                };
+            const func = id => (_err, remoteId) => {
+                expect(remoteId).toBeDefined();
+                expect(remoteId).toBe(id);
+                callbackCount++;
             };
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
+            station.start(_err => {
                 let item;
                 for (let i = 0, l = serverList.length; i < l; i++) {
                     count++;
@@ -144,7 +160,7 @@ describe('mail station', function () {
                     station.dispatch(tracer, item.id, msg, null, func(item.id));
                 }
             });
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(count);
                 station.stop();
                 done();
@@ -152,7 +168,7 @@ describe('mail station', function () {
         });
 
         // eslint-disable-next-line max-len
-        it('should send request to the right remote server and get the response from callback function', function (done) {
+        it('should send request to the right remote server and get the response from callback function', done => {
             let callbackCount = 0;
             let count = 0;
             const station = MailStation.create();
@@ -162,17 +178,15 @@ describe('mail station', function () {
                 station.addServer(serverList[i]);
             }
 
-            const func = function (id) {
-                return function (err, remoteId) {
-                    expect(remoteId).toBeDefined();
-                    expect(remoteId).toBe(id);
-                    callbackCount++;
-                };
+            const func = id => (err, remoteId) => {
+                expect(remoteId).toBeDefined();
+                expect(remoteId).toBe(id);
+                callbackCount++;
             };
 
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
+            station.start(_err => {
                 let item;
                 for (let i = 0, l = serverList.length; i < l; i++) {
                     count++;
@@ -180,14 +194,14 @@ describe('mail station', function () {
                     station.dispatch(tracer, item.id, msg, null, func(item.id));
                 }
             });
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(count);
                 station.stop();
                 done();
             }, WAIT_TIME);
         });
 
-        it('should update the mailbox map by add server after start', function (done) {
+        it('should update the mailbox map by add server after start', done => {
             let callbackCount = 0;
             const station = MailStation.create();
             expect(station);
@@ -198,17 +212,17 @@ describe('mail station', function () {
 
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
+            station.start(_err => {
                 // add area server
                 const item = serverList[0];
                 station.addServer(item);
-                station.dispatch(tracer, item.id, msg, null, function (_err, remoteId) {
+                station.dispatch(tracer, item.id, msg, null, (_err, remoteId) => {
                     expect(remoteId).toBeDefined();
                     expect(remoteId).toBe(item.id);
                     callbackCount++;
                 });
             });
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(1);
                 station.stop();
                 done();
@@ -216,10 +230,15 @@ describe('mail station', function () {
         });
 
         // eslint-disable-next-line max-len
-        it('should emit error info and forward message to blackhole if fail to connect to remote server in lazy connect mode', function (done) {
+        it('should emit error info and forward message to blackhole if fail to connect to remote server in lazy connect mode', done => {
             // mock data
             const serverId = 'invalid-server-id';
-            const server = { id: serverId, type: 'invalid-server', host: 'localhost', port: 1234 };
+            const server = {
+                id: serverId,
+                type: 'invalid-server',
+                host: 'localhost',
+                port: 1234
+            };
             let callbackCount = 0;
             let eventCount = 0;
             const station = MailStation.create();
@@ -227,7 +246,7 @@ describe('mail station', function () {
 
             station.addServer(server);
 
-            station.on('error', function (err) {
+            station.on('error', err => {
                 expect(err).toBeDefined();
                 expect(1).toBe(1);
                 eventCount++;
@@ -237,15 +256,15 @@ describe('mail station', function () {
 
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
+            station.start(_err => {
                 expect(station);
-                station.dispatch(tracer, serverId, msg, null, function (err) {
+                station.dispatch(tracer, serverId, msg, null, err => {
                     expect(err).toBeDefined();
                     expect(err.message).toBe('rpc failed with error code: 3');
                     callbackCount++;
                 });
             });
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(eventCount).toBe(1);
                 expect(callbackCount).toBe(1);
                 station.stop();
@@ -254,8 +273,8 @@ describe('mail station', function () {
         });
     });
 
-    describe('#filters', function () {
-        it('should invoke filters in turn', function (done) {
+    describe('#filters', () => {
+        it('should invoke filters in turn', done => {
             let preFilterCount = 0;
             let afterFilterCount = 0;
             const sid = 'connector-server-1';
@@ -270,8 +289,8 @@ describe('mail station', function () {
 
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
-                station.before(function (fsid, fmsg, fopts, next) {
+            station.start(_err => {
+                station.before((fsid, fmsg, fopts, next) => {
                     expect(preFilterCount).toBe(0);
                     expect(afterFilterCount).toBe(0);
                     expect(fsid).toBe(sid);
@@ -281,7 +300,7 @@ describe('mail station', function () {
                     next(fsid, fmsg, fopts);
                 });
 
-                station.before(function (fsid, fmsg, fopts, next) {
+                station.before((fsid, fmsg, fopts, next) => {
                     expect(preFilterCount).toBe(1);
                     expect(afterFilterCount).toBe(0);
                     expect(fsid).toBe(sid);
@@ -291,7 +310,7 @@ describe('mail station', function () {
                     next(fsid, fmsg, fopts);
                 });
 
-                station.after(function (fsid, fmsg, fopts, next) {
+                station.after((fsid, fmsg, fopts, next) => {
                     expect(preFilterCount).toBe(2);
                     expect(afterFilterCount).toBe(0);
                     expect(fsid).toBe(sid);
@@ -301,7 +320,7 @@ describe('mail station', function () {
                     next(fsid, fmsg, fopts);
                 });
 
-                station.after(function (fsid, fmsg, fopts, next) {
+                station.after((fsid, fmsg, fopts, next) => {
                     expect(preFilterCount).toBe(2);
                     expect(afterFilterCount).toBe(1);
                     expect(fsid).toBe(sid);
@@ -311,11 +330,10 @@ describe('mail station', function () {
                     next(fsid, fmsg, fopts);
                 });
 
-                station.dispatch(tracer, sid, orgMsg, orgOpts, function () {
-                });
+                station.dispatch(tracer, sid, orgMsg, orgOpts, () => {});
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(preFilterCount).toBe(2);
                 expect(afterFilterCount).toBe(2);
                 station.stop();
@@ -324,8 +342,8 @@ describe('mail station', function () {
         });
     });
 
-    describe('#close', function () {
-        it('should emit a close event for each mailbox close', function (done) {
+    describe('#close', () => {
+        it('should emit a close event for each mailbox close', done => {
             let closeEventCount = 0,
                 i,
                 l;
@@ -344,17 +362,15 @@ describe('mail station', function () {
                 station.addServer(serverList[i]);
             }
 
-            const func = function (id) {
-                return function (err, remoteId) {
-                    expect(remoteId);
-                    expect(remoteId).toBeDefined();
-                    expect(remoteId).toBe(id);
-                };
+            const func = id => (err, remoteId) => {
+                expect(remoteId);
+                expect(remoteId).toBeDefined();
+                expect(remoteId).toBe(id);
             };
 
             const tracer = new Tracer(null, false);
 
-            station.start(function (_err) {
+            station.start(_err => {
                 // invoke the lazy connect
                 let item;
                 for (let i = 0, l = serverList.length; i < l; i++) {
@@ -362,15 +378,15 @@ describe('mail station', function () {
                     station.dispatch(tracer, item.id, msg, null, func(item.id));
                 }
 
-                station.on('close', function (mailboxId) {
+                station.on('close', mailboxId => {
                     mailboxIds.push(mailboxId);
                     closeEventCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 station.stop(true);
-                setTimeout(function () {
+                setTimeout(() => {
                     expect(closeEventCount).toBe(remoteIds.length);
                     mailboxIds.sort();
                     mailboxIds.should.eql(remoteIds);
@@ -379,7 +395,7 @@ describe('mail station', function () {
             }, WAIT_TIME);
         });
 
-        it('should return an error when try to dispatch message by a closed station', function (done) {
+        it('should return an error when try to dispatch message by a closed station', done => {
             let errorEventCount = 0;
             let i, l;
 
@@ -390,7 +406,7 @@ describe('mail station', function () {
                 station.addServer(serverList[i]);
             }
 
-            const func = function (err, _remoteId, _attach) {
+            const func = (err, _remoteId, _attach) => {
                 expect(err);
                 errorEventCount++;
             };
@@ -399,7 +415,7 @@ describe('mail station', function () {
 
             station.on('error', failureProcess.bind(station));
 
-            station.start(function (_err) {
+            station.start(_err => {
                 station.stop();
                 let item;
                 for (i = 0, l = serverList.length; i < l; i++) {
@@ -407,7 +423,7 @@ describe('mail station', function () {
                     station.dispatch(tracer, item.id, msg, {}, func);
                 }
             });
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(errorEventCount).toBe(serverList.length);
                 done();
             }, WAIT_TIME);

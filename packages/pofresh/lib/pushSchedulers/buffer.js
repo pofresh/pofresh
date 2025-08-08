@@ -12,7 +12,7 @@ class Service {
 
     start(cb) {
         this.tid = setInterval(flush.bind(null, this), this.flushInterval);
-        process.nextTick(function () {
+        process.nextTick(() => {
             utils.invokeCallback(cb);
         });
     }
@@ -22,7 +22,7 @@ class Service {
             clearInterval(this.tid);
             this.tid = null;
         }
-        process.nextTick(function () {
+        process.nextTick(() => {
             utils.invokeCallback(cb);
         });
     }
@@ -35,7 +35,7 @@ class Service {
             doBatchPush(this, msg, recvs);
         }
 
-        process.nextTick(function () {
+        process.nextTick(() => {
             utils.invokeCallback(cb);
         });
     }
@@ -48,7 +48,7 @@ function doBroadcast(self, msg, opts) {
     const sessionService = self.app.get('sessionService');
 
     if (opts.binded) {
-        sessionService.forEachBindedSession(function (session) {
+        sessionService.forEachBindedSession(session => {
             if (channelService.broadcastFilter && !channelService.broadcastFilter(session, msg, opts.filterParam)) {
                 return;
             }
@@ -56,7 +56,7 @@ function doBroadcast(self, msg, opts) {
             enqueue(self, session, msg);
         });
     } else {
-        sessionService.forEachSession(function (session) {
+        sessionService.forEachSession(session => {
             if (channelService.broadcastFilter && !channelService.broadcastFilter(session, msg, opts.filterParam)) {
                 return;
             }

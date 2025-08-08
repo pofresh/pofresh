@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import httpPlugin from '../index.js';
 
 describe('pofresh-http', () => {
@@ -50,10 +50,10 @@ describe('pofresh-http', () => {
             const initialAfterLength = httpPlugin.afterFilters.length;
 
             const testFilter = {
-                before: function () {
+                before() {
                     return 'before';
                 },
-                after: function () {
+                after() {
                     return 'after';
                 }
             };
@@ -68,7 +68,7 @@ describe('pofresh-http', () => {
             const initialLength = httpPlugin.beforeFilters.length;
 
             const testFilter = {
-                before: function () {
+                before() {
                     return 'before only';
                 }
             };
@@ -82,7 +82,7 @@ describe('pofresh-http', () => {
             const initialLength = httpPlugin.afterFilters.length;
 
             const testFilter = {
-                after: function () {
+                after() {
                     return 'after only';
                 }
             };

@@ -1,14 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { client as Client } from '../../index.js';
 
 const records = [
-    { namespace: 'user', serverType: 'area', path: __dirname + '/../mock-remote/area' },
-    { namespace: 'sys', serverType: 'connector', path: __dirname + '/../mock-remote/connector' }
+    {
+        namespace: 'user',
+        serverType: 'area',
+        path: __dirname + '/../mock-remote/area'
+    },
+    {
+        namespace: 'sys',
+        serverType: 'connector',
+        path: __dirname + '/../mock-remote/connector'
+    }
 ];
 
 const serverList = [
-    { id: 'area-server-1', serverType: 'area', host: '127.0.0.1', port: 13333 },
-    { id: 'connector-server-1', serverType: 'connector', host: '127.0.0.1', port: 14444 }
+    { id: 'area-server-1', serverType: 'area', host: '127.0.0.1', port: 13_333 },
+    {
+        id: 'connector-server-1',
+        serverType: 'connector',
+        host: '127.0.0.1',
+        port: 14_444
+    }
 ];
 
 describe('client', () => {

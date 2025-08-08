@@ -5,9 +5,7 @@ const sio = require('socket.io');
 class Acceptor extends BaseAcceptor {
     constructor(opts, cb) {
         opts.name = 'sio-acceptor';
-        opts.createServer = function () {
-            return sio();
-        };
+        opts.createServer = () => sio();
         super(opts, cb);
     }
 
@@ -47,6 +45,4 @@ class Acceptor extends BaseAcceptor {
  * @param opts init params
  * @param cb cb(tracer, msg, cb) callback function that would be invoked when new message arrives
  */
-module.exports.create = function (opts, cb) {
-    return new Acceptor(opts || {}, cb);
-};
+module.exports.create = (opts, cb) => new Acceptor(opts || {}, cb);

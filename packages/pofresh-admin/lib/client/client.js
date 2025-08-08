@@ -20,7 +20,7 @@ class Client extends EventEmitter {
         this.socket = null;
         this.username = opt.username || '';
         this.password = opt.password || '';
-        this.md5 = opt.md5 || false;
+        this.md5 = opt.md5;
         this.ClientClass = opt.Client || SIOClient;
     }
 

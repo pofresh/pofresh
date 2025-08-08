@@ -38,14 +38,14 @@ class Command {
     }
 
     kill(rl, client) {
-        rl.question(consts.KILL_QUESTION_INFO, function (answer) {
+        rl.question(consts.KILL_QUESTION_INFO, answer => {
             if (answer === 'yes') {
                 client.request(
                     consts.CONSOLE_MODULE,
                     {
                         signal: 'kill'
                     },
-                    function (err, _data) {
+                    (err, _data) => {
                         if (err) {
                             util.log('Error killing servers: ' + err);
                         } else {
@@ -69,6 +69,4 @@ class Command {
     }
 }
 
-module.exports = function () {
-    return new Command();
-};
+module.exports = () => new Command();

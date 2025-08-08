@@ -1,59 +1,61 @@
 {
-  "name": "pofresh",
-  "version": "3.0.0",
-  "homepage": "https://github.com/ljhsai/pofresh",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ljhsai/pofresh.git"
-  },
-  "scripts": {
-    "test": "vitest",
-    "test:run": "vitest --run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "lint": "eslint --fix"
-  },
-  "bugs": {
-    "url": "https://github.com/ljhsai/pofresh/issues"
-  },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/ljhsai/pofresh#license"
-    }
-  ],
-  "keywords": [
-    "pofresh",
-    "framework",
-    "game",
-    "web",
-    "realtime",
-    "server"
-  ],
-  "dependencies": {
-    "@inquirer/prompts": "^7.5.3",
-    "async": "^3.2.6",
-    "chalk": "4.1.2",
-    "commander": "^12.1.0",
-    "crc": "^4.3.2",
-    "mkdirp": "^3.0.1",
-    "mqtt": "^5.13.1",
-    "node-bignumber": "^1.2.2",
-    "pofresh-admin": "workspace:*",
-    "pofresh-loader": "workspace:*",
-    "pofresh-logger": "workspace:*",
-    "pofresh-protobuf": "workspace:*",
-    "pofresh-protocol": "workspace:*",
-    "pofresh-rpc": "workspace:*",
-    "pofresh-scheduler": "workspace:*",
-    "seq-queue": "^0.0.5",
-    "socket.io": "^4.8.1",
-    "table": "^6.9.0",
-    "toobusy-js": "^0.5.1",
-    "ws": "^8.18.2"
-  },
-  "bin": {
-    "pofresh": "./bin/pofresh"
-  },
-  "devDependencies": {}
+    "name": "pofresh",
+    "version": "3.0.0",
+    "homepage": "https://github.com/ljhsai/pofresh",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ljhsai/pofresh.git"
+    },
+    "scripts": {
+        "test": "vitest",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
+    },
+    "bugs": {
+        "url": "https://github.com/ljhsai/pofresh/issues"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/ljhsai/pofresh#license"
+        }
+    ],
+    "keywords": [
+        "pofresh",
+        "framework",
+        "game",
+        "web",
+        "realtime",
+        "server"
+    ],
+    "dependencies": {
+        "@inquirer/prompts": "^7.5.3",
+        "async": "^3.2.6",
+        "chalk": "4.1.2",
+        "commander": "^12.1.0",
+        "crc": "^4.3.2",
+        "mkdirp": "^3.0.1",
+        "mqtt": "^5.13.1",
+        "node-bignumber": "^1.2.2",
+        "pofresh-admin": "workspace:*",
+        "pofresh-loader": "workspace:*",
+        "pofresh-logger": "workspace:*",
+        "pofresh-protobuf": "workspace:*",
+        "pofresh-protocol": "workspace:*",
+        "pofresh-rpc": "workspace:*",
+        "pofresh-scheduler": "workspace:*",
+        "seq-queue": "^0.0.5",
+        "socket.io": "^4.8.1",
+        "table": "^6.9.0",
+        "toobusy-js": "^0.5.1",
+        "ws": "^8.18.2"
+    },
+    "bin": {
+        "pofresh": "./bin/pofresh"
+    },
+    "devDependencies": {}
 }

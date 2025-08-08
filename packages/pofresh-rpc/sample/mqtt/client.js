@@ -8,22 +8,22 @@ conn.connect(
     {
         clientId: 'test'
     },
-    function () {
+    () => {
         console.log('client connected');
         start = Date.now();
         run();
     }
 );
 
-conn.on('puback', function () {
+conn.on('puback', () => {
     run();
 });
 
-conn.on('pingresp', function () {
+conn.on('pingresp', () => {
     run();
 });
 
-const numRequests = 20000;
+const numRequests = 20_000;
 let times = 0;
 
 function run() {
@@ -52,11 +52,11 @@ function run() {
     conn.publish(
         {
             topic: 'topic',
-            payload: payload,
+            payload,
             qos: 1,
             messageId: times
         },
-        function () {
+        () => {
             // run();
         }
     );

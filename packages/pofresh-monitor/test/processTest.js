@@ -5,7 +5,7 @@ function test() {
         pid: 4838,
         serverId: 'auth-server-1'
     };
-    processMonitor.getPsInfo(param, function (err, data) {
+    processMonitor.getPsInfo(param, (err, data) => {
         if (err) {
             console.log(err);
             return;

@@ -4,7 +4,7 @@ const port = 3005;
 const host = '127.0.0.1';
 
 const opts = {
-    port: port,
+    port,
     master: true
 };
 

@@ -22,8 +22,8 @@ module.exports.getPsInfo = getPsInfo;
 function getPsInfo(param, callback) {
     if (process.platform === 'win32') return;
     const pid = param.pid;
-    const cmd = 'ps auxw | grep ' + pid + ' | grep -v \'grep\'';
-    exec(cmd, function (err, output) {
+    const cmd = 'ps auxw | grep ' + pid + " | grep -v 'grep'";
+    exec(cmd, (err, output) => {
         if (err) {
             if (err.code === 1) {
                 console.log('the content is null!');
@@ -75,7 +75,7 @@ function format(param, data, cb) {
         cb(null, ps);
         return;
     }
-    exec('pidstat -p ' + pid, function (err, output) {
+    exec('pidstat -p ' + pid, (err, output) => {
         if (err) {
             console.error('the command pidstat failed! ', err.stack);
             return;

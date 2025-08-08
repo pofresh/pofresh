@@ -20,24 +20,24 @@ starter.runServers = function (app) {
     let server, servers;
     const condition = app.startId || app.type;
     switch (condition) {
-    case Constants.RESERVED.MASTER:
-        break;
-    case Constants.RESERVED.ALL:
-        servers = app.getServersFromConfig();
-        for (const serverId in servers) {
-            this.run(app, servers[serverId]);
-        }
-        break;
-    default:
-        server = app.getServerFromConfig(condition);
-        if (server) {
-            this.run(app, server);
-        } else {
-            servers = app.get(Constants.RESERVED.SERVERS)[condition];
-            for (let i = 0; i < servers.length; i++) {
-                this.run(app, servers[i]);
+        case Constants.RESERVED.MASTER:
+            break;
+        case Constants.RESERVED.ALL:
+            servers = app.getServersFromConfig();
+            for (const serverId in servers) {
+                this.run(app, servers[serverId]);
             }
-        }
+            break;
+        default:
+            server = app.getServerFromConfig(condition);
+            if (server) {
+                this.run(app, server);
+            } else {
+                servers = app.get(Constants.RESERVED.SERVERS)[condition];
+                for (let i = 0; i < servers.length; i++) {
+                    this.run(app, servers[i]);
+                }
+            }
     }
 };
 
@@ -48,7 +48,7 @@ starter.runServers = function (app) {
  * @param {Object} server
  * @return {Void}
  */
-starter.run = function (app, server, cb) {
+starter.run = (app, server, cb) => {
     const env = app.get(Constants.RESERVED.ENV);
     let cmd, key;
     if (utils.isLocal(server.host)) {
@@ -95,7 +95,7 @@ starter.run = function (app, server, cb) {
  * @param {String} host server host
  * @return {Void}
  */
-starter.bindCpu = function (sid, pid, host) {
+starter.bindCpu = (sid, pid, host) => {
     if (os.platform() === Constants.PLATFORM.LINUX && cpus[sid] !== undefined) {
         if (utils.isLocal(host)) {
             const options = [];
@@ -116,7 +116,7 @@ starter.bindCpu = function (sid, pid, host) {
  * @param {String} pids  array of server's pid
  * @param {String} serverIds array of serverId
  */
-starter.kill = function (pids, servers) {
+starter.kill = (pids, servers) => {
     let cmd;
     for (let i = 0; i < servers.length; i++) {
         const server = servers[i];
@@ -151,7 +151,7 @@ starter.kill = function (pids, servers) {
  * @param {Function} cb callback function
  *
  */
-starter.sshrun = function (cmd, host, cb) {
+starter.sshrun = (cmd, host, cb) => {
     let args = [];
     args.push(host);
     const ssh_params = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS);
@@ -172,7 +172,7 @@ starter.sshrun = function (cmd, host, cb) {
  * @param {Callback} callback
  *
  */
-starter.localrun = function (cmd, host, options, callback) {
+starter.localrun = (cmd, host, options, callback) => {
     logger.info('Executing ' + cmd + ' ' + options + ' locally');
     spawnProcess(cmd, host, options, callback);
 };
@@ -192,7 +192,7 @@ function spawnProcess(command, host, options, cb) {
         child = cp.spawn(command, options);
         const prefix = command === Constants.COMMAND.SSH ? '[' + host + '] ' : '';
 
-        child.stderr.on('data', function (chunk) {
+        child.stderr.on('data', chunk => {
             const msg = chunk.toString();
             process.stderr.write(msg);
             if (cb) {
@@ -200,7 +200,7 @@ function spawnProcess(command, host, options, cb) {
             }
         });
 
-        child.stdout.on('data', function (chunk) {
+        child.stdout.on('data', chunk => {
             const msg = prefix + chunk.toString();
             process.stdout.write(msg);
         });
@@ -209,7 +209,7 @@ function spawnProcess(command, host, options, cb) {
         child.unref();
     }
 
-    child.on('exit', function (code) {
+    child.on('exit', code => {
         if (code !== 0) {
             logger.warn('child process exit with error, error code: %s, executed command: %s', code, command);
         }

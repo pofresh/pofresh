@@ -13,9 +13,7 @@ const Constants = require('../util/constants');
 
 const moduleId = 'watchServer';
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 module.exports.moduleId = moduleId;
 
@@ -31,7 +29,7 @@ class Module {
 
     clientHandler(agent, msg, cb) {
         const { comd, context } = msg;
-        if (!comd || !context) {
+        if (!(comd && context)) {
             return cb('lack of comd or context param');
         }
 
@@ -43,56 +41,56 @@ function doHandler(handle, app, agent, msg, cb) {
     const { comd, context, param } = msg;
 
     switch (comd) {
-    case 'servers':
-        showServers(handle, agent, comd, context, cb);
-        break;
-    case 'connections':
-        showConnections(handle, agent, app, comd, context, cb);
-        break;
-    case 'logins':
-        showLogins(handle, agent, app, comd, context, cb);
-        break;
-    case 'modules':
-        showModules(handle, agent, comd, context, cb);
-        break;
-    case 'status':
-        showStatus(handle, agent, comd, context, cb);
-        break;
-    case 'proxy':
-        showProxy(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'handler':
-        showHandler(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'components':
-        showComponents(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'settings':
-        showSettings(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'cpu':
-        dumpCPU(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'memory':
-        dumpMemory(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'get':
-        getApp(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'set':
-        setApp(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'enable':
-        enableApp(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'disable':
-        disableApp(handle, agent, app, comd, context, param, cb);
-        break;
-    case 'run':
-        runScript(handle, agent, app, comd, context, param, cb);
-        break;
-    default:
-        showError(handle, agent, comd, context, cb);
+        case 'servers':
+            showServers(handle, agent, comd, context, cb);
+            break;
+        case 'connections':
+            showConnections(handle, agent, app, comd, context, cb);
+            break;
+        case 'logins':
+            showLogins(handle, agent, app, comd, context, cb);
+            break;
+        case 'modules':
+            showModules(handle, agent, comd, context, cb);
+            break;
+        case 'status':
+            showStatus(handle, agent, comd, context, cb);
+            break;
+        case 'proxy':
+            showProxy(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'handler':
+            showHandler(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'components':
+            showComponents(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'settings':
+            showSettings(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'cpu':
+            dumpCPU(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'memory':
+            dumpMemory(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'get':
+            getApp(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'set':
+            setApp(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'enable':
+            enableApp(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'disable':
+            disableApp(handle, agent, app, comd, context, param, cb);
+            break;
+        case 'run':
+            runScript(handle, agent, app, comd, context, param, cb);
+            break;
+        default:
+            showError(handle, agent, comd, context, cb);
     }
 }
 
@@ -296,7 +294,7 @@ function dumpMemory(handle, agent, app, comd, context, param, cb) {
     }
     if (handle === 'monitor') {
         // 输入验证
-        if (!param || !param.filepath) {
+        if (!(param && param.filepath)) {
             return cb(new Error('filepath parameter is required'));
         }
 
@@ -451,9 +449,7 @@ function proxyCb(app, context, cb) {
     if (__proxy__ && __proxy__.client && __proxy__.client.proxies.user) {
         const proxies = __proxy__.client.proxies.user;
         const server = app.getServerById(context);
-        if (!server) {
-            cb('no server with this id ' + context);
-        } else {
+        if (server) {
             const type = server.serverType;
             const tmp = proxies[type];
             msg[type] = {};
@@ -467,6 +463,8 @@ function proxyCb(app, context, cb) {
                 }
             }
             cb(null, msg);
+        } else {
+            cb('no server with this id ' + context);
         }
     } else {
         cb('no proxy loaded');
@@ -479,9 +477,7 @@ function handlerCb(app, context, cb) {
     if (__server__ && __server__.server && __server__.server.handlerService.handlers) {
         const handles = __server__.server.handlerService.handlers;
         const server = app.getServerById(context);
-        if (!server) {
-            cb('no server with this id ' + context);
-        } else {
+        if (server) {
             const type = server.serverType;
             const tmp = handles;
             msg[type] = {};
@@ -495,6 +491,8 @@ function handlerCb(app, context, cb) {
                 }
             }
             cb(null, msg);
+        } else {
+            cb('no server with this id ' + context);
         }
     } else {
         cb('no handler loaded');

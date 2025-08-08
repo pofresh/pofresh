@@ -44,7 +44,7 @@ class Command {
         socket.sendRaw(Package.encode(Package.TYPE_HEARTBEAT));
 
         if (this.disconnectOnTimeout) {
-            this.timeouts[socket.id] = setTimeout(function () {
+            this.timeouts[socket.id] = setTimeout(() => {
                 logger.info('client %j heartbeat timeout.', socket.id);
                 socket.disconnect();
             }, this.timeout);

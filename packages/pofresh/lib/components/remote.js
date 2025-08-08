@@ -14,10 +14,10 @@ const RemoteServer = require('pofresh-rpc').server;
  *                       opts.acceptorFactory {Object}: acceptorFactory.create(opts, cb)
  * @return {Object}     remote component instances
  */
-module.exports = function (app, opts) {
+module.exports = (app, opts) => {
     opts = opts || {};
     //just for compatibility here.
-    opts.bufferMsg = opts.bufferMsg || false;
+    opts.bufferMsg = opts.bufferMsg;
     opts.interval = opts.interval || 30;
     if (app.enabled('rpcDebugLog')) {
         opts.rpcDebugLog = true;
@@ -77,9 +77,8 @@ function genRemote(app, opts) {
     opts.context = app;
     if (opts.rpcServer) {
         return opts.rpcServer.create(opts);
-    } else {
-        return RemoteServer.create(opts);
     }
+    return RemoteServer.create(opts);
 }
 
 /**

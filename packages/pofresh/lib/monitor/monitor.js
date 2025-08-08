@@ -35,19 +35,17 @@ class Monitor {
 
     startConsole(cb) {
         moduleUtil.loadModules(this, this.monitorConsole);
-
-        const self = this;
-        this.monitorConsole.start(function (err) {
+        this.monitorConsole.start(err => {
             if (err) {
                 utils.invokeCallback(cb, err);
                 return;
             }
-            moduleUtil.startModules(self.modules, function (err) {
+            moduleUtil.startModules(this.modules, err => {
                 utils.invokeCallback(cb, err);
             });
         });
 
-        this.monitorConsole.on('error', function (err) {
+        this.monitorConsole.on('error', err => {
             if (err) {
                 logger.error('monitorConsole encounters with error: %j', err.stack);
             }
@@ -57,25 +55,24 @@ class Monitor {
     stop(cb) {
         this.monitorConsole.stop();
         this.modules = [];
-        process.nextTick(function () {
+        process.nextTick(() => {
             utils.invokeCallback(cb);
         });
     }
 
     //monitor reconnect to master
     reconnect(masterInfo) {
-        const self = this;
-        this.stop(function () {
-            self.monitorConsole = admin.createMonitorConsole({
-                id: self.serverInfo.id,
-                type: self.app.getServerType(),
+        this.stop(() => {
+            this.monitorConsole = admin.createMonitorConsole({
+                id: this.serverInfo.id,
+                type: this.app.getServerType(),
                 host: masterInfo.host,
                 port: masterInfo.port,
-                info: self.serverInfo,
-                env: self.app.get(Constants.RESERVED.ENV)
+                info: this.serverInfo,
+                env: this.app.get(Constants.RESERVED.ENV)
             });
-            self.startConsole(function () {
-                logger.info('restart modules for server : %j finish.', self.app.serverId);
+            this.startConsole(() => {
+                logger.info('restart modules for server : %j finish.', this.app.serverId);
             });
         });
     }

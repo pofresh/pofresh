@@ -1,8 +1,6 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(rm:*)"
-    ],
-    "deny": []
-  }
+    "permissions": {
+        "allow": ["Bash(rm:*)"],
+        "deny": []
+    }
 }

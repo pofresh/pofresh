@@ -6,13 +6,13 @@ ws.on('open', function open() {
     run();
 });
 
-ws.on('message', function (data, _flags) {
+ws.on('message', (data, _flags) => {
     // flags.binary will be set if a binary data is received.
     // flags.masked will be set if the data was masked.
     run();
 });
 
-const numRequests = 20000;
+const numRequests = 20_000;
 let start = null;
 let times = 0;
 

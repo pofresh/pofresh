@@ -2,9 +2,7 @@ const cliff = require('cliff');
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 module.exports.commandId = 'help';
 

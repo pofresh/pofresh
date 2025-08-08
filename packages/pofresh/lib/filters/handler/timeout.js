@@ -8,9 +8,7 @@ const utils = require('../../util/utils');
 const DEFAULT_TIMEOUT = 3000;
 const DEFAULT_SIZE = 500;
 
-module.exports = function (timeout, maxSize) {
-    return new Filter(timeout || DEFAULT_TIMEOUT, maxSize || DEFAULT_SIZE);
-};
+module.exports = (timeout, maxSize) => new Filter(timeout || DEFAULT_TIMEOUT, maxSize || DEFAULT_SIZE);
 
 class Filter {
     constructor(timeout, maxSize) {
@@ -28,7 +26,7 @@ class Filter {
             return;
         }
         this.curId++;
-        this.timeouts[this.curId] = setTimeout(function () {
+        this.timeouts[this.curId] = setTimeout(() => {
             logger.error('request %j timeout.', msg.__route__);
         }, this.timeout);
         session.__timeout__ = this.curId;

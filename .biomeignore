@@ -1,0 +1,19 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore build outputs
+dist/
+build/
+
+# Ignore minified files
+*.min.js
+*.min.css
+
+# Ignore template public assets
+packages/*/template/*/public/
+template/*/public/
+
+# Ignore specific problematic files
+packages/pofresh/template/web-server/public/js/lib/socket.io.min.js
+packages/pofresh/template/web-server/public/js/lib/
+**/socket.io.min.js

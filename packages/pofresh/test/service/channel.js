@@ -6,9 +6,9 @@ const mockBase = process.cwd() + '/test';
 const channelName = 'test_channel';
 const mockApp = { serverId: 'test-server-1' };
 
-describe('channel test', function () {
-    describe('#add', function () {
-        it('should add a member into channel and could fetch it later', function () {
+describe('channel test', () => {
+    describe('#add', () => {
+        it('should add a member into channel and could fetch it later', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -23,7 +23,7 @@ describe('channel test', function () {
             sid.should.equal(member.sid);
         });
 
-        it('should fail if the sid not specified', function () {
+        it('should fail if the sid not specified', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -32,7 +32,7 @@ describe('channel test', function () {
             channel.add(uid, null).should.be.false;
         });
 
-        it('should fail after the channel has been destroied', function () {
+        it('should fail after the channel has been destroied', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -45,8 +45,8 @@ describe('channel test', function () {
         });
     });
 
-    describe('#leave', function () {
-        it('should remove the member from channel when leave', function () {
+    describe('#leave', () => {
+        it('should remove the member from channel when leave', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -63,7 +63,7 @@ describe('channel test', function () {
             should.not.exist(member);
         });
 
-        it('should fail if uid or sid not specified', function () {
+        it('should fail if uid or sid not specified', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -77,8 +77,8 @@ describe('channel test', function () {
         });
     });
 
-    describe('#getMembers', function () {
-        it('should return all the members of channel', function () {
+    describe('#getMembers', () => {
+        it('should return all the members of channel', () => {
             const uinfos = [
                 { uid: 'uid1', sid: 'sid1' },
                 { uid: 'uid2', sid: 'sid2' },
@@ -104,8 +104,8 @@ describe('channel test', function () {
         });
     });
 
-    describe('#pushMessage', function () {
-        it('should push message to the right frontend server by sid', function (done) {
+    describe('#pushMessage', () => {
+        it('should push message to the right frontend server by sid', done => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -124,7 +124,7 @@ describe('channel test', function () {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = function (sid, rmsg, cb) {
+            const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 const args = rmsg.args;
                 const route = args[0];
@@ -150,19 +150,19 @@ describe('channel test', function () {
                 channel.add(mockUids[i].uid, mockUids[i].sid);
             }
 
-            channel.pushMessage(mockMsg, function () {
+            channel.pushMessage(mockMsg, () => {
                 invokeCount.should.equal(2);
                 done();
             });
         });
-        it('should fail if channel has destroied', function () {
+        it('should fail if channel has destroied', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
 
             channel.destroy();
 
-            channel.pushMessage({}, function (err) {
+            channel.pushMessage({}, err => {
                 should.exist(err);
                 err.message.should.equal('channel is not running now');
             });

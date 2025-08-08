@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { server as Server } from '../../index.js';
 
 const paths = [
@@ -10,8 +10,8 @@ describe('dispatcher', () => {
     it('should create dispatcher successfully', () => {
         const port = 3333;
         const server = Server.create({
-            paths: paths,
-            port: port
+            paths,
+            port
         });
 
         expect(server).toBeDefined();

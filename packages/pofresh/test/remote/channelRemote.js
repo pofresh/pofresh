@@ -8,9 +8,9 @@ const mockBase = process.cwd() + '/test';
 
 const WAIT_TIME = 200;
 
-describe('channel remote test', function () {
-    describe('#pushMessage', function () {
-        it('should push message the the specified clients', function (done) {
+describe('channel remote test', () => {
+    describe('#pushMessage', () => {
+        it('should push message the the specified clients', done => {
             const sids = [1, 2, 3, 4, 5, 6];
             const uids = [11, 12, 13];
             const frontendId = 'frontend-server-id';
@@ -20,7 +20,7 @@ describe('channel remote test', function () {
             const invokeUids = [];
 
             const sessionService = new SessionService();
-            sessionService.sendMessageByUid = function (uid, msg) {
+            sessionService.sendMessageByUid = (uid, msg) => {
                 mockMsg.should.eql(msg);
                 invokeCount++;
                 invokeUids.push(uid);
@@ -37,13 +37,13 @@ describe('channel remote test', function () {
             console.log('base', mockBase);
             const app = pofresh.createApp({ base: mockBase });
             app.components.__connector__ = {
-                send: function (reqId, route, msg, recvs, opts, cb) {
+                send(reqId, route, msg, recvs, opts, cb) {
                     app.components.__pushScheduler__.schedule(reqId, route, msg, recvs, opts, cb);
                 }
             };
             app.components.__connector__.connector = {};
             app.components.__pushScheduler__ = {
-                schedule: function (reqId, route, msg, recvs, opts, cb) {
+                schedule(reqId, route, msg, recvs, opts, cb) {
                     mockMsg.should.eql(msg);
                     invokeCount += recvs.length;
                     let sess;
@@ -58,7 +58,7 @@ describe('channel remote test', function () {
             };
             app.set('sessionService', sessionService);
             const channelRemote = remote(app);
-            channelRemote.pushMessage(mockRoute, mockMsg, uids, { isPush: true }, function () {
+            channelRemote.pushMessage(mockRoute, mockMsg, uids, { isPush: true }, () => {
                 invokeCount.should.equal(uids.length);
                 invokeUids.length.should.equal(uids.length);
                 for (let i = 0, l = uids.length; i < l; i++) {
@@ -69,8 +69,8 @@ describe('channel remote test', function () {
         });
     });
 
-    describe('#broadcast', function () {
-        it('should broadcast to all the client connected', function (done) {
+    describe('#broadcast', () => {
+        it('should broadcast to all the client connected', done => {
             const sids = [1, 2, 3, 4, 5];
             const uids = [11, 12, 13, 14, 15];
             const frontendId = 'frontend-server-id';
@@ -91,13 +91,13 @@ describe('channel remote test', function () {
 
             const app = pofresh.createApp({ base: mockBase });
             app.components.__connector__ = {
-                send: function (reqId, route, msg, recvs, opts, cb) {
+                send(reqId, route, msg, recvs, opts, cb) {
                     app.components.__pushScheduler__.schedule(reqId, route, msg, recvs, opts, cb);
                 }
             };
             app.components.__connector__.connector = {};
             app.components.__pushScheduler__ = {
-                schedule: function (reqId, route, msg, recvs, opts, cb) {
+                schedule(reqId, route, msg, recvs, opts, cb) {
                     invokeCount++;
                     mockMsg.should.eql(msg);
                     should.exist(opts);
@@ -108,13 +108,13 @@ describe('channel remote test', function () {
             app.set('sessionService', sessionService);
             app.set('channelService', channelService);
             const channelRemote = remote(app);
-            channelRemote.broadcast(mockRoute, mockMsg, { type: 'broadcast' }, function () {
+            channelRemote.broadcast(mockRoute, mockMsg, { type: 'broadcast' }, () => {
                 invokeCount.should.equal(1);
                 done();
             });
         });
 
-        it('should broadcast to all the binded client connected', function (done) {
+        it('should broadcast to all the binded client connected', done => {
             const sids = [1, 2, 3, 4, 5, 6];
             const uids = [11, 12, 13];
             const frontendId = 'frontend-server-id';
@@ -137,13 +137,13 @@ describe('channel remote test', function () {
 
             const app = pofresh.createApp({ base: mockBase });
             app.components.__connector__ = {
-                send: function (reqId, route, msg, recvs, opts, cb) {
+                send(reqId, route, msg, recvs, opts, cb) {
                     app.components.__pushScheduler__.schedule(reqId, route, msg, recvs, opts, cb);
                 }
             };
             app.components.__connector__.connector = {};
             app.components.__pushScheduler__ = {
-                schedule: function (reqId, route, msg, recvs, opts, cb) {
+                schedule(reqId, route, msg, recvs, opts, cb) {
                     invokeCount++;
                     mockMsg.should.eql(msg);
                     should.exist(opts);
@@ -155,15 +155,10 @@ describe('channel remote test', function () {
             app.set('sessionService', sessionService);
             app.set('channelService', channelService);
             const channelRemote = remote(app);
-            channelRemote.broadcast(
-                mockRoute,
-                mockMsg,
-                { type: 'broadcast', userOptions: { binded: true } },
-                function () {
-                    invokeCount.should.equal(1);
-                    done();
-                }
-            );
+            channelRemote.broadcast(mockRoute, mockMsg, { type: 'broadcast', userOptions: { binded: true } }, () => {
+                invokeCount.should.equal(1);
+                done();
+            });
         });
     });
 });

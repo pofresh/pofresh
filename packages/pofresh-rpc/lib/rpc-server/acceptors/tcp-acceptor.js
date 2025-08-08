@@ -52,10 +52,8 @@ class Acceptor extends BaseAcceptor {
  * @param opts init params
  * @param cb(tracer, msg, cb) callback function that would be invoked when new message arrives
  */
-module.exports.create = function (opts, cb) {
-    return new Acceptor(opts || {}, cb);
-};
+module.exports.create = (opts, cb) => new Acceptor(opts || {}, cb);
 
-process.on('SIGINT', function () {
+process.on('SIGINT', () => {
     process.exit();
 });

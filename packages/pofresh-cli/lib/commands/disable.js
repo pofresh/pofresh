@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const commandId = 'disable';
 const helpCommand = 'help disable';
@@ -35,14 +33,12 @@ class Command {
         const param = argvs[2];
 
         if (comd === 'module') {
-            client.command(commandId, param, null, function (err, data) {
+            client.command(commandId, param, null, (err, data) => {
                 if (err) console.log(err);
-                else {
-                    if (data === 1) {
-                        util.log('\ncommand ' + argv + ' ok\n');
-                    } else {
-                        util.log('\ncommand ' + argv + ' bad\n');
-                    }
+                else if (data === 1) {
+                    util.log('\ncommand ' + argv + ' ok\n');
+                } else {
+                    util.log('\ncommand ' + argv + ' bad\n');
                 }
                 rl.prompt();
             });
@@ -51,10 +47,10 @@ class Command {
                 'watchServer',
                 {
                     comd: commandId,
-                    param: param,
+                    param,
                     context: Context
                 },
-                function (err, data) {
+                (err, data) => {
                     if (err) console.log(err);
                     else util.log('\n' + data + '\n');
                     rl.prompt();

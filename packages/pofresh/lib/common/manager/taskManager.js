@@ -14,7 +14,7 @@ manager.timeout = 3000;
  * @param {Function} ontimeout task timeout callback
  * @param {Number}   timeout   timeout for task
  */
-manager.addTask = function (key, fn, ontimeout, timeout) {
+manager.addTask = (key, fn, ontimeout, timeout) => {
     let queue = queues[key];
     if (!queue) {
         queue = sequeue.createQueue(manager.timeout);
@@ -30,7 +30,7 @@ manager.addTask = function (key, fn, ontimeout, timeout) {
  * @param  {String} key   task key
  * @param  {Boolean} force whether close task group directly
  */
-manager.closeQueue = function (key, force) {
+manager.closeQueue = (key, force) => {
     if (!queues[key]) {
         // ignore illeagle key
         return;

@@ -12,15 +12,14 @@ function getAllocBuffer(length) {
         throw new TypeError('Length must be a non-negative integer');
     }
 
-    if (length > 0x7FFFFFFF) {
+    if (length > 0x7f_ff_ff_ff) {
         throw new RangeError('Length exceeds maximum buffer size');
     }
 
     if (typeof Buffer !== 'undefined') {
         return Buffer.alloc(length);
-    } else {
-        return new Uint8Array(length);
     }
+    return new Uint8Array(length);
 }
 
 /**
@@ -38,37 +37,36 @@ function getFromBuffer(data) {
             return data;
         }
         return Buffer.from(data);
-    } else {
-        if (data instanceof Uint8Array) {
-            return data;
-        }
-        if (data instanceof ArrayBuffer) {
-            return new Uint8Array(data);
-        }
-        if (Array.isArray(data)) {
-            return new Uint8Array(data);
-        }
-        if (typeof data === 'string') {
-            // Convert string to UTF-8 bytes
-            const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
-            if (encoder) {
-                return encoder.encode(data);
-            }
-            // Fallback for environments without TextEncoder
-            const bytes = [];
-            for (let i = 0; i < data.length; i++) {
-                const code = data.charCodeAt(i);
-                if (code < 128) {
-                    bytes.push(code);
-                } else {
-                    // Simple ASCII-only fallback
-                    bytes.push(63); // '?' character
-                }
-            }
-            return new Uint8Array(bytes);
-        }
+    }
+    if (data instanceof Uint8Array) {
+        return data;
+    }
+    if (data instanceof ArrayBuffer) {
         return new Uint8Array(data);
     }
+    if (Array.isArray(data)) {
+        return new Uint8Array(data);
+    }
+    if (typeof data === 'string') {
+        // Convert string to UTF-8 bytes
+        const encoder = typeof TextEncoder !== 'undefined' ? new TextEncoder() : null;
+        if (encoder) {
+            return encoder.encode(data);
+        }
+        // Fallback for environments without TextEncoder
+        const bytes = [];
+        for (let i = 0; i < data.length; i++) {
+            const code = data.charCodeAt(i);
+            if (code < 128) {
+                bytes.push(code);
+            } else {
+                // Simple ASCII-only fallback
+                bytes.push(63); // '?' character
+            }
+        }
+        return new Uint8Array(bytes);
+    }
+    return new Uint8Array(data);
 }
 
 /**
@@ -80,7 +78,7 @@ function getFromBuffer(data) {
  * @param {number} length - Number of bytes to copy
  */
 function copyArray(dest, doffset, src, soffset, length) {
-    if (!dest || !src) {
+    if (!(dest && src)) {
         throw new TypeError('Destination and source buffers are required');
     }
 

@@ -5,9 +5,7 @@
 const rpcLogger = require('pofresh-logger').getLogger('rpc-log', __filename);
 const utils = require('../../util/utils');
 
-module.exports = function () {
-    return new Filter();
-};
+module.exports = () => new Filter();
 
 class Filter {
     constructor() {
@@ -35,7 +33,7 @@ class Filter {
                 route: msg.service,
                 args: msg.args,
                 time: utils.format(new Date(start)),
-                timeUsed: timeUsed
+                timeUsed
             };
             rpcLogger.info(JSON.stringify(log));
         }

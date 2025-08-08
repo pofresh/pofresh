@@ -146,7 +146,7 @@ class ChannelService {
         const count = servers.length;
         let successFlag = false;
 
-        const latch = countDownLatch.createCountDownLatch(count, function () {
+        const latch = countDownLatch.createCountDownLatch(count, () => {
             if (!successFlag) {
                 utils.invokeCallback(cb, new Error('broadcast fails'));
                 return;
@@ -154,37 +154,32 @@ class ChannelService {
             utils.invokeCallback(cb, null);
         });
 
-        const genCB = function (serverId) {
-            return function (err) {
-                if (err) {
-                    logger.error('[broadcast] fail to push message to serverId: ' + serverId + ', err:' + err.stack);
-                    latch.done();
-                    return;
-                }
-                successFlag = true;
+        const genCB = serverId => err => {
+            if (err) {
+                logger.error('[broadcast] fail to push message to serverId: ' + serverId + ', err:' + err.stack);
                 latch.done();
-            };
+                return;
+            }
+            successFlag = true;
+            latch.done();
         };
-
-        const self = this;
-        const sendMessage = function (serverId) {
-            return (function () {
+        const sendMessage = serverId =>
+            (() => {
                 if (serverId === app.serverId) {
-                    self.channelRemote[method](route, msg, opts, genCB());
+                    this.channelRemote[method](route, msg, opts, genCB());
                 } else {
                     app.rpcInvoke(
                         serverId,
                         {
-                            namespace: namespace,
-                            service: service,
-                            method: method,
+                            namespace,
+                            service,
+                            method,
                             args: [route, msg, opts]
                         },
                         genCB(serverId)
                     );
                 }
             })();
-        };
 
         opts = { type: 'broadcast', userOptions: opts || {} };
 
@@ -229,15 +224,14 @@ class Channel {
     add(uid, sid) {
         if (this.state > ST_INITED) {
             return false;
-        } else {
-            const res = add(uid, sid, this.groups);
-            if (res) {
-                this.records[uid] = { sid: sid, uid: uid };
-                this.userAmount = this.userAmount + 1;
-            }
-            addToStore(this.__channelService__, genKey(this.__channelService__, this.name), genValue(sid, uid));
-            return res;
         }
+        const res = add(uid, sid, this.groups);
+        if (res) {
+            this.records[uid] = { sid, uid };
+            this.userAmount = this.userAmount + 1;
+        }
+        addToStore(this.__channelService__, genKey(this.__channelService__, this.name), genValue(sid, uid));
+        return res;
     }
 
     /**
@@ -248,7 +242,7 @@ class Channel {
      * @return [Boolean] true if success or false if fail
      */
     leave(uid, sid) {
-        if (!uid || !sid) {
+        if (!(uid && sid)) {
             return false;
         }
         const res = deleteFrom(uid, sid, this.groups[sid]);
@@ -369,7 +363,7 @@ function add(uid, sid, groups) {
  * delete element from array
  */
 function deleteFrom(uid, sid, group) {
-    if (!uid || !sid || !group) {
+    if (!(uid && sid && group)) {
         return false;
     }
 
@@ -417,7 +411,7 @@ function sendMessageByGroup(channelService, route, msg, groups, opts, cb) {
         return;
     }
 
-    const latch = countDownLatch.createCountDownLatch(count, function () {
+    const latch = countDownLatch.createCountDownLatch(count, () => {
         if (!successFlag) {
             utils.invokeCallback(cb, new Error('all uids push message fail'));
             return;
@@ -425,34 +419,31 @@ function sendMessageByGroup(channelService, route, msg, groups, opts, cb) {
         utils.invokeCallback(cb, null, failIds);
     });
 
-    const rpcCB = function (serverId) {
-        return function (err, fails) {
-            if (err) {
-                logger.error('[pushMessage] fail to dispatch msg to serverId: ' + serverId + ', err:' + err.stack);
-                latch.done();
-                return;
-            }
-            if (fails) {
-                failIds = failIds.concat(fails);
-            }
-            successFlag = true;
+    const rpcCB = serverId => (err, fails) => {
+        if (err) {
+            logger.error('[pushMessage] fail to dispatch msg to serverId: ' + serverId + ', err:' + err.stack);
             latch.done();
-        };
+            return;
+        }
+        if (fails) {
+            failIds = failIds.concat(fails);
+        }
+        successFlag = true;
+        latch.done();
     };
 
     opts = { type: 'push', userOptions: opts || {} };
     // for compatiblity
     opts.isPush = true;
 
-    const sendMessage = function (sid) {
-        return (function () {
+    const sendMessage = sid =>
+        (() => {
             if (sid === app.serverId) {
                 channelService.channelRemote[method](route, msg, groups[sid], opts, rpcCB(sid));
             } else {
                 app.rpcInvoke(sid, { namespace, service, method, args: [route, msg, groups[sid], opts] }, rpcCB(sid));
             }
         })();
-    };
 
     let group;
     for (const sid in groups) {
@@ -467,50 +458,48 @@ function sendMessageByGroup(channelService, route, msg, groups, opts, cb) {
 }
 
 function restoreChannel(self, cb) {
-    if (!self.store) {
-        utils.invokeCallback(cb);
-        return;
-    } else {
-        loadAllFromStore(self, genKey(self), function (err, list) {
+    if (self.store) {
+        loadAllFromStore(self, genKey(self), (err, list) => {
             if (err) {
                 utils.invokeCallback(cb, err);
                 return;
-            } else {
-                if (!list.length || !Array.isArray(list)) {
-                    utils.invokeCallback(cb);
-                    return;
-                }
-                const load = function (key, name) {
-                    return (function () {
-                        loadAllFromStore(self, key, function (err, items) {
-                            for (let j = 0; j < items.length; j++) {
-                                const array = items[j].split(':');
-                                const sid = array[0];
-                                const uid = array[1];
-                                const channel = self.channels[name];
-                                const res = add(uid, sid, channel.groups);
-                                if (res) {
-                                    channel.records[uid] = { sid: sid, uid: uid };
-                                }
-                            }
-                        });
-                    })();
-                };
-
-                for (let i = 0; i < list.length; i++) {
-                    const name = list[i].slice(genKey(self).length + 1);
-                    self.channels[name] = new Channel(name, self);
-                    load(list[i], name);
-                }
-                utils.invokeCallback(cb);
             }
+            if (!(list.length && Array.isArray(list))) {
+                utils.invokeCallback(cb);
+                return;
+            }
+            const load = (key, name) =>
+                (() => {
+                    loadAllFromStore(self, key, (err, items) => {
+                        for (let j = 0; j < items.length; j++) {
+                            const array = items[j].split(':');
+                            const sid = array[0];
+                            const uid = array[1];
+                            const channel = self.channels[name];
+                            const res = add(uid, sid, channel.groups);
+                            if (res) {
+                                channel.records[uid] = { sid, uid };
+                            }
+                        }
+                    });
+                })();
+
+            for (let i = 0; i < list.length; i++) {
+                const name = list[i].slice(genKey(self).length + 1);
+                self.channels[name] = new Channel(name, self);
+                load(list[i], name);
+            }
+            utils.invokeCallback(cb);
         });
+    } else {
+        utils.invokeCallback(cb);
+        return;
     }
 }
 
 function addToStore(self, key, value) {
     if (self.store) {
-        self.store.add(key, value, function (err) {
+        self.store.add(key, value, err => {
             if (err) {
                 logger.error('add key: %s value: %s to store, with err: %j', key, value, err.stack);
             }
@@ -520,7 +509,7 @@ function addToStore(self, key, value) {
 
 function removeFromStore(self, key, value) {
     if (self.store) {
-        self.store.remove(key, value, function (err) {
+        self.store.remove(key, value, err => {
             if (err) {
                 logger.error('remove key: %s value: %s from store, with err: %j', key, value, err.stack);
             }
@@ -530,7 +519,7 @@ function removeFromStore(self, key, value) {
 
 function loadAllFromStore(self, key, cb) {
     if (self.store) {
-        self.store.load(key, function (err, list) {
+        self.store.load(key, (err, list) => {
             if (err) {
                 logger.error('load key: %s from store, with err: %j', key, err.stack);
                 utils.invokeCallback(cb, err);
@@ -543,7 +532,7 @@ function loadAllFromStore(self, key, cb) {
 
 function removeAllFromStore(self, key) {
     if (self.store) {
-        self.store.removeAll(key, function (err) {
+        self.store.removeAll(key, err => {
             if (err) {
                 logger.error('remove key: %s all members from store, with err: %j', key, err.stack);
             }
@@ -554,9 +543,8 @@ function removeAllFromStore(self, key) {
 function genKey(self, name) {
     if (name) {
         return self.prefix + ':' + self.app.serverId + ':' + name;
-    } else {
-        return self.prefix + ':' + self.app.serverId;
     }
+    return self.prefix + ':' + self.app.serverId;
 }
 
 function genValue(sid, uid) {

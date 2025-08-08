@@ -8,7 +8,7 @@ const MSG_FLAG_BYTES = 1;
 const MSG_ROUTE_CODE_BYTES = 2;
 const MSG_ROUTE_LEN_BYTES = 1;
 
-const MSG_ROUTE_CODE_MAX = 0xffff;
+const MSG_ROUTE_CODE_MAX = 0xff_ff;
 
 // Message compression masks
 const MSG_COMPRESS_ROUTE_MASK = 0x1;

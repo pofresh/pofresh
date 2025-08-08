@@ -19,7 +19,7 @@ class SIOClient extends EventEmitter {
     }
 
     connect(host, port, cb) {
-        cb = cb || function () {};
+        cb = cb || (() => {});
         let callbackInvoked = false;
 
         // 防止回调被多次调用
@@ -47,7 +47,7 @@ class SIOClient extends EventEmitter {
             port = this.port;
         }
 
-        if (!host || !port) {
+        if (!(host && port)) {
             return safeCallback(new Error('Host and port are required'));
         }
 
@@ -60,7 +60,7 @@ class SIOClient extends EventEmitter {
                 this.setSocketClose();
                 safeCallback(new Error('Connection timeout'));
             }
-        }, this.timeout || 10000);
+        }, this.timeout || 10_000);
 
         try {
             this.socket = IOClient('ws://' + host + ':' + port, {

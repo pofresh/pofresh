@@ -4,7 +4,7 @@ const crypto = require('crypto');
 /* Buffer-based implementation considerations */
 
 /* Publish */
-module.exports.publish = function (opts) {
+module.exports.publish = opts => {
     opts = opts || {};
     const dup = opts.dup ? protocol.DUP_MASK : 0;
     const qos = opts.qos || 0;
@@ -23,7 +23,7 @@ module.exports.publish = function (opts) {
     /* accepting only a buffer for payload */
     if (!Buffer.isBuffer(payload)) return null;
     if (typeof qos !== 'number' || qos < 0 || qos > 2) return null;
-    if (typeof id !== 'number' || id < 0 || id > 0xffff) return null;
+    if (typeof id !== 'number' || id < 0 || id > 0xff_ff) return null;
 
     /* Generate header */
     packet.header = (protocol.codes.publish << protocol.CMD_SHIFT) | dup | (qos << protocol.QOS_SHIFT) | retain;
@@ -50,7 +50,7 @@ function gen_length(length) {
     let digit = 0;
 
     do {
-        digit = length % 128 | 0;
+        digit = (length % 128) | 0;
         length = (length / 128) | 0;
         if (length > 0) {
             digit = digit | 0x80;
@@ -79,14 +79,14 @@ function gen_string(str, without_length) {
             ++length;
             string.push(128 + (code & 63));
             ++length;
-        } else if (code < 65536) {
+        } else if (code < 65_536) {
             string.push(224 + (code >> 12));
             ++length;
             string.push(128 + ((code >> 6) & 63));
             ++length;
             string.push(128 + (code & 63));
             ++length;
-        } else if (code < 2097152) {
+        } else if (code < 2_097_152) {
             string.push(240 + (code >> 18));
             ++length;
             string.push(128 + ((code >> 12) & 63));
@@ -96,17 +96,17 @@ function gen_string(str, without_length) {
             string.push(128 + (code & 63));
             ++length;
         } else {
-            throw new Error('Can\'t encode character with code ' + code);
+            throw new Error("Can't encode character with code " + code);
         }
     }
     return without_length ? string : gen_number(length).concat(string);
 }
 
 function gen_number(num) {
-    const number = [num >> 8, num & 0x00ff];
+    const number = [num >> 8, num & 0x00_ff];
     return number;
 }
 
 function randint() {
-    return Math.floor(Math.random() * 0xffff);
+    return Math.floor(Math.random() * 0xff_ff);
 }

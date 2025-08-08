@@ -58,7 +58,7 @@ class Message {
             if (typeof id !== 'number' || !Number.isInteger(id) || id < 0) {
                 throw new TypeError('Message ID must be a non-negative integer');
             }
-            if (id > 0x7FFFFFFF) {
+            if (id > 0x7f_ff_ff_ff) {
                 throw new RangeError('Message ID too large');
             }
         }
@@ -90,8 +90,8 @@ class Message {
         }
 
         // Validate message body
-        const msgBodyLength = msg ? (msg.length || msg.byteLength || 0) : 0;
-        if (msgBodyLength > 0x7FFFFFFF) {
+        const msgBodyLength = msg ? msg.length || msg.byteLength || 0 : 0;
+        if (msgBodyLength > 0x7f_ff_ff_ff) {
             throw new RangeError('Message body too large');
         }
         msgLen += msgBodyLength;
@@ -166,7 +166,7 @@ class Message {
                     throw new Error('Incomplete message: truncated message ID');
                 }
                 byte = bytes[offset++];
-                id += (byte & 0x7F) << shift;
+                id += (byte & 0x7f) << shift;
                 shift += 7;
 
                 // Prevent infinite loop and overflow
@@ -189,7 +189,9 @@ class Message {
                 }
                 const routeLen = bytes[offset++];
                 if (offset + routeLen > bytesLen) {
-                    throw new Error(`Incomplete message: truncated route. Expected ${routeLen} bytes, got ${bytesLen - offset}`);
+                    throw new Error(
+                        `Incomplete message: truncated route. Expected ${routeLen} bytes, got ${bytesLen - offset}`
+                    );
                 }
 
                 if (routeLen > 0) {

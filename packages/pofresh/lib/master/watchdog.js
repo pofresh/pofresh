@@ -41,7 +41,10 @@ class Watchdog extends EventEmitter {
             this.servers[server.id] = server;
         }
         //replace server in reconnect server
-        this.notifyById(server.id, { action: 'replaceServer', servers: this.servers });
+        this.notifyById(server.id, {
+            action: 'replaceServer',
+            servers: this.servers
+        });
         // notify other server to add server
         this.notify({ action: 'addServer', server });
         // add server in listener
@@ -70,7 +73,7 @@ class Watchdog extends EventEmitter {
     }
 
     notifyById(id, msg) {
-        this.service.agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, msg, function (signal) {
+        this.service.agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, msg, signal => {
             if (signal !== Constants.SIGNAL.OK) {
                 logger.error('master watchdog fail to notify to monitor, id: %s, msg: %j', id, msg);
             } else {
@@ -93,7 +96,7 @@ class Watchdog extends EventEmitter {
         const latch = countDownLatch.createCountDownLatch(
             count,
             { timeout: Constants.TIME.TIME_WAIT_COUNTDOWN },
-            function (isTimeout) {
+            isTimeout => {
                 if (isTimeout) {
                     for (const key in requests) {
                         if (!requests[key]) {
@@ -113,9 +116,9 @@ class Watchdog extends EventEmitter {
             }
         );
 
-        const moduleRequest = function (self, id) {
-            return (function () {
-                self.service.agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, msg, function (signal) {
+        const moduleRequest = (self, id) =>
+            (() => {
+                self.service.agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, msg, signal => {
                     if (signal !== Constants.SIGNAL.OK) {
                         fails.push(id);
                         success = false;
@@ -124,7 +127,6 @@ class Watchdog extends EventEmitter {
                     latch.done();
                 });
             })();
-        };
 
         for (const id in listeners) {
             requests[id] = 0;

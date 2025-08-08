@@ -27,24 +27,24 @@
     EventEmitter.prototype.emit = function () {
         const type = arguments[0];
         // If there is no 'error' event listener then throw.
-        if (type === 'error') {
-            if (!this._events || !this._events.error || (isArray(this._events.error) && !this._events.error.length)) {
-                if (this.domain) {
-                    const er = arguments[1];
-                    er.domain_emitter = this;
-                    er.domain = this.domain;
-                    er.domain_thrown = false;
-                    this.domain.emit('error', er);
-                    return false;
-                }
-
-                if (arguments[1] instanceof Error) {
-                    throw arguments[1]; // Unhandled 'error' event
-                } else {
-                    throw new Error('Uncaught, unspecified \'error\' event.');
-                }
+        if (
+            type === 'error' &&
+            (!(this._events && this._events.error) || (isArray(this._events.error) && !this._events.error.length))
+        ) {
+            if (this.domain) {
+                const er = arguments[1];
+                er.domain_emitter = this;
+                er.domain = this.domain;
+                er.domain_thrown = false;
+                this.domain.emit('error', er);
                 return false;
             }
+
+            if (arguments[1] instanceof Error) {
+                throw arguments[1]; // Unhandled 'error' event
+            }
+            throw new Error("Uncaught, unspecified 'error' event.");
+            return false;
         }
 
         if (!this._events) return false;
@@ -56,28 +56,30 @@
                 this.domain.enter();
             }
             switch (arguments.length) {
-            // fast cases
-            case 1:
-                handler.call(this);
-                break;
-            case 2:
-                handler.call(this, arguments[1]);
-                break;
-            case 3:
-                handler.call(this, arguments[1], arguments[2]);
-                break;
+                // fast cases
+                case 1:
+                    handler.call(this);
+                    break;
+                case 2:
+                    handler.call(this, arguments[1]);
+                    break;
+                case 3:
+                    handler.call(this, arguments[1], arguments[2]);
+                    break;
                 // slower
-            default:
-                const l = arguments.length;
-                const args = new Array(l - 1);
-                for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
-                handler.apply(this, args);
+                default: {
+                    const l = arguments.length;
+                    const args = new Array(l - 1);
+                    for (let i = 1; i < l; i++) args[i - 1] = arguments[i];
+                    handler.apply(this, args);
+                }
             }
             if (this.domain) {
                 this.domain.exit();
             }
             return true;
-        } else if (isArray(handler)) {
+        }
+        if (isArray(handler)) {
             if (this.domain) {
                 this.domain.enter();
             }
@@ -93,13 +95,12 @@
                 this.domain.exit();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
     };
 
     EventEmitter.prototype.addListener = function (type, listener) {
-        if ('function' !== typeof listener) {
+        if (typeof listener !== 'function') {
             throw new Error('addListener only takes instances of Function');
         }
 
@@ -147,7 +148,7 @@
     EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
     EventEmitter.prototype.once = function (type, listener) {
-        if ('function' !== typeof listener) {
+        if (typeof listener !== 'function') {
             throw new Error('.once only takes instances of Function');
         }
 
@@ -164,12 +165,12 @@
     };
 
     EventEmitter.prototype.removeListener = function (type, listener) {
-        if ('function' !== typeof listener) {
+        if (typeof listener !== 'function') {
             throw new Error('removeListener only takes instances of Function');
         }
 
         // does not use listeners(), so no side effect of creating _events[type]
-        if (!this._events || !this._events[type]) return this;
+        if (!(this._events && this._events[type])) return this;
 
         const list = this._events[type];
 
@@ -219,7 +220,7 @@
     };
 })();
 
-(function (exports, global) {
+((exports, global) => {
     const Protocol = exports;
 
     const HEADER = 5;
@@ -239,7 +240,7 @@
      * socketio current support string
      *
      */
-    Protocol.encode = function (id, route, msg) {
+    Protocol.encode = (id, route, msg) => {
         const msgStr = JSON.stringify(msg);
         if (route.length > 255) {
             throw new Error('route maxlength is overflow');
@@ -266,7 +267,7 @@
      *msg String data
      *return Message Object
      */
-    Protocol.decode = function (msg) {
+    Protocol.decode = msg => {
         let idx,
             len = msg.length,
             arr = new Array(len);
@@ -282,18 +283,18 @@
         return new Message(id, route, body);
     };
 
-    const bt2Str = function (byteArray, start, end) {
+    const bt2Str = (byteArray, start, end) => {
         let result = '';
         for (let i = start; i < byteArray.length && i < end; i++) {
             result = result + String.fromCharCode(byteArray[i]);
         }
         return result;
     };
-})('object' === typeof module ? module.exports : (this.Protocol = {}), this);
+})(typeof module === 'object' ? module.exports : (this.Protocol = {}), this);
 
-(function () {
+(() => {
     if (typeof Object.create !== 'function') {
-        Object.create = function (o) {
+        Object.create = o => {
             function F() {}
             F.prototype = o;
             return new F();
@@ -307,7 +308,7 @@
     let id = 1;
     const callbacks = {};
 
-    pofresh.init = function (params, cb) {
+    pofresh.init = (params, cb) => {
         pofresh.params = params;
         params.debug = true;
         const host = params.host;
@@ -320,18 +321,18 @@
 
         socket = io(url, { 'force new connection': true, reconnect: false });
 
-        socket.on('connect', function () {
+        socket.on('connect', () => {
             console.log('[pofresh.init] websocket connected!');
             if (cb) {
                 cb(socket);
             }
         });
 
-        socket.on('reconnect', function () {
+        socket.on('reconnect', () => {
             console.log('reconnect');
         });
 
-        socket.on('message', function (data) {
+        socket.on('message', data => {
             if (typeof data === 'string') {
                 data = JSON.parse(data);
             }
@@ -342,38 +343,38 @@
             }
         });
 
-        socket.on('error', function (err) {
+        socket.on('error', err => {
             console.log(err);
         });
 
-        socket.on('disconnect', function (reason) {
+        socket.on('disconnect', reason => {
             pofresh.emit('disconnect', reason);
         });
     };
 
-    pofresh.disconnect = function () {
+    pofresh.disconnect = () => {
         if (socket) {
             socket.disconnect();
             socket = null;
         }
     };
 
-    pofresh.request = function (route) {
+    pofresh.request = route => {
         if (!route) {
             return;
         }
         let msg = {};
         let cb;
-        arguments = Array.prototype.slice.apply(arguments);
-        if (arguments.length === 2) {
-            if (typeof arguments[1] === 'function') {
-                cb = arguments[1];
-            } else if (typeof arguments[1] === 'object') {
-                msg = arguments[1];
+        const args = Array.prototype.slice.apply(arguments);
+        if (args.length === 2) {
+            if (typeof args[1] === 'function') {
+                cb = args[1];
+            } else if (typeof args[1] === 'object') {
+                msg = args[1];
             }
-        } else if (arguments.length === 3) {
-            msg = arguments[1];
-            cb = arguments[2];
+        } else if (args.length === 3) {
+            msg = args[1];
+            cb = args[2];
         }
         msg = filter(msg, route);
         id++;
@@ -386,7 +387,7 @@
         this.request(route, msg);
     };
 
-    const processMessage = function (pofresh, msg) {
+    const processMessage = (pofresh, msg) => {
         let route;
         if (msg.id) {
             //if have a id then find the callback function with the request
@@ -424,7 +425,7 @@
         }
     };
 
-    const processMessageBatch = function (pofresh, msgs) {
+    const processMessageBatch = (pofresh, msgs) => {
         for (let i = 0, l = msgs.length; i < l; i++) {
             processMessage(pofresh, msgs[i]);
         }

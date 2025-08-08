@@ -7,7 +7,7 @@ const InBuffer = bBuffer.inBuffer;
 
 const Coder = {};
 
-Coder.encodeClient = function (id, msg, servicesMap) {
+Coder.encodeClient = (id, msg, servicesMap) => {
     // logger.debug('[encodeClient] id %s msg %j', id, msg);
     const outBuf = new OutBuffer();
     outBuf.writeUInt(id);
@@ -28,7 +28,7 @@ Coder.encodeClient = function (id, msg, servicesMap) {
     return outBuf.getBuffer();
 };
 
-Coder.encodeServer = function (id, args) {
+Coder.encodeServer = (id, args) => {
     // logger.debug('[encodeServer] id %s args %j', id, args);
     const outBuf = new OutBuffer();
     outBuf.writeUInt(id);
@@ -36,7 +36,7 @@ Coder.encodeServer = function (id, args) {
     return outBuf.getBuffer();
 };
 
-Coder.decodeServer = function (buf, servicesMap) {
+Coder.decodeServer = (buf, servicesMap) => {
     const inBuf = new InBuffer(buf);
     const id = inBuf.readUInt();
     const namespace = servicesMap[3][inBuf.readShort()];
@@ -50,25 +50,25 @@ Coder.decodeServer = function (buf, servicesMap) {
     // logger.debug('[decodeServer] namespace %s service %s method %s args %j', namespace, service, method, args)
 
     return {
-        id: id,
+        id,
         msg: {
-            namespace: namespace,
+            namespace,
             // serverType: serverType,
-            service: service,
-            method: method,
-            args: args
+            service,
+            method,
+            args
         }
     };
 };
 
-Coder.decodeClient = function (buf) {
+Coder.decodeClient = buf => {
     const inBuf = new InBuffer(buf);
     const id = inBuf.readUInt();
     const resp = inBuf.readObject();
     // logger.debug('[decodeClient] id %s resp %j', id, resp);
     return {
-        id: id,
-        resp: resp
+        id,
+        resp
     };
 };
 

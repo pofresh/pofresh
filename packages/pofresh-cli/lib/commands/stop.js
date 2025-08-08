@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const helpCommand = 'help stop';
 
@@ -24,15 +22,15 @@ class Command {
             ids = argvs.slice(1);
         }
 
-        rl.question(consts.STOP_QUESTION_INFO, function (answer) {
+        rl.question(consts.STOP_QUESTION_INFO, answer => {
             if (answer === 'yes') {
                 client.request(
                     consts.CONSOLE_MODULE,
                     {
                         signal: 'stop',
-                        ids: ids
+                        ids
                     },
-                    function (err, data) {
+                    (err, data) => {
                         if (err) {
                             util.log('Error stopping server: ' + err);
                         } else {

@@ -19,12 +19,12 @@ const config = {
                 pattern: '%d{yyyy-MM-dd hh:mm:ss.SSS} [%p] %c - %m'
             }
         },
-        
+
         // Application logs with rotation
         app: {
             type: 'file',
             filename: path.join(logsDir, 'application.log'),
-            maxLogSize: 10485760, // 10MB
+            maxLogSize: 10_485_760, // 10MB
             backups: 10,
             compress: true,
             layout: {
@@ -32,7 +32,7 @@ const config = {
                 pattern: '%d{ISO8601} [%p] %c{2} - %m%n'
             }
         },
-        
+
         // Daily rotating files for different services
         userService: {
             type: 'dateFile',
@@ -42,7 +42,7 @@ const config = {
             maxSize: '50m',
             compress: true
         },
-        
+
         orderService: {
             type: 'dateFile',
             filename: path.join(logsDir, 'order-service-%DATE%.log'),
@@ -51,7 +51,7 @@ const config = {
             maxSize: '50m',
             compress: true
         },
-        
+
         // Performance logs
         performance: {
             type: 'dateFile',
@@ -60,12 +60,12 @@ const config = {
             maxFiles: '7d',
             maxSize: '100m'
         },
-        
+
         // Security audit logs
         security: {
             type: 'file',
             filename: path.join(logsDir, 'security-audit.log'),
-            maxLogSize: 20971520, // 20MB
+            maxLogSize: 20_971_520, // 20MB
             backups: 20,
             compress: true,
             layout: {
@@ -73,70 +73,70 @@ const config = {
                 pattern: '%d{ISO8601} [SECURITY] %c - %m%n'
             }
         },
-        
+
         // Error logs with detailed formatting
         error: {
             type: 'file',
             filename: path.join(logsDir, 'errors.log'),
-            maxLogSize: 5242880, // 5MB
+            maxLogSize: 5_242_880, // 5MB
             backups: 5,
             layout: {
                 type: 'pattern',
                 pattern: '%d{ISO8601} [%p] %c{1} - %m%n%s'
             }
         },
-        
+
         // Debug logs (only in development)
         debug: {
             type: 'file',
             filename: path.join(logsDir, 'debug.log'),
-            maxLogSize: 10485760,
+            maxLogSize: 10_485_760,
             backups: 3
         }
     },
-    
+
     categories: {
         default: {
             appenders: ['console', 'app'],
             level: 'info'
         },
-        
+
         // Service-specific categories
         'user-service': {
             appenders: ['console', 'userService'],
             level: 'debug'
         },
-        
+
         'order-service': {
             appenders: ['console', 'orderService'],
             level: 'info'
         },
-        
+
         // Performance monitoring
         performance: {
             appenders: ['performance'],
             level: 'info'
         },
-        
+
         // Security events
         security: {
             appenders: ['console', 'security'],
             level: 'warn'
         },
-        
+
         // Error tracking
         error: {
             appenders: ['console', 'error'],
             level: 'error'
         },
-        
+
         // Development debugging
         debug: {
             appenders: ['console', 'debug'],
             level: 'debug'
         }
     },
-    
+
     // Global settings
     replaceConsole: false,
     rawMessage: false,
@@ -177,15 +177,25 @@ appLogger.info('Log directory:', logsDir);
 // Service-specific logging
 function simulateUserService() {
     userLogger.info('User service initialized');
-    
+
     // Simulate user operations
     const operations = [
         { action: 'login', userId: 'user123', success: true, duration: 45 },
-        { action: 'profile_update', userId: 'user456', success: true, duration: 123 },
-        { action: 'password_change', userId: 'user789', success: false, duration: 67 },
+        {
+            action: 'profile_update',
+            userId: 'user456',
+            success: true,
+            duration: 123
+        },
+        {
+            action: 'password_change',
+            userId: 'user789',
+            success: false,
+            duration: 67
+        },
         { action: 'logout', userId: 'user123', success: true, duration: 12 }
     ];
-    
+
     operations.forEach((op, index) => {
         setTimeout(() => {
             if (op.success) {
@@ -201,7 +211,7 @@ function simulateUserService() {
                     reason: 'Invalid credentials'
                 });
             }
-            
+
             // Log performance metrics
             perfLogger.info('Operation performance', {
                 service: 'user-service',
@@ -209,21 +219,20 @@ function simulateUserService() {
                 duration: op.duration,
                 success: op.success
             });
-            
         }, index * 300);
     });
 }
 
 function simulateOrderService() {
     orderLogger.info('Order service initialized');
-    
+
     const orders = [
         { orderId: 'ORD001', amount: 99.99, status: 'created' },
-        { orderId: 'ORD002', amount: 149.50, status: 'paid' },
+        { orderId: 'ORD002', amount: 149.5, status: 'paid' },
         { orderId: 'ORD003', amount: 75.25, status: 'shipped' },
-        { orderId: 'ORD004', amount: 200.00, status: 'delivered' }
+        { orderId: 'ORD004', amount: 200.0, status: 'delivered' }
     ];
-    
+
     orders.forEach((order, index) => {
         setTimeout(() => {
             orderLogger.info(`Order ${order.status}`, {
@@ -232,16 +241,15 @@ function simulateOrderService() {
                 status: order.status,
                 timestamp: new Date().toISOString()
             });
-            
+
             // Log performance for order processing
             const processingTime = Math.floor(Math.random() * 200) + 50;
             perfLogger.info('Order processing performance', {
                 service: 'order-service',
                 orderId: order.orderId,
-                processingTime: processingTime,
+                processingTime,
                 status: order.status
             });
-            
         }, index * 400);
     });
 }
@@ -249,11 +257,19 @@ function simulateOrderService() {
 function simulateSecurityEvents() {
     const securityEvents = [
         { type: 'failed_login', ip: '192.168.1.100', attempts: 3 },
-        { type: 'suspicious_activity', ip: '10.0.0.50', details: 'Multiple rapid requests' },
-        { type: 'privilege_escalation', userId: 'admin123', resource: '/admin/users' },
+        {
+            type: 'suspicious_activity',
+            ip: '10.0.0.50',
+            details: 'Multiple rapid requests'
+        },
+        {
+            type: 'privilege_escalation',
+            userId: 'admin123',
+            resource: '/admin/users'
+        },
         { type: 'data_access', userId: 'user456', resource: '/api/sensitive-data' }
     ];
-    
+
     securityEvents.forEach((event, index) => {
         setTimeout(() => {
             securityLogger.warn(`Security event: ${event.type}`, {
@@ -281,7 +297,7 @@ function simulateErrors() {
             });
         }
     }, 1000);
-    
+
     setTimeout(() => {
         try {
             throw new Error('External API rate limit exceeded');
@@ -299,7 +315,7 @@ function simulateErrors() {
 function simulateDebugInfo() {
     if (process.env.NODE_ENV !== 'production') {
         debugLogger.debug('Debug mode enabled');
-        
+
         setInterval(() => {
             debugLogger.debug('System status check', {
                 memory: process.memoryUsage(),
@@ -321,9 +337,9 @@ function logPerformanceMetrics() {
             activeHandles: process._getActiveHandles().length,
             activeRequests: process._getActiveRequests().length
         };
-        
+
         perfLogger.info('System performance metrics', metrics);
-    }, 10000);
+    }, 10_000);
 }
 
 // Start simulations
@@ -348,7 +364,7 @@ setInterval(() => {
             cache: 'connected'
         }
     });
-}, 15000);
+}, 15_000);
 
 console.log('\n=== Advanced logging simulation started ===');
 console.log('Check the logs directory for specialized log files:');
@@ -363,14 +379,14 @@ console.log('- debug.log: Debug information (development only)');
 // Graceful shutdown
 process.on('SIGINT', () => {
     appLogger.info('Received SIGINT, shutting down gracefully...');
-    
+
     // Log shutdown metrics
     perfLogger.info('Application shutdown metrics', {
         uptime: process.uptime(),
         memoryUsage: process.memoryUsage(),
         timestamp: new Date().toISOString()
     });
-    
+
     logger.shutdown(() => {
         console.log('\nLogger shutdown complete');
         process.exit(0);
@@ -383,4 +399,4 @@ setTimeout(() => {
     logger.shutdown(() => {
         console.log('\nAdvanced configuration demo completed');
     });
-}, 30000);
+}, 30_000);

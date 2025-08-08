@@ -7,11 +7,11 @@ const host = '127.0.0.1';
 const opts = {
     id: 'test-server-1',
     type: 'test',
-    host: host,
-    port: port,
+    host,
+    port,
     info: {
         id: 'test-server-1',
-        host: host,
+        host,
         port: 4300
     }
 };

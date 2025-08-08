@@ -8,9 +8,7 @@ const DEFAULT_INTERVAL = 500;
 
 let toobusy = null;
 
-module.exports = function (maxLag, interval) {
-    return new Filter(maxLag || DEFAULT_MAXLAG, interval || DEFAULT_INTERVAL);
-};
+module.exports = (maxLag, interval) => new Filter(maxLag || DEFAULT_MAXLAG, interval || DEFAULT_INTERVAL);
 
 class Filter {
     constructor(maxLag, interval) {

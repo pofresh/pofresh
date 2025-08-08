@@ -10,9 +10,7 @@ const DEFAULT_DELAY = 10; // in second
 
 const moduleId = 'systemInfo';
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 module.exports.moduleId = moduleId;
 

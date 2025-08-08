@@ -30,7 +30,7 @@ class ErrorHandler {
      * @param {string} operation 操作名称
      * @returns {Object} 包含回调和清理函数的对象
      */
-    static createTimeoutCallback(callback, timeout = 30000, operation = 'operation') {
+    static createTimeoutCallback(callback, timeout = 30_000, operation = 'operation') {
         let called = false;
         const timeoutId = setTimeout(() => {
             if (!called) {
@@ -49,7 +49,6 @@ class ErrorHandler {
 
             ErrorHandler.safeCallback(callback, err, result);
         };
-
 
         return {
             callback: wrappedCallback,
@@ -85,8 +84,9 @@ class ErrorHandler {
             if (params[param] !== undefined) {
                 const actualType = typeof params[param];
                 if (actualType !== expectedType) {
-                    return new Error(`Invalid type for parameter ${param}: ` +
-                        `expected ${expectedType}, got ${actualType}`);
+                    return new Error(
+                        `Invalid type for parameter ${param}: ` + `expected ${expectedType}, got ${actualType}`
+                    );
                 }
             }
         }
@@ -193,10 +193,10 @@ class ErrorHandler {
 
         // 检查路径遍历攻击
         const dangerousPatterns = [
-            /\.\./,  // 父目录引用
-            /~/,     // 用户目录
-            /^\/+/,  // 绝对路径（根据需要调整）
-            /\0/     // 空字节
+            /\.\./, // 父目录引用
+            /~/, // 用户目录
+            /^\/+/, // 绝对路径（根据需要调整）
+            /\0/ // 空字节
         ];
 
         return !dangerousPatterns.some(pattern => pattern.test(filePath));

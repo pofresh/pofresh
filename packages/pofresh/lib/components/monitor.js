@@ -10,9 +10,7 @@ const Monitor = require('../monitor/monitor');
  * @param  {Object} app  current application context
  * @return {Object}      component instances
  */
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 class Component {
     constructor(app, opts) {

@@ -18,27 +18,25 @@ class Socket extends EventEmitter {
         this.id = id;
         this.socket = socket;
 
-        if (!socket._socket) {
-            this.remoteAddress = {
-                ip: socket.address().address,
-                port: socket.address().port
-            };
-        } else {
+        if (socket._socket) {
             this.remoteAddress = {
                 ip: socket._socket.remoteAddress,
                 port: socket._socket.remotePort
             };
+        } else {
+            this.remoteAddress = {
+                ip: socket.address().address,
+                port: socket.address().port
+            };
         }
-
-        const self = this;
 
         socket.once('close', this.emit.bind(this, 'disconnect'));
         socket.on('error', this.emit.bind(this, 'error'));
 
-        socket.on('message', function (msg) {
+        socket.on('message', msg => {
             if (msg) {
                 msg = Package.decode(msg);
-                handler(self, msg);
+                handler(this, msg);
             }
         });
 
@@ -54,7 +52,7 @@ class Socket extends EventEmitter {
         if (this.state !== ST_WORKING) {
             return;
         }
-        this.socket.send(msg, { binary: true }, function (err) {
+        this.socket.send(msg, { binary: true }, err => {
             if (err) {
                 logger.error('websocket send binary data failed: %j', err.stack);
                 return;

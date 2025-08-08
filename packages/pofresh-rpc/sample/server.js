@@ -5,7 +5,7 @@ const paths = [{ namespace: 'user', path: __dirname + '/remote/test' }];
 
 const port = 3333;
 
-const server = Server.create({ paths: paths, port: port });
+const server = Server.create({ paths, port });
 
 server.on('error', error => console.error('error', error));
 server.on('closed', () => console.info('closed'));
@@ -13,6 +13,6 @@ server.on('closed', () => console.info('closed'));
 server.start();
 console.log('rpc server started.');
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
     console.error(err);
 });

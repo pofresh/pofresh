@@ -51,13 +51,13 @@ class MonitorAgent extends EventEmitter {
         }
 
         // 输入验证
-        if (!port || !host) {
+        if (!(port && host)) {
             const err = new Error('Port and host are required');
             if (cb) cb(err);
             return;
         }
 
-        cb = cb || function () {};
+        cb = cb || (() => {});
         let callbackInvoked = false;
 
         // 防止回调被多次调用
@@ -80,7 +80,7 @@ class MonitorAgent extends EventEmitter {
                 logger.error('Connection timeout for server %j %j', this.id, this.type);
                 safeCallback(new Error('Connection timeout'));
             }
-        }, 10000); // 10秒超时
+        }, 10_000); // 10秒超时
 
         this.socket.on('register', msg => {
             clearTimeout(connectTimeout);

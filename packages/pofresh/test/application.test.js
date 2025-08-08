@@ -1,5 +1,5 @@
 import path from 'path';
-import { expect, describe, it, afterEach, afterAll } from 'vitest';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 
 import app from '../lib/application.js';
 import pofresh from '../lib/pofresh.js';
@@ -7,26 +7,26 @@ import pofresh from '../lib/pofresh.js';
 const WAIT_TIME = 1000;
 const mockBase = path.join(process.cwd(), 'test');
 
-describe('application test', function () {
-    afterEach(function () {
+describe('application test', () => {
+    afterEach(() => {
         app.state = 0;
         app.settings = {};
     });
 
-    afterAll(function () {
+    afterAll(() => {
         setTimeout(() => process.exit(), 500);
     });
 
-    describe('#init', function () {
-        it('should init the app instance', function () {
+    describe('#init', () => {
+        it('should init the app instance', () => {
             app.init({ base: mockBase });
             console.log(app.master);
             expect(app.state).toBe(1); // magic number from application.js
         });
     });
 
-    describe('#set and get', function () {
-        it('should play the role of normal set and get', function () {
+    describe('#set and get', () => {
+        it('should play the role of normal set and get', () => {
             expect(app.get('some undefined key')).toBeUndefined();
 
             const key = 'some defined key',
@@ -35,7 +35,7 @@ describe('application test', function () {
             expect(app.get(key)).toBe(value);
         });
 
-        it('should return the value if pass just one parameter to the set method', function () {
+        it('should return the value if pass just one parameter to the set method', () => {
             const key = 'some defined key',
                 value = 'some value';
             expect(app.set(key)).toBeUndefined();
@@ -44,8 +44,8 @@ describe('application test', function () {
         });
     });
 
-    describe('#enable and disable', function () {
-        it('should play the role of enable and disable', function () {
+    describe('#enable and disable', () => {
+        it('should play the role of enable and disable', () => {
             const key = 'some enable key';
             expect(app.enabled(key)).toBe(false);
             expect(app.disabled(key)).toBe(true);
@@ -60,26 +60,26 @@ describe('application test', function () {
         });
     });
 
-    describe('#compoent', function () {
+    describe('#compoent', () => {
         it(
             'should load the component and fire their lifecircle callback by app.start, app.afterStart, app.stop',
-            async function () {
+            async () => {
                 let startCount = 0,
                     afterStartCount = 0,
                     stopCount = 0;
 
                 const mockComponent = {
-                    start: function (cb) {
+                    start(cb) {
                         startCount++;
                         cb();
                     },
 
-                    afterStart: function (cb) {
+                    afterStart(cb) {
                         afterStartCount++;
                         cb();
                     },
 
-                    stop: function (force, cb) {
+                    stop(force, cb) {
                         stopCount++;
                         cb();
                     }
@@ -89,7 +89,7 @@ describe('application test', function () {
                 app.load(mockComponent);
 
                 await new Promise((resolve, reject) => {
-                    app.start(function (err) {
+                    app.start(err => {
                         if (err) {
                             reject(err);
                         } else {
@@ -114,14 +114,12 @@ describe('application test', function () {
             WAIT_TIME * 3
         );
 
-        it('should access the component with a name by app.components.name after loaded', function () {
+        it('should access the component with a name by app.components.name after loaded', () => {
             const key1 = 'key1',
                 comp1 = { content: 'some thing in comp1' };
             const comp2 = { name: 'key2', content: 'some thing in comp2' };
             const key3 = 'key3';
-            const comp3 = function () {
-                return { content: 'some thing in comp3', name: key3 };
-            };
+            const comp3 = () => ({ content: 'some thing in comp3', name: key3 });
 
             app.init({ base: mockBase });
             app.load(key1, comp1);
@@ -132,7 +130,7 @@ describe('application test', function () {
             expect(app.components.key3).toEqual(comp3());
         });
 
-        it('should ignore duplicated components', function () {
+        it('should ignore duplicated components', () => {
             const key = 'key';
             const comp1 = { content: 'some thing in comp1' };
             const comp2 = { content: 'some thing in comp2' };
@@ -146,13 +144,13 @@ describe('application test', function () {
         });
     });
 
-    describe('#filter', function () {
-        it('should add before filter and could fetch it later', function () {
+    describe('#filter', () => {
+        it('should add before filter and could fetch it later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -170,12 +168,12 @@ describe('application test', function () {
             }
         });
 
-        it('should add after filter and could fetch it later', function () {
+        it('should add after filter and could fetch it later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -193,12 +191,12 @@ describe('application test', function () {
             }
         });
 
-        it('should add filter and could fetch it from before and after filter later', function () {
+        it('should add filter and could fetch it from before and after filter later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -224,13 +222,13 @@ describe('application test', function () {
         });
     });
 
-    describe('#globalFilter', function () {
-        it('should add before global filter and could fetch it later', function () {
+    describe('#globalFilter', () => {
+        it('should add before global filter and could fetch it later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('global filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -248,12 +246,12 @@ describe('application test', function () {
             }
         });
 
-        it('should add after global filter and could fetch it later', function () {
+        it('should add after global filter and could fetch it later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -271,12 +269,12 @@ describe('application test', function () {
             }
         });
 
-        it('should add filter and could fetch it from before and after filter later', function () {
+        it('should add filter and could fetch it from before and after filter later', () => {
             const filters = [
-                function () {
+                () => {
                     console.error('filter1');
                 },
-                function () {}
+                () => {}
             ];
 
             app.init({ base: mockBase });
@@ -302,8 +300,8 @@ describe('application test', function () {
         });
     });
 
-    describe('#configure', function () {
-        it('should execute the code block wtih the right environment', function () {
+    describe('#configure', () => {
+        it('should execute the code block wtih the right environment', () => {
             let proCount = 0,
                 devCount = 0;
             const proEnv = 'production',
@@ -314,21 +312,21 @@ describe('application test', function () {
             app.set('serverType', serverType);
             app.set('env', proEnv);
 
-            app.configure(proEnv, serverType, function () {
+            app.configure(proEnv, serverType, () => {
                 proCount++;
             });
 
-            app.configure(devEnv, serverType, function () {
+            app.configure(devEnv, serverType, () => {
                 devCount++;
             });
 
             app.set('env', devEnv);
 
-            app.configure(proEnv, serverType, function () {
+            app.configure(proEnv, serverType, () => {
                 proCount++;
             });
 
-            app.configure(devEnv, serverType, function () {
+            app.configure(devEnv, serverType, () => {
                 devCount++;
             });
 
@@ -336,7 +334,7 @@ describe('application test', function () {
             expect(devCount).toBe(1);
         });
 
-        it('should execute the code block wtih the right server', function () {
+        it('should execute the code block wtih the right server', () => {
             let server1Count = 0,
                 server2Count = 0;
             const proEnv = 'production',
@@ -347,21 +345,21 @@ describe('application test', function () {
             app.set('serverType', serverType1);
             app.set('env', proEnv);
 
-            app.configure(proEnv, serverType1, function () {
+            app.configure(proEnv, serverType1, () => {
                 server1Count++;
             });
 
-            app.configure(proEnv, serverType2, function () {
+            app.configure(proEnv, serverType2, () => {
                 server2Count++;
             });
 
             app.set('serverType', serverType2);
 
-            app.configure(proEnv, serverType1, function () {
+            app.configure(proEnv, serverType1, () => {
                 server1Count++;
             });
 
-            app.configure(proEnv, serverType2, function () {
+            app.configure(proEnv, serverType2, () => {
                 server2Count++;
             });
 
@@ -370,14 +368,14 @@ describe('application test', function () {
         });
     });
 
-    describe('#route', function () {
-        it('should add route record and could fetch it later', function () {
+    describe('#route', () => {
+        it('should add route record and could fetch it later', () => {
             const type1 = 'area',
                 type2 = 'connector';
-            const func1 = function () {
+            const func1 = () => {
                 console.log('func1');
             };
-            const func2 = function () {
+            const func2 = () => {
                 console.log('func2');
             };
 
@@ -393,25 +391,25 @@ describe('application test', function () {
         });
     });
 
-    describe('#transaction', function () {
-        it('should execute all conditions and handlers', function () {
+    describe('#transaction', () => {
+        it('should execute all conditions and handlers', () => {
             const conditions = {
-                test1: function (cb) {
+                test1(cb) {
                     console.log('condition1');
                     cb();
                 },
-                test2: function (cb) {
+                test2(cb) {
                     console.log('condition2');
                     cb();
                 }
             };
             let flag = 1;
             const handlers = {
-                do1: function (cb) {
+                do1(cb) {
                     console.log('handler1');
                     cb();
                 },
-                do2: function (cb) {
+                do2(cb) {
                     console.log('handler2');
                     if (flag < 3) {
                         flag++;
@@ -424,27 +422,27 @@ describe('application test', function () {
             app.transaction('test', conditions, handlers, 5);
         });
 
-        it('shoud execute conditions with error and do not execute handlers', function () {
+        it('shoud execute conditions with error and do not execute handlers', () => {
             const conditions = {
-                test1: function (cb) {
+                test1(cb) {
                     console.log('condition1');
                     cb();
                 },
-                test2: function (cb) {
+                test2(cb) {
                     console.log('condition2');
                     cb(new Error('error'));
                 },
-                test3: function (cb) {
+                test3(cb) {
                     console.log('condition3');
                     cb();
                 }
             };
             const handlers = {
-                do1: function (cb) {
+                do1(cb) {
                     console.log('handler1');
                     cb();
                 },
-                do2: function (cb) {
+                do2(cb) {
                     console.log('handler2');
                     cb();
                 }
@@ -453,8 +451,8 @@ describe('application test', function () {
         });
     });
 
-    describe('#add and remove servers', function () {
-        it('should add servers and emit event and fetch the new server info by get methods', async function () {
+    describe('#add and remove servers', () => {
+        it('should add servers and emit event and fetch the new server info by get methods', async () => {
             const newServers = [
                 {
                     id: 'connector-server-1',
@@ -464,12 +462,17 @@ describe('application test', function () {
                     clientPort: 3000,
                     frontend: true
                 },
-                { id: 'area-server-1', serverType: 'area', host: '127.0.0.1', port: 2234 }
+                {
+                    id: 'area-server-1',
+                    serverType: 'area',
+                    host: '127.0.0.1',
+                    port: 2234
+                }
             ];
             app.init({ base: mockBase });
 
             await new Promise(resolve => {
-                app.event.on(pofresh.events.ADD_SERVERS, function (servers) {
+                app.event.on(pofresh.events.ADD_SERVERS, servers => {
                     // check event args
                     expect(servers).toEqual(newServers);
 
@@ -518,7 +521,7 @@ describe('application test', function () {
             });
         });
 
-        it('should remove server info and emit event', async function () {
+        it('should remove server info and emit event', async () => {
             const newServers = [
                 {
                     id: 'connector-server-1',
@@ -528,8 +531,18 @@ describe('application test', function () {
                     clientPort: 3000,
                     frontend: true
                 },
-                { id: 'area-server-1', serverType: 'area', host: '127.0.0.1', port: 2234 },
-                { id: 'path-server-1', serverType: 'path', host: '127.0.0.1', port: 2235 }
+                {
+                    id: 'area-server-1',
+                    serverType: 'area',
+                    host: '127.0.0.1',
+                    port: 2234
+                },
+                {
+                    id: 'path-server-1',
+                    serverType: 'path',
+                    host: '127.0.0.1',
+                    port: 2235
+                }
             ];
             const destServers = [
                 {
@@ -540,21 +553,26 @@ describe('application test', function () {
                     clientPort: 3000,
                     frontend: true
                 },
-                { id: 'path-server-1', serverType: 'path', host: '127.0.0.1', port: 2235 }
+                {
+                    id: 'path-server-1',
+                    serverType: 'path',
+                    host: '127.0.0.1',
+                    port: 2235
+                }
             ];
             const delIds = ['area-server-1'];
             let addCount = 0;
             const delCount = 0;
 
             app.init({ base: mockBase });
-            app.event.on(pofresh.events.ADD_SERVERS, function (servers) {
+            app.event.on(pofresh.events.ADD_SERVERS, servers => {
                 // check event args
                 expect(servers).toEqual(newServers);
                 addCount++;
             });
 
             await new Promise(resolve => {
-                app.event.on(pofresh.events.REMOVE_SERVERS, function (ids) {
+                app.event.on(pofresh.events.REMOVE_SERVERS, ids => {
                     expect(ids).toEqual(delIds);
 
                     // check servers
@@ -605,8 +623,8 @@ describe('application test', function () {
         });
     });
 
-    describe('#use', function () {
-        it('should exist plugin component and event', function () {
+    describe('#use', () => {
+        it('should exist plugin component and event', () => {
             const plugin = {
                 components: mockBase + '/mock-plugin/components/',
                 events: mockBase + '/mock-plugin/events/'

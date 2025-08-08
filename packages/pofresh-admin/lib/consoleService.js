@@ -46,7 +46,11 @@ class ConsoleService extends EventEmitter {
             this.type = opts.type;
             this.host = opts.host;
             this.authServer = opts.authServer || utils.defaultAuthServerMonitor;
-            this.agent = new MonitorAgent(this, { id: this.id, type: this.type, info: opts.info });
+            this.agent = new MonitorAgent(this, {
+                id: this.id,
+                type: this.type,
+                info: opts.info
+            });
         }
     }
 
@@ -276,23 +280,25 @@ class ConsoleService extends EventEmitter {
 function registerRecord(service, moduleId, module) {
     const record = { moduleId, module, enable: false };
 
-    if (module.type && module.interval) {
-        if ((!service.master && record.module.type === 'push') || (service.master && record.module.type !== 'push')) {
-            // push for monitor or pull for master(default)
-            record.delay = module.delay || 0;
-            record.interval = module.interval || 1;
-            // normalize the arguments
-            if (record.delay < 0) {
-                record.delay = 0;
-            }
-            if (record.interval < 0) {
-                record.interval = 1;
-            }
-            record.interval = Math.ceil(record.interval);
-            record.delay *= MS_OF_SECOND;
-            record.interval *= MS_OF_SECOND;
-            record.schedule = true;
+    if (
+        module.type &&
+        module.interval &&
+        ((!service.master && record.module.type === 'push') || (service.master && record.module.type !== 'push'))
+    ) {
+        // push for monitor or pull for master(default)
+        record.delay = module.delay || 0;
+        record.interval = module.interval || 1;
+        // normalize the arguments
+        if (record.delay < 0) {
+            record.delay = 0;
         }
+        if (record.interval < 0) {
+            record.interval = 1;
+        }
+        record.interval = Math.ceil(record.interval);
+        record.delay *= MS_OF_SECOND;
+        record.interval *= MS_OF_SECOND;
+        record.schedule = true;
     }
 
     return record;
@@ -330,7 +336,7 @@ function addToSchedule(service, record) {
 function doScheduleJob(args) {
     const service = args.service;
     const record = args.record;
-    if (!service || !record || !record.module || !record.enable) {
+    if (!(service && record && record.module && record.enable)) {
         return;
     }
 
@@ -358,7 +364,7 @@ function doScheduleJob(args) {
  * @api private
  */
 function exportEvent(outer, inner, event) {
-    inner.on(event, function () {
+    inner.on(event, () => {
         const args = Array.prototype.slice.call(arguments, 0);
         args.unshift(event);
         outer.emit.apply(outer, args);
@@ -432,7 +438,7 @@ function aclControl(agent, action, moduleId, method, msg) {
         }
 
         const signal = msg.signal;
-        if (!signal || !(signal === 'stop' || signal === 'add' || signal === 'kill')) {
+        if (!(signal && (signal === 'stop' || signal === 'add' || signal === 'kill'))) {
             return 0;
         }
     }
@@ -460,7 +466,7 @@ function aclControl(agent, action, moduleId, method, msg) {
  * @param {Object} opts construct parameter
  *                      opts.port {String | Number} listen port for master console
  */
-module.exports.createMasterConsole = function (opts) {
+module.exports.createMasterConsole = opts => {
     opts = opts || {};
     opts.master = true;
     return new ConsoleService(opts);
@@ -475,7 +481,7 @@ module.exports.createMasterConsole = function (opts) {
  *                      opts.host {String} master server host
  *                      opts.port {String | Number} master port
  */
-module.exports.createMonitorConsole = function (opts) {
+module.exports.createMonitorConsole = opts => {
     opts = opts || {};
     return new ConsoleService(opts);
 };

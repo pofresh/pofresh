@@ -32,7 +32,7 @@ class Security {
 
         // 字符串验证
         if (typeof input === 'string') {
-            result.sanitized = this.sanitizeString(input, options);
+            result.sanitized = Security.sanitizeString(input, options);
 
             // 长度检查
             if (options.maxLength && input.length > options.maxLength) {
@@ -52,7 +52,7 @@ class Security {
             }
 
             // 危险字符检查
-            if (options.checkDangerous !== false && this.containsDangerousChars(input)) {
+            if (options.checkDangerous !== false && Security.containsDangerousChars(input)) {
                 result.isValid = false;
                 result.errors.push('String contains potentially dangerous characters');
             }
@@ -153,19 +153,19 @@ class Security {
         }
 
         const dangerousPatterns = [
-            /<script[^>]*>.*?<\/script>/gi,  // Script标签
-            /javascript:/gi,                  // JavaScript协议
-            /on\w+\s*=/gi,                   // 事件处理器
-            /eval\s*\(/gi,                   // eval函数
-            /expression\s*\(/gi,             // CSS表达式
-            /vbscript:/gi,                   // VBScript协议
-            /data:text\/html/gi,             // Data URL
-            /<iframe[^>]*>/gi,               // iframe标签
-            /<object[^>]*>/gi,               // object标签
-            /<embed[^>]*>/gi,                // embed标签
-            /\\x[0-9a-f]{2}/gi,             // 十六进制编码
-            /\\u[0-9a-f]{4}/gi,             // Unicode编码
-            /%[0-9a-f]{2}/gi                 // URL编码的特殊字符
+            /<script[^>]*>.*?<\/script>/gi, // Script标签
+            /javascript:/gi, // JavaScript协议
+            /on\w+\s*=/gi, // 事件处理器
+            /eval\s*\(/gi, // eval函数
+            /expression\s*\(/gi, // CSS表达式
+            /vbscript:/gi, // VBScript协议
+            /data:text\/html/gi, // Data URL
+            /<iframe[^>]*>/gi, // iframe标签
+            /<object[^>]*>/gi, // object标签
+            /<embed[^>]*>/gi, // embed标签
+            /\\x[0-9a-f]{2}/gi, // 十六进制编码
+            /\\u[0-9a-f]{4}/gi, // Unicode编码
+            /%[0-9a-f]{2}/gi // URL编码的特殊字符
         ];
 
         return dangerousPatterns.some(pattern => pattern.test(str));
@@ -234,7 +234,6 @@ class Security {
                     result.errors.push('Path outside allowed directory');
                 }
             }
-
         } catch (err) {
             result.isValid = false;
             result.errors.push(`Path validation error: ${err.message}`);
@@ -288,7 +287,7 @@ class Security {
      */
     static verifyHash(data, hash, algorithm = 'sha256', salt = '') {
         try {
-            const computedHash = this.createHash(data, algorithm, salt);
+            const computedHash = Security.createHash(data, algorithm, salt);
             return computedHash === hash;
         } catch (err) {
             logger.error('Hash verification error:', err);
@@ -305,13 +304,13 @@ class Security {
         // 创建受限的上下文
         const secureContext = {
             // 安全的内置对象
-            Math: Math,
-            Date: Date,
-            JSON: JSON,
-            parseInt: parseInt,
-            parseFloat: parseFloat,
-            isNaN: isNaN,
-            isFinite: isFinite,
+            Math,
+            Date,
+            JSON,
+            parseInt,
+            parseFloat,
+            isNaN,
+            isFinite,
 
             // 受限的console
             console: {
@@ -358,26 +357,26 @@ class Security {
 
         // 检查危险的全局对象和函数
         const dangerousPatterns = [
-            /\brequire\s*\(/g,           // require函数
-            /\bprocess\b/g,             // process对象
-            /\bglobal\b/g,              // global对象
-            /\b__dirname\b/g,           // __dirname
-            /\b__filename\b/g,          // __filename
-            /\bmodule\b/g,              // module对象
-            /\bexports\b/g,             // exports对象
-            /\bBuffer\b/g,              // Buffer对象
-            /\bchild_process\b/g,       // child_process模块
-            /\bfs\b/g,                  // fs模块
-            /\bnet\b/g,                 // net模块
-            /\bhttp\b/g,                // http模块
-            /\bhttps\b/g,               // https模块
-            /\bos\b/g,                  // os模块
-            /\bpath\b/g,                // path模块
-            /\burl\b/g,                 // url模块
-            /\beval\s*\(/g,             // eval函数
-            /\bFunction\s*\(/g,         // Function构造器
-            /\bsetInterval\s*\(/g,      // setInterval
-            /\bsetImmediate\s*\(/g      // setImmediate
+            /\brequire\s*\(/g, // require函数
+            /\bprocess\b/g, // process对象
+            /\bglobal\b/g, // global对象
+            /\b__dirname\b/g, // __dirname
+            /\b__filename\b/g, // __filename
+            /\bmodule\b/g, // module对象
+            /\bexports\b/g, // exports对象
+            /\bBuffer\b/g, // Buffer对象
+            /\bchild_process\b/g, // child_process模块
+            /\bfs\b/g, // fs模块
+            /\bnet\b/g, // net模块
+            /\bhttp\b/g, // http模块
+            /\bhttps\b/g, // https模块
+            /\bos\b/g, // os模块
+            /\bpath\b/g, // path模块
+            /\burl\b/g, // url模块
+            /\beval\s*\(/g, // eval函数
+            /\bFunction\s*\(/g, // Function构造器
+            /\bsetInterval\s*\(/g, // setInterval
+            /\bsetImmediate\s*\(/g // setImmediate
         ];
 
         for (const pattern of dangerousPatterns) {
@@ -389,11 +388,11 @@ class Security {
 
         // 检查可疑的模式
         const suspiciousPatterns = [
-            /\btry\s*{[^}]*catch/g,     // try-catch可能用于隐藏错误
-            /\bthrow\s+/g,              // throw语句
-            /\bdelete\s+/g,             // delete操作符
-            /\bwith\s*\(/g,             // with语句
-            /\barguments\b/g            // arguments对象
+            /\btry\s*{[^}]*catch/g, // try-catch可能用于隐藏错误
+            /\bthrow\s+/g, // throw语句
+            /\bdelete\s+/g, // delete操作符
+            /\bwith\s*\(/g, // with语句
+            /\barguments\b/g // arguments对象
         ];
 
         for (const pattern of suspiciousPatterns) {
@@ -413,8 +412,8 @@ class Security {
     static createRateLimiter(options = {}) {
         const {
             maxRequests = 100,
-            windowMs = 60000, // 1分钟
-            keyGenerator = (req) => req.ip || 'default'
+            windowMs = 60_000, // 1分钟
+            keyGenerator = req => req.ip || 'default'
         } = options;
 
         const requests = new Map();
@@ -429,7 +428,7 @@ class Security {
             }
         }, windowMs);
 
-        return (req) => {
+        return req => {
             const key = keyGenerator(req);
             const now = Date.now();
 

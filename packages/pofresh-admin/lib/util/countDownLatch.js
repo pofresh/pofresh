@@ -31,7 +31,7 @@ class CountDownLatch {
  *
  * @api public
  */
-exp.createCountDownLatch = function (count, cb) {
+exp.createCountDownLatch = (count, cb) => {
     if (!count || count <= 0) {
         throw new Error('count should be positive.');
     }

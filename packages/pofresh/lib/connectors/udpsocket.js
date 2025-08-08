@@ -22,12 +22,10 @@ class Socket extends EventEmitter {
             ip: this.host,
             port: this.port
         };
-
-        const self = this;
-        this.on('package', function (pkg) {
+        this.on('package', pkg => {
             if (pkg) {
                 pkg = Package.decode(pkg);
-                handler(self, pkg);
+                handler(this, pkg);
             }
         });
 
@@ -52,7 +50,7 @@ class Socket extends EventEmitter {
     }
 
     sendRaw(msg) {
-        this.socket.send(msg, 0, msg.length, this.port, this.host, function (err, bytes) {
+        this.socket.send(msg, 0, msg.length, this.port, this.host, (err, bytes) => {
             if (err) {
                 logger.error('send msg to remote with err: %j', err.stack);
                 return;

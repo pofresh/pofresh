@@ -30,7 +30,7 @@ class MqttClient extends EventEmitter {
     }
 
     connect(host, port, cb) {
-        cb = cb || function () {};
+        cb = cb || (() => {});
         if (this.connected) {
             return cb(new Error('MqttClient has already connected.'));
         }
@@ -120,7 +120,7 @@ class MqttClient extends EventEmitter {
     send(topic, msg) {
         // console.log('MqttClient send %s %j ~~~', topic, msg);
         this.socket.publish({
-            topic: topic,
+            topic,
             payload: JSON.stringify(msg)
         });
     }
@@ -193,13 +193,9 @@ class MqttClient extends EventEmitter {
 
         const now = Date.now();
         const KEEP_ALIVE_TIMEOUT = this.keepalive * 2;
-        if (this.lastPing > 0) {
-            if (this.lastPong < this.lastPing) {
-                if (now - this.lastPong > KEEP_ALIVE_TIMEOUT) {
-                    logger.error('mqtt rpc client checkKeepAlive error timeout for %d', KEEP_ALIVE_TIMEOUT);
-                    this.close();
-                }
-            }
+        if (this.lastPing > 0 && this.lastPong < this.lastPing && now - this.lastPong > KEEP_ALIVE_TIMEOUT) {
+            logger.error('mqtt rpc client checkKeepAlive error timeout for %d', KEEP_ALIVE_TIMEOUT);
+            this.close();
         }
 
         this.socket.pingreq();

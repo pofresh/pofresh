@@ -2,7 +2,7 @@ const lib = process.env.POFRESH_RPC_COV ? 'lib-cov' : 'lib';
 const route = require('../../' + lib + '/rpc-client/router').df;
 
 const WAIT_TIME = 20;
-describe('router', function () {
+describe('router', () => {
     const servers = {
         logic: [
             { id: 'logic-server-1', host: 'localhost', port: 3333 },
@@ -26,27 +26,27 @@ describe('router', function () {
         uid: 'changchang005@gmail.com'
     };
 
-    describe('#route', function () {
-        it('should return the same result for the same user if the mapping info not changed', function (done) {
+    describe('#route', () => {
+        it('should return the same result for the same user if the mapping info not changed', done => {
             let firstRoute, secondRoute;
 
-            route(session, msg, servers, function (err, sid) {
+            route(session, msg, servers, (err, sid) => {
                 expect(sid);
                 firstRoute = sid;
             });
 
-            route(session, msg, servers, function (err, sid) {
+            route(session, msg, servers, (err, sid) => {
                 expect(sid);
                 secondRoute = sid;
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(firstRoute).toBe(secondRoute);
                 done();
             }, WAIT_TIME);
         });
 
-        it('should return an error if try to route to an invalid server type', function (done) {
+        it('should return an error if try to route to an invalid server type', done => {
             const invalidMsg = {
                 serverType: 'invalid-type',
                 service: 'rpcRemote',
@@ -54,15 +54,15 @@ describe('router', function () {
                 args: []
             };
 
-            route(session, invalidMsg, servers, function (err, _sid) {
+            route(session, invalidMsg, servers, (err, _sid) => {
                 expect(err);
                 done();
             });
         });
 
-        it('should be ok when session or session.uid is null', function (done) {
+        it('should be ok when session or session.uid is null', done => {
             let okCount = 0;
-            route(null, msg, servers, function (err, sid) {
+            route(null, msg, servers, (err, sid) => {
                 expect(sid).toBeDefined();
                 okCount++;
             });
@@ -71,12 +71,12 @@ describe('router', function () {
                 uid: null
             };
 
-            route(session, msg, servers, function (err, sid) {
+            route(session, msg, servers, (err, sid) => {
                 expect(sid).toBeDefined();
                 okCount++;
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(okCount).toBe(2);
                 done();
             }, WAIT_TIME);

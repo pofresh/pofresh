@@ -2,9 +2,9 @@ const ProtocolTest = require('../');
 const Package = ProtocolTest.Package;
 const Message = ProtocolTest.Message;
 
-describe('Pofresh protocol test', function () {
-    describe('String encode and decode', function () {
-        it('should be ok to encode and decode Chinese string', function () {
+describe('Pofresh protocol test', () => {
+    describe('String encode and decode', () => {
+        it('should be ok to encode and decode Chinese string', () => {
             const str = '你好, abc~~~';
             const buf = ProtocolTest.strencode(str);
             expect(buf).toBeDefined();
@@ -12,8 +12,8 @@ describe('Pofresh protocol test', function () {
         });
     });
 
-    describe('Package encode and decode', function () {
-        it('should keep the same data after encoding and decoding', function () {
+    describe('Package encode and decode', () => {
+        it('should keep the same data after encoding and decoding', () => {
             const msg = 'hello world~';
             const buf = Package.encode(Package.TYPE_DATA, ProtocolTest.strencode(msg));
             expect(buf).toBeDefined();
@@ -24,7 +24,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should ok when encoding and decoding package without body', function () {
+        it('should ok when encoding and decoding package without body', () => {
             const buf = Package.encode(Package.TYPE_HANDSHAKE);
             expect(buf).toBeDefined();
             const res = Package.decode(buf);
@@ -34,8 +34,8 @@ describe('Pofresh protocol test', function () {
         });
     });
 
-    describe('Message encode and decode', function () {
-        it('should be ok for encoding and decoding request', function () {
+    describe('Message encode and decode', () => {
+        it('should be ok for encoding and decoding request', () => {
             const id = 128;
             const compress = 0;
             const route = 'connector.entryHandler.entry';
@@ -52,7 +52,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding empty route', function () {
+        it('should be ok for encoding and decoding empty route', () => {
             const id = 256;
             const compress = 0;
             const route = '';
@@ -69,8 +69,8 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding null route', function () {
-            const n = Math.floor(10000 * Math.random());
+        it('should be ok for encoding and decoding null route', () => {
+            const n = Math.floor(10_000 * Math.random());
             const id = 128 * n;
             const compress = 0;
             const route = null;
@@ -87,7 +87,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding compress route', function () {
+        it('should be ok for encoding and decoding compress route', () => {
             const id = 256;
             const compress = 1;
             const route = 3;
@@ -105,8 +105,8 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding mutil-bytes id', function () {
-            const id = Math.pow(2, 30);
+        it('should be ok for encoding and decoding mutil-bytes id', () => {
+            const id = 2 ** 30;
             const compress = 1;
             const route = 3;
             const msg = 'hello world~';
@@ -123,7 +123,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding notify', function () {
+        it('should be ok for encoding and decoding notify', () => {
             const compress = 0;
             const route = 'connector.entryHandler.entry';
             const msg = 'hello world~';
@@ -139,7 +139,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding response', function () {
+        it('should be ok for encoding and decoding response', () => {
             const id = 1;
             const compress = 0;
             const msg = 'hello world~';
@@ -155,7 +155,7 @@ describe('Pofresh protocol test', function () {
             expect(ProtocolTest.strdecode(res.body)).toEqual(msg);
         });
 
-        it('should be ok for encoding and decoding push', function () {
+        it('should be ok for encoding and decoding push', () => {
             const compress = 0;
             const route = 'connector.entryHandler.entry';
             const msg = 'hello world~';

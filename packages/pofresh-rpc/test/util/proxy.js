@@ -24,11 +24,11 @@ B.prototype.addA = function () {
     this.a.value++;
 };
 
-describe('proxy', function () {
-    describe('#create', function () {
-        it('should invoke the proxy function if it had been set', function () {
+describe('proxy', () => {
+    describe('#create', () => {
+        it('should invoke the proxy function if it had been set', () => {
             let callbackCount = 0;
-            const cb = function () {
+            const cb = () => {
                 callbackCount++;
             };
             const a = new A(1);
@@ -42,7 +42,7 @@ describe('proxy', function () {
             callbackCount.should.equal(1);
         });
 
-        it('should invoke the origin function if the proxy function not set', function () {
+        it('should invoke the origin function if the proxy function not set', () => {
             const value = 1;
             const a = new A(value);
 
@@ -53,12 +53,12 @@ describe('proxy', function () {
             a.value.should.equal(value + 1);
         });
 
-        it('should invoke the origin function if the invoke callback had been called in proxy function', function () {
+        it('should invoke the origin function if the invoke callback had been called in proxy function', () => {
             let callbackCount = 0;
             let originCallCount = 0;
             const value = 1;
 
-            const cb = function () {
+            const cb = () => {
                 callbackCount++;
             };
             const a = new A(value);

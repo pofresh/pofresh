@@ -14,7 +14,7 @@ class PerformanceMonitor extends EventEmitter {
             memoryThreshold: options.memoryThreshold || 100 * 1024 * 1024, // 100MB
             cpuThreshold: options.cpuThreshold || 80, // 80%
             responseTimeThreshold: options.responseTimeThreshold || 5000, // 5秒
-            monitorInterval: options.monitorInterval || 30000, // 30秒
+            monitorInterval: options.monitorInterval || 30_000, // 30秒
             enabled: options.enabled !== false
         };
 
@@ -108,7 +108,7 @@ class PerformanceMonitor extends EventEmitter {
             const endUsage = process.cpuUsage(startUsage);
             const endTime = process.hrtime(startTime);
 
-            const totalTime = endTime[0] * 1000000 + endTime[1] / 1000; // 微秒
+            const totalTime = endTime[0] * 1_000_000 + endTime[1] / 1000; // 微秒
             const cpuPercent = ((endUsage.user + endUsage.system) / totalTime) * 100;
 
             const timestamp = Date.now();

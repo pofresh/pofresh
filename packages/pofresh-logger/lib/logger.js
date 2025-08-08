@@ -5,123 +5,128 @@ const util = require('util');
 
 // BatchLoggerManager for efficient log batching
 class BatchLoggerManager {
-  constructor(config) {
-    this.config = config;
-    this.timers = new Map();
-  }
+    constructor(config) {
+        this.config = config;
+        this.timers = new Map();
+    }
 
-  // Add a log entry to the batch
-  addLogEntry(logger, level, message, meta) {
-    try {
-        if (!this.config.enabled) {
-            logger[level](message, meta);
-            return;
-        }
+    // Add a log entry to the batch
+    addLogEntry(logger, level, message, meta) {
+        try {
+            if (!this.config.enabled) {
+                logger[level](message, meta);
+                return;
+            }
 
-        const loggerKey = logger._batchKey || 'default';
-        if (!this.config.batches.has(loggerKey)) {
-            this.config.batches.set(loggerKey, []);
-        }
+            const loggerKey = logger._batchKey || 'default';
+            if (!this.config.batches.has(loggerKey)) {
+                this.config.batches.set(loggerKey, []);
+            }
 
-        const batch = this.config.batches.get(loggerKey);
-        batch.push({ level, message, meta });
+            const batch = this.config.batches.get(loggerKey);
+            batch.push({ level, message, meta });
 
-        // Check if we need to flush the batch
-        if (batch.length >= this.config.sizeThreshold) {
-            this.flushBatch(loggerKey, logger);
-        }
-
-        // Set up a timer if not already set
-        if (!this.timers.has(loggerKey)) {
-            this.timers.set(loggerKey, setTimeout(() => {
+            // Check if we need to flush the batch
+            if (batch.length >= this.config.sizeThreshold) {
                 this.flushBatch(loggerKey, logger);
-            }, this.config.timeThreshold));
-        }
-    } catch (error) {
-        // Enhanced error handling with stack trace and context
-        const loggerKey = logger._batchKey || 'default';
-        console.error(`Failed to add log entry for logger ${loggerKey}: ${error.message}`);
-        console.error(error.stack);
-        // Graceful degradation: Try to log directly without batching
-        try {
-            logger[level](`[BATCH ERROR] ${message}`, meta);
-        } catch (fallbackError) {
-            console.error(`Failed to fallback to direct logging: ${fallbackError.message}`);
+            }
+
+            // Set up a timer if not already set
+            if (!this.timers.has(loggerKey)) {
+                this.timers.set(
+                    loggerKey,
+                    setTimeout(() => {
+                        this.flushBatch(loggerKey, logger);
+                    }, this.config.timeThreshold)
+                );
+            }
+        } catch (error) {
+            // Enhanced error handling with stack trace and context
+            const loggerKey = logger._batchKey || 'default';
+            console.error(`Failed to add log entry for logger ${loggerKey}: ${error.message}`);
+            console.error(error.stack);
+            // Graceful degradation: Try to log directly without batching
+            try {
+                logger[level](`[BATCH ERROR] ${message}`, meta);
+            } catch (fallbackError) {
+                console.error(`Failed to fallback to direct logging: ${fallbackError.message}`);
+            }
         }
     }
-}
 
-  // Flush a specific batch
-  flushBatch(loggerKey, logger) {
-    try {
-      if (!this.config.batches.has(loggerKey)) return;
-
-      const batch = this.config.batches.get(loggerKey);
-      if (batch.length === 0) {
-        this.config.batches.delete(loggerKey);
-        if (this.timers.has(loggerKey)) {
-          clearTimeout(this.timers.get(loggerKey));
-          this.timers.delete(loggerKey);
-        }
-        return;
-      }
-
-      // Clear the timer for this batch
-      if (this.timers.has(loggerKey)) {
-        clearTimeout(this.timers.get(loggerKey));
-        this.timers.delete(loggerKey);
-      }
-
-      // Process the batch
-      batch.forEach(entry => {
+    // Flush a specific batch
+    flushBatch(loggerKey, logger) {
         try {
-          logger[entry.level](entry.message, entry.meta);
-        } catch (entryError) {
-          console.error(`Error logging entry in batch ${loggerKey}: ${entryError.message}`);
-          console.error(entryError.stack);
-          // Attempt to log the error itself
-          try {
-            logger.error(`[ENTRY ERROR] ${entry.message}`, {
-              originalError: entryError.message,
-              stack: entryError.stack,
-              meta: entry.meta
+            if (!this.config.batches.has(loggerKey)) return;
+
+            const batch = this.config.batches.get(loggerKey);
+            if (batch.length === 0) {
+                this.config.batches.delete(loggerKey);
+                if (this.timers.has(loggerKey)) {
+                    clearTimeout(this.timers.get(loggerKey));
+                    this.timers.delete(loggerKey);
+                }
+                return;
+            }
+
+            // Clear the timer for this batch
+            if (this.timers.has(loggerKey)) {
+                clearTimeout(this.timers.get(loggerKey));
+                this.timers.delete(loggerKey);
+            }
+
+            // Process the batch
+            batch.forEach(entry => {
+                try {
+                    logger[entry.level](entry.message, entry.meta);
+                } catch (entryError) {
+                    console.error(`Error logging entry in batch ${loggerKey}: ${entryError.message}`);
+                    console.error(entryError.stack);
+                    // Attempt to log the error itself
+                    try {
+                        logger.error(`[ENTRY ERROR] ${entry.message}`, {
+                            originalError: entryError.message,
+                            stack: entryError.stack,
+                            meta: entry.meta
+                        });
+                    } catch (errorLoggingError) {
+                        console.error(
+                            `Failed to log error for entry in batch ${loggerKey}: ${errorLoggingError.message}`
+                        );
+                    }
+                }
             });
-          } catch (errorLoggingError) {
-            console.error(`Failed to log error for entry in batch ${loggerKey}: ${errorLoggingError.message}`);
-          }
+        } catch (error) {
+            console.error(`Error flushing batch ${loggerKey}: ${error.message}`);
+            console.error(error.stack);
+            // Save failed batch for later processing
+            try {
+                if (!this.failedBatches) {
+                    this.failedBatches = new Map();
+                }
+                if (!this.failedBatches.has(loggerKey)) {
+                    this.failedBatches.set(loggerKey, []);
+                }
+                this.failedBatches.get(loggerKey).push(...batch);
+                console.warn(`Batch ${loggerKey} saved for later processing due to error`);
+            } catch (saveError) {
+                console.error(`Failed to save failed batch ${loggerKey}: ${saveError.message}`);
+            }
+        } finally {
+            // Clear the batch regardless of processing outcome
+            this.config.batches.delete(loggerKey);
         }
-      });
-    } catch (error) {
-      console.error(`Error flushing batch ${loggerKey}: ${error.message}`);
-      console.error(error.stack);
-      // Save failed batch for later processing
-      try {
-        if (!this.failedBatches) {
-          this.failedBatches = new Map();
-        }
-        if (!this.failedBatches.has(loggerKey)) {
-          this.failedBatches.set(loggerKey, []);
-        }
-        this.failedBatches.get(loggerKey).push(...batch);
-        console.warn(`Batch ${loggerKey} saved for later processing due to error`);
-      } catch (saveError) {
-        console.error(`Failed to save failed batch ${loggerKey}: ${saveError.message}`);
-      }
-    } finally {
-      // Clear the batch regardless of processing outcome
-      this.config.batches.delete(loggerKey);
     }
-  }
 
-  // Flush all batches
-  flushAllBatches(loggers) {
-    for (const [loggerKey, _] of this.config.batches.entries()) {
-      const logger = loggers.get(loggerKey) || loggers.get('default');
-      if (logger) {
-        this.flushBatch(loggerKey, logger);
-      }
+    // Flush all batches
+    flushAllBatches(loggers) {
+        for (const [loggerKey, _] of this.config.batches.entries()) {
+            const logger = loggers.get(loggerKey) || loggers.get('default');
+            if (logger) {
+                this.flushBatch(loggerKey, logger);
+            }
+        }
     }
-  }
 }
 
 const funcs = {
@@ -132,71 +137,71 @@ const funcs = {
 
 // Winston logger instances cache with LRU implementation
 class LRUCache {
-  constructor(maxSize) {
-    this.maxSize = maxSize;
-    this.cache = new Map();
-    this.order = [];
-  }
-
-  get(key) {
-    if (!this.cache.has(key)) return undefined;
-
-    // Move to end (most recently used)
-    const index = this.order.indexOf(key);
-    if (index !== -1) {
-      this.order.splice(index, 1);
-    }
-    this.order.push(key);
-
-    return this.cache.get(key);
-  }
-
-  set(key, value) {
-    // Remove least recently used if full
-    if (this.cache.size >= this.maxSize) {
-      const lruKey = this.order.shift();
-      this.cache.delete(lruKey);
+    constructor(maxSize) {
+        this.maxSize = maxSize;
+        this.cache = new Map();
+        this.order = [];
     }
 
-    // Add new item
-    this.cache.set(key, value);
-    this.order.push(key);
-  }
+    get(key) {
+        if (!this.cache.has(key)) return;
 
-  has(key) {
-    return this.cache.has(key);
-  }
+        // Move to end (most recently used)
+        const index = this.order.indexOf(key);
+        if (index !== -1) {
+            this.order.splice(index, 1);
+        }
+        this.order.push(key);
 
-  clear() {
-    this.cache.clear();
-    this.order = [];
-  }
-
-  delete(key) {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
-      const index = this.order.indexOf(key);
-      if (index !== -1) {
-        this.order.splice(index, 1);
-      }
-      return true;
+        return this.cache.get(key);
     }
-    return false;
-  }
 
-  keys() {
-    return this.cache.keys();
-  }
+    set(key, value) {
+        // Remove least recently used if full
+        if (this.cache.size >= this.maxSize) {
+            const lruKey = this.order.shift();
+            this.cache.delete(lruKey);
+        }
+
+        // Add new item
+        this.cache.set(key, value);
+        this.order.push(key);
+    }
+
+    has(key) {
+        return this.cache.has(key);
+    }
+
+    clear() {
+        this.cache.clear();
+        this.order = [];
+    }
+
+    delete(key) {
+        if (this.cache.has(key)) {
+            this.cache.delete(key);
+            const index = this.order.indexOf(key);
+            if (index !== -1) {
+                this.order.splice(index, 1);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    keys() {
+        return this.cache.keys();
+    }
 }
 
 const loggerCache = new LRUCache(1000);
 
 // Batch logging configuration
 const batchConfig = {
-  enabled: true,
-  sizeThreshold: 100,
-  timeThreshold: 500, // ms
-  batches: new Map()
+    enabled: true,
+    sizeThreshold: 100,
+    timeThreshold: 500, // ms
+    batches: new Map()
 };
 
 // Initialize batch manager after batchConfig is defined
@@ -253,9 +258,8 @@ function getLogger(categoryName) {
     if (loggerCache.has(cacheKey)) {
         return loggerCache.get(cacheKey);
     }
-    
-    // LRU cache automatically handles size limits
 
+    // LRU cache automatically handles size limits
 
     const logger = winston.createLogger({
         ...winstonConfig,
@@ -273,75 +277,77 @@ function getLogger(categoryName) {
         }
     }
 
-    ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'].forEach(function (item) {
-            pLogger[item] = function () {
-                let p = '';
-                if (!process.env.RAW_MESSAGE) {
-                    if (args.length > 1) {
-                        p = '[' + prefix + '] ';
-                    }
-                    if (args.length && process.env.LOGGER_LINE) {
-                        p = getLine() + ': ' + p;
-                    }
-
-                    p = colorize(p, colours[item]);
+    ['log', 'debug', 'info', 'warn', 'error', 'trace', 'fatal'].forEach(item => {
+        pLogger[item] = () => {
+            let p = '';
+            if (!process.env.RAW_MESSAGE) {
+                if (args.length > 1) {
+                    p = '[' + prefix + '] ';
+                }
+                if (args.length && process.env.LOGGER_LINE) {
+                    p = getLine() + ': ' + p;
                 }
 
-                let message = arguments[0] || '';
-                
-                // Enhanced object serialization with circular reference detection
-                if (typeof message === 'object' && message !== null) {
+                p = colorize(p, colours[item]);
+            }
+
+            let message = arguments[0] || '';
+
+            // Enhanced object serialization with circular reference detection
+            if (typeof message === 'object' && message !== null) {
+                try {
+                    // Use custom replacer to handle circular references
+                    message = JSON.stringify(message, circularReplacer(), 2);
+                } catch (err) {
+                    // Fallback to util.inspect with depth control
+                    message = util.inspect(message, {
+                        depth: getOptimalDepth(message),
+                        colors: false,
+                        breakLength: 80,
+                        compact: messageSize(message) > 1000
+                    });
+                }
+            }
+
+            if (args.length) {
+                message = p + message;
+            }
+
+            let level = item;
+            if (item === 'log') level = 'info';
+            if (item === 'fatal') level = 'error';
+            if (item === 'trace') level = 'debug';
+
+            const restArgs = Array.prototype.slice.call(arguments, 1);
+
+            // Process additional arguments with enhanced serialization
+            const processedArgs = restArgs.map(arg => {
+                if (typeof arg === 'object' && arg !== null) {
                     try {
-                        // Use custom replacer to handle circular references
-                        message = JSON.stringify(message, circularReplacer(), 2);
+                        return JSON.stringify(arg, circularReplacer(), 2);
                     } catch (err) {
-                        // Fallback to util.inspect with depth control
-                        message = util.inspect(message, { 
-                            depth: getOptimalDepth(message), 
-                            colors: false, 
-                            breakLength: 80, 
-                            compact: messageSize(message) > 1000
+                        return util.inspect(arg, {
+                            depth: getOptimalDepth(arg),
+                            colors: false,
+                            breakLength: 80,
+                            compact: messageSize(arg) > 1000
                         });
                     }
                 }
-                
-                if (args.length) {
-                    message = p + message;
-                }
+                return arg;
+            });
 
-                let level = item;
-                if (item === 'log') level = 'info';
-                if (item === 'fatal') level = 'error';
-                if (item === 'trace') level = 'debug';
+            // Combine message with additional arguments
+            if (processedArgs.length > 0) {
+                message += ' ' + processedArgs.join(' ');
+            }
 
-                const restArgs = Array.prototype.slice.call(arguments, 1);
-                
-                // Process additional arguments with enhanced serialization
-                const processedArgs = restArgs.map(arg => {
-                    if (typeof arg === 'object' && arg !== null) {
-                        try {
-                            return JSON.stringify(arg, circularReplacer(), 2);
-                        } catch (err) {
-                            return util.inspect(arg, { 
-                                depth: getOptimalDepth(arg), 
-                                colors: false, 
-                                breakLength: 80, 
-                                compact: messageSize(arg) > 1000
-                            });
-                        }
-                    }
-                    return arg;
-                });
-
-                // Combine message with additional arguments
-                if (processedArgs.length > 0) {
-                    message += ' ' + processedArgs.join(' ');
-                }
-
-                // Use batch manager to handle log entries
-                batchManager.addLogEntry(logger, level, message, { category: categoryName });
-            };
-        });
+            // Use batch manager to handle log entries
+            batchManager.addLogEntry(logger, level, message, {
+                category: categoryName
+            });
+        };
+    });
 
     loggerCache.set(cacheKey, pLogger);
     return pLogger;
@@ -378,7 +384,7 @@ function loadConfigurationFile(filename) {
             throw new Error(`Failed to load configuration file ${filename}: ${error.message}`);
         }
     }
-    return undefined;
+    return;
 }
 
 function reloadConfiguration() {
@@ -443,77 +449,85 @@ function convertLog4jsToWinston(log4jsConfig) {
             const appender = log4jsConfig.appenders[appenderName];
 
             switch (appender.type) {
-            case 'console':
-                winstonTransports.push(new winston.transports.Console({
-                    format: winston.format.combine(
-                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                        winston.format.errors({ stack: true }),
-                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                            const categoryStr = category || 'default';
-                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                            const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
-                            const levelColor = colours[level.toLowerCase()] || colours.info;
-                            return colorize(logLine, levelColor);
+                case 'console':
+                    winstonTransports.push(
+                        new winston.transports.Console({
+                            format: winston.format.combine(
+                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                                winston.format.errors({ stack: true }),
+                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                                    const categoryStr = category || 'default';
+                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                                    const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+                                    const levelColor = colours[level.toLowerCase()] || colours.info;
+                                    return colorize(logLine, levelColor);
+                                })
+                            )
                         })
-                    )
-                }));
-                break;
-            case 'file':
-                winstonTransports.push(new winston.transports.File({
-                    filename: appender.filename,
-                    maxsize: appender.maxLogSize,
-                    maxFiles: appender.backups,
-                    format: winston.format.combine(
-                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                        winston.format.errors({ stack: true }),
-                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                            const categoryStr = category || 'default';
-                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                            return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                    );
+                    break;
+                case 'file':
+                    winstonTransports.push(
+                        new winston.transports.File({
+                            filename: appender.filename,
+                            maxsize: appender.maxLogSize,
+                            maxFiles: appender.backups,
+                            format: winston.format.combine(
+                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                                winston.format.errors({ stack: true }),
+                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                                    const categoryStr = category || 'default';
+                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                                    return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                                })
+                            )
                         })
-                    )
-                }));
-                break;
-            case 'dateFile':
-                winstonTransports.push(new DailyRotateFile({
-                    filename: appender.filename,
-                    datePattern: appender.pattern || 'YYYY-MM-DD',
-                    maxSize: appender.maxLogSize,
-                    maxFiles: appender.daysToKeep || appender.numBackups,
-                    format: winston.format.combine(
-                        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                        winston.format.errors({ stack: true }),
-                        winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                            const categoryStr = category || 'default';
-                            const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                            return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                    );
+                    break;
+                case 'dateFile':
+                    winstonTransports.push(
+                        new DailyRotateFile({
+                            filename: appender.filename,
+                            datePattern: appender.pattern || 'YYYY-MM-DD',
+                            maxSize: appender.maxLogSize,
+                            maxFiles: appender.daysToKeep || appender.numBackups,
+                            format: winston.format.combine(
+                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                                winston.format.errors({ stack: true }),
+                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                                    const categoryStr = category || 'default';
+                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                                    return stack ? `${baseMessage}\n${stack}` : baseMessage;
+                                })
+                            )
                         })
-                    )
-                }));
-                break;
+                    );
+                    break;
             }
         });
     }
 
     // Default console transport if no transports defined
     if (winstonTransports.length === 0) {
-        winstonTransports.push(new winston.transports.Console({
-            format: winston.format.combine(
-                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                winston.format.errors({ stack: true }),
-                winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                    const categoryStr = category || 'default';
-                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                    const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
-                    const levelColor = colours[level.toLowerCase()] || colours.info;
-                    return colorize(logLine, levelColor);
-                })
-            )
-        }));
+        winstonTransports.push(
+            new winston.transports.Console({
+                format: winston.format.combine(
+                    winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+                    winston.format.errors({ stack: true }),
+                    winston.format.printf(({ timestamp, level, message, category, stack }) => {
+                        const categoryStr = category || 'default';
+                        const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+                        const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+                        const levelColor = colours[level.toLowerCase()] || colours.info;
+                        return colorize(logLine, levelColor);
+                    })
+                )
+            })
+        );
     }
 
     return {
-        level: level,
+        level,
         format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.printf(({ timestamp, level, message, category }) => {
@@ -587,7 +601,7 @@ function configure(config, opts) {
                 console.error(error.stack);
                 // Use default configuration as fallback
                 console.warn('Using default logger configuration as fallback');
-                config = {}
+                config = {};
             }
         }
 
@@ -597,13 +611,7 @@ function configure(config, opts) {
 
                 // Validate configuration
                 const validationResult = validateConfig(config);
-                if (!validationResult.valid) {
-                    console.error('Invalid logger configuration:');
-                    validationResult.errors.forEach(error => console.error('- ' + error));
-                    // Use default configuration as fallback
-                    console.warn('Using default logger configuration as fallback');
-                    config = {};
-                } else {
+                if (validationResult.valid) {
                     if (config.replaceConsole) {
                         configureOnceOff(config);
                     }
@@ -618,6 +626,12 @@ function configure(config, opts) {
 
                     // Convert log4js config to Winston config
                     winstonConfig = convertLog4jsToWinston(config);
+                } else {
+                    console.error('Invalid logger configuration:');
+                    validationResult.errors.forEach(error => console.error('- ' + error));
+                    // Use default configuration as fallback
+                    console.warn('Using default logger configuration as fallback');
+                    config = {};
                 }
 
                 // Clear logger cache to apply new configuration
@@ -657,7 +671,7 @@ function replaceProperties(configObj, opts) {
     } else if (typeof configObj === 'object') {
         let field;
         for (const f in configObj) {
-            if (!Object.prototype.hasOwnProperty.call(configObj, f)) {
+            if (!Object.hasOwn(configObj, f)) {
                 continue;
             }
 
@@ -797,7 +811,7 @@ function shutdown(callback) {
 
     // Clear all cached loggers
     loggerCache.clear();
-    
+
     // Clear reload timer if exists
     if (configState.timerId) {
         clearInterval(configState.timerId);
@@ -807,14 +821,14 @@ function shutdown(callback) {
     // Close all Winston transports
     if (winstonConfig && winstonConfig.transports) {
         const promises = winstonConfig.transports.map(transport => {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 if (transport.close) {
                     // Add timeout to prevent hanging
                     const timeout = setTimeout(() => {
                         console.warn('Transport close timeout, forcing shutdown');
                         resolve();
                     }, 5000);
-                    
+
                     transport.close(() => {
                         clearTimeout(timeout);
                         resolve();
@@ -829,22 +843,20 @@ function shutdown(callback) {
             .then(() => {
                 if (callback) callback();
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error('Error during logger shutdown:', error.message);
                 if (callback) callback(error);
             });
-    } else {
-        if (callback) callback();
-    }
+    } else if (callback) callback();
 }
 
 function connectLogger(logger) {
     // Express middleware for logging HTTP requests
-    return function (req, res, next) {
+    return (req, res, next) => {
         const start = Date.now();
         const originalEnd = res.end;
 
-        res.end = function (...args) {
+        res.end = (...args) => {
             const duration = Date.now() - start;
             const logLevel = res.statusCode >= 400 ? 'error' : 'info';
             const message = `${req.method} ${req.url} ${res.statusCode} ${duration}ms`;
@@ -864,11 +876,11 @@ function connectLogger(logger) {
 const levels = {
     ALL: { value: Number.MIN_VALUE, colour: 'grey' },
     TRACE: { value: 5000, colour: 'blue' },
-    DEBUG: { value: 10000, colour: 'cyan' },
-    INFO: { value: 20000, colour: 'green' },
-    WARN: { value: 30000, colour: 'yellow' },
-    ERROR: { value: 40000, colour: 'red' },
-    FATAL: { value: 50000, colour: 'magenta' },
+    DEBUG: { value: 10_000, colour: 'cyan' },
+    INFO: { value: 20_000, colour: 'green' },
+    WARN: { value: 30_000, colour: 'yellow' },
+    ERROR: { value: 40_000, colour: 'red' },
+    FATAL: { value: 50_000, colour: 'magenta' },
     OFF: { value: Number.MAX_VALUE, colour: 'grey' }
 };
 
@@ -880,40 +892,40 @@ function addLayout(name, layoutFunction) {
 
 // Helper functions for serialization
 function circularReplacer() {
-  const seen = new WeakSet();
-  return function(key, value) {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return '[Circular]';
-      }
-      seen.add(value);
-    }
-    return value;
-  };
+    const seen = new WeakSet();
+    return (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+                return '[Circular]';
+            }
+            seen.add(value);
+        }
+        return value;
+    };
 }
 
 function messageSize(obj) {
-  try {
-    return Buffer.byteLength(JSON.stringify(obj));
-  } catch {
-    return 0;
-  }
+    try {
+        return Buffer.byteLength(JSON.stringify(obj));
+    } catch {
+        return 0;
+    }
 }
 
 function getOptimalDepth(obj) {
-  // Adjust inspection depth based on object complexity
-  const size = messageSize(obj);
-  if (size < 1000) return 5;  // Small objects get deeper inspection
-  if (size < 5000) return 3;  // Medium objects
-  return 1;                   // Large objects get shallow inspection
+    // Adjust inspection depth based on object complexity
+    const size = messageSize(obj);
+    if (size < 1000) return 5; // Small objects get deeper inspection
+    if (size < 5000) return 3; // Medium objects
+    return 1; // Large objects get shallow inspection
 }
 
 module.exports = {
-    getLogger: getLogger,
-    configure: configure,
-    shutdown: shutdown,
-    connectLogger: connectLogger,
-    batchConfig: batchConfig,
-    levels: levels,
-    addLayout: addLayout
+    getLogger,
+    configure,
+    shutdown,
+    connectLogger,
+    batchConfig,
+    levels,
+    addLayout
 };

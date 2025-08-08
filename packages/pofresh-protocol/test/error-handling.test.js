@@ -50,7 +50,7 @@ describe('Error Handling Tests', () => {
             expect(() => getAllocBuffer(-1)).toThrow('Length must be a non-negative integer');
             expect(() => getAllocBuffer(1.5)).toThrow('Length must be a non-negative integer');
             expect(() => getAllocBuffer('10')).toThrow('Length must be a non-negative integer');
-            expect(() => getAllocBuffer(0x80000000)).toThrow('Length exceeds maximum buffer size');
+            expect(() => getAllocBuffer(0x80_00_00_00)).toThrow('Length exceeds maximum buffer size');
         });
 
         it('should throw error for null data in getFromBuffer', () => {
@@ -87,7 +87,7 @@ describe('Error Handling Tests', () => {
         });
 
         it('should throw error for oversized package body', () => {
-            const largeBody = new Uint8Array(0x1000000); // 16MB > 24-bit max
+            const largeBody = new Uint8Array(0x1_00_00_00); // 16MB > 24-bit max
             expect(() => Package.encode(Package.TYPE_DATA, largeBody)).toThrow('Package body too large');
         });
 
@@ -118,18 +118,30 @@ describe('Error Handling Tests', () => {
         });
 
         it('should throw error for invalid message ID', () => {
-            expect(() => Message.encode(-1, Message.TYPE_REQUEST, 0, null, null)).toThrow('Message ID must be a non-negative integer');
-            expect(() => Message.encode('1', Message.TYPE_REQUEST, 0, null, null)).toThrow('Message ID must be a non-negative integer');
-            expect(() => Message.encode(0x80000000, Message.TYPE_REQUEST, 0, null, null)).toThrow('Message ID too large');
+            expect(() => Message.encode(-1, Message.TYPE_REQUEST, 0, null, null)).toThrow(
+                'Message ID must be a non-negative integer'
+            );
+            expect(() => Message.encode('1', Message.TYPE_REQUEST, 0, null, null)).toThrow(
+                'Message ID must be a non-negative integer'
+            );
+            expect(() => Message.encode(0x80_00_00_00, Message.TYPE_REQUEST, 0, null, null)).toThrow(
+                'Message ID too large'
+            );
         });
 
         it('should throw error for invalid compressed route', () => {
-            expect(() => Message.encode(1, Message.TYPE_REQUEST, 1, -1, null)).toThrow('Compressed route must be a non-negative integer');
-            expect(() => Message.encode(1, Message.TYPE_REQUEST, 1, 'route', null)).toThrow('Compressed route must be a non-negative integer');
+            expect(() => Message.encode(1, Message.TYPE_REQUEST, 1, -1, null)).toThrow(
+                'Compressed route must be a non-negative integer'
+            );
+            expect(() => Message.encode(1, Message.TYPE_REQUEST, 1, 'route', null)).toThrow(
+                'Compressed route must be a non-negative integer'
+            );
         });
 
         it('should throw error for invalid uncompressed route', () => {
-            expect(() => Message.encode(1, Message.TYPE_REQUEST, 0, 123, null)).toThrow('Uncompressed route must be a string');
+            expect(() => Message.encode(1, Message.TYPE_REQUEST, 0, 123, null)).toThrow(
+                'Uncompressed route must be a string'
+            );
         });
 
         it('should throw error for oversized route', () => {
@@ -138,8 +150,10 @@ describe('Error Handling Tests', () => {
         });
 
         it('should throw error for oversized message body', () => {
-            const largeBody = new Uint8Array(0x80000000); // > max safe integer
-            expect(() => Message.encode(1, Message.TYPE_REQUEST, 0, 'route', largeBody)).toThrow('Message body too large');
+            const largeBody = new Uint8Array(0x80_00_00_00); // > max safe integer
+            expect(() => Message.encode(1, Message.TYPE_REQUEST, 0, 'route', largeBody)).toThrow(
+                'Message body too large'
+            );
         });
 
         it('should throw error for invalid buffer in decode', () => {
@@ -187,11 +201,11 @@ describe('Error Handling Tests', () => {
 
         it('should handle maximum valid values', () => {
             // Maximum package body size (24-bit)
-            const maxBodySize = 0xFFFFFF;
+            const maxBodySize = 0xff_ff_ff;
             expect(() => Package.encode(Package.TYPE_DATA, new Uint8Array(maxBodySize))).not.toThrow();
 
             // Maximum message ID
-            const maxId = 0x7FFFFFFF;
+            const maxId = 0x7f_ff_ff_ff;
             expect(() => Message.encode(maxId, Message.TYPE_REQUEST, 0, 'route', null)).not.toThrow();
 
             // Maximum route length
@@ -200,7 +214,7 @@ describe('Error Handling Tests', () => {
         });
 
         it('should handle boundary conditions in message ID encoding', () => {
-            const testIds = [0, 1, 127, 128, 16383, 16384, 2097151, 2097152];
+            const testIds = [0, 1, 127, 128, 16_383, 16_384, 2_097_151, 2_097_152];
 
             testIds.forEach(id => {
                 const encoded = Message.encode(id, Message.TYPE_REQUEST, 0, 'test', null);

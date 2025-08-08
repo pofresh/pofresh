@@ -12,10 +12,8 @@ const ttypes = require('./shared_types');
 
 SharedService_getStruct_args = function (args) {
     this.key = null;
-    if (args) {
-        if (args.key !== undefined && args.key !== null) {
-            this.key = args.key;
-        }
+    if (args && args.key !== undefined && args.key !== null) {
+        this.key = args.key;
     }
 };
 SharedService_getStruct_args.prototype = {};
@@ -30,18 +28,18 @@ SharedService_getStruct_args.prototype.read = function (input) {
             break;
         }
         switch (fid) {
-        case 1:
-            if (ftype == Thrift.Type.I32) {
-                this.key = input.readI32();
-            } else {
+            case 1:
+                if (ftype == Thrift.Type.I32) {
+                    this.key = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 0:
                 input.skip(ftype);
-            }
-            break;
-        case 0:
-            input.skip(ftype);
-            break;
-        default:
-            input.skip(ftype);
+                break;
+            default:
+                input.skip(ftype);
         }
         input.readFieldEnd();
     }
@@ -63,10 +61,8 @@ SharedService_getStruct_args.prototype.write = function (output) {
 
 SharedService_getStruct_result = function (args) {
     this.success = null;
-    if (args) {
-        if (args.success !== undefined && args.success !== null) {
-            this.success = new ttypes.SharedStruct(args.success);
-        }
+    if (args && args.success !== undefined && args.success !== null) {
+        this.success = new ttypes.SharedStruct(args.success);
     }
 };
 SharedService_getStruct_result.prototype = {};
@@ -81,19 +77,19 @@ SharedService_getStruct_result.prototype.read = function (input) {
             break;
         }
         switch (fid) {
-        case 0:
-            if (ftype == Thrift.Type.STRUCT) {
-                this.success = new ttypes.SharedStruct();
-                this.success.read(input);
-            } else {
+            case 0:
+                if (ftype == Thrift.Type.STRUCT) {
+                    this.success = new ttypes.SharedStruct();
+                    this.success.read(input);
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 0:
                 input.skip(ftype);
-            }
-            break;
-        case 0:
-            input.skip(ftype);
-            break;
-        default:
-            input.skip(ftype);
+                break;
+            default:
+                input.skip(ftype);
         }
         input.readFieldEnd();
     }
@@ -130,7 +126,7 @@ SharedServiceClient.prototype.getStruct = function (key, callback) {
     this._seqid = this.new_seqid();
     if (callback === undefined) {
         const _defer = Q.defer();
-        this._reqs[this.seqid()] = function (error, result) {
+        this._reqs[this.seqid()] = (error, result) => {
             if (error) {
                 _defer.reject(error);
             } else {
@@ -139,10 +135,9 @@ SharedServiceClient.prototype.getStruct = function (key, callback) {
         };
         this.send_getStruct(key);
         return _defer.promise;
-    } else {
-        this._reqs[this.seqid()] = callback;
-        this.send_getStruct(key);
     }
+    this._reqs[this.seqid()] = callback;
+    this.send_getStruct(key);
 };
 
 SharedServiceClient.prototype.send_getStruct = function (key) {
@@ -156,7 +151,7 @@ SharedServiceClient.prototype.send_getStruct = function (key) {
 };
 
 SharedServiceClient.prototype.recv_getStruct = function (input, mtype, rseqid) {
-    const callback = this._reqs[rseqid] || function () {};
+    const callback = this._reqs[rseqid] || (() => {});
     delete this._reqs[rseqid];
     if (mtype == Thrift.MessageType.EXCEPTION) {
         const x = new Thrift.TApplicationException();
@@ -168,7 +163,7 @@ SharedServiceClient.prototype.recv_getStruct = function (input, mtype, rseqid) {
     result.read(input);
     input.readMessageEnd();
 
-    if (null !== result.success) {
+    if (result.success !== null) {
         return callback(null, result.success);
     }
     return callback('getStruct failed: unknown result');
@@ -180,18 +175,17 @@ SharedServiceProcessor.prototype.process = function (input, output) {
     const r = input.readMessageBegin();
     if (this['process_' + r.fname]) {
         return this['process_' + r.fname].call(this, r.rseqid, input, output);
-    } else {
-        input.skip(Thrift.Type.STRUCT);
-        input.readMessageEnd();
-        const x = new Thrift.TApplicationException(
-            Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
-            'Unknown function ' + r.fname
-        );
-        output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
-        x.write(output);
-        output.writeMessageEnd();
-        output.flush();
     }
+    input.skip(Thrift.Type.STRUCT);
+    input.readMessageEnd();
+    const x = new Thrift.TApplicationException(
+        Thrift.TApplicationExceptionType.UNKNOWN_METHOD,
+        'Unknown function ' + r.fname
+    );
+    output.writeMessageBegin(r.fname, Thrift.MessageType.EXCEPTION, r.rseqid);
+    x.write(output);
+    output.writeMessageEnd();
+    output.flush();
 };
 
 SharedServiceProcessor.prototype.process_getStruct = function (seqid, input, output) {
@@ -200,14 +194,14 @@ SharedServiceProcessor.prototype.process_getStruct = function (seqid, input, out
     input.readMessageEnd();
     if (this._handler.getStruct.length === 1) {
         Q.fcall(this._handler.getStruct, args.key).then(
-            function (result) {
+            result => {
                 var result = new SharedService_getStruct_result({ success: result });
                 output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);
                 result.write(output);
                 output.writeMessageEnd();
                 output.flush();
             },
-            function (err) {
+            err => {
                 const result = new Thrift.TApplicationException(Thrift.TApplicationExceptionType.UNKNOWN, err.message);
                 output.writeMessageBegin('getStruct', Thrift.MessageType.EXCEPTION, seqid);
                 result.write(output);
@@ -216,7 +210,7 @@ SharedServiceProcessor.prototype.process_getStruct = function (seqid, input, out
             }
         );
     } else {
-        this._handler.getStruct(args.key, function (err, result) {
+        this._handler.getStruct(args.key, (err, result) => {
             if (err == null) {
                 var result = new SharedService_getStruct_result(err != null ? err : { success: result });
                 output.writeMessageBegin('getStruct', Thrift.MessageType.REPLY, seqid);

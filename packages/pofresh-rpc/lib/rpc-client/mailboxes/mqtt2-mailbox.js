@@ -118,8 +118,8 @@ class MailBox extends BaseMailbox {
                 seqId: tracer.seq,
                 source: tracer.source,
                 remote: tracer.remote,
-                id: id,
-                msg: msg
+                id,
+                msg
             };
         } else {
             pkg = Coder.encodeClient(id, msg, this.servicesMap);
@@ -180,6 +180,4 @@ class MailBox extends BaseMailbox {
  *                      opts.bufferMsg {Boolean} msg should be buffered or send immediately.
  *                      opts.interval {Boolean} msg queue flush interval if bufferMsg is true. default is 50 ms
  */
-module.exports.create = function (server, opts) {
-    return new MailBox(server, opts || {});
-};
+module.exports.create = (server, opts) => new MailBox(server, opts || {});

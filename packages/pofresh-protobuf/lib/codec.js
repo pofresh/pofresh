@@ -14,25 +14,25 @@ const codec = module.exports;
  * @returns {Array<number>} Array of bytes representing the encoded number
  * @throws {Error} If the input is invalid
  */
-codec.encodeUInt32 = function (num) {
+codec.encodeUInt32 = num => {
     if (typeof num !== 'number') {
         throw new Error(`Expected number, got ${typeof num}`);
     }
-    
+
     let n = Math.floor(num);
     if (n < 0) {
         throw new Error(`UInt32 must be non-negative, got ${num}`);
     }
-    
-    if (n > 0xFFFFFFFF) {
+
+    if (n > 0xff_ff_ff_ff) {
         throw new Error(`UInt32 overflow: ${num} exceeds maximum value`);
     }
 
     const result = [];
     do {
-        let tmp = n & 0x7F; // Get lower 7 bits
+        let tmp = n & 0x7f; // Get lower 7 bits
         n >>>= 7; // Unsigned right shift by 7 bits
-        
+
         if (n !== 0) {
             tmp |= 0x80; // Set continuation bit
         }
@@ -48,20 +48,20 @@ codec.encodeUInt32 = function (num) {
  * @returns {Array<number>} Array of bytes representing the encoded number
  * @throws {Error} If the input is invalid
  */
-codec.encodeSInt32 = function (num) {
+codec.encodeSInt32 = num => {
     if (typeof num !== 'number') {
         throw new Error(`Expected number, got ${typeof num}`);
     }
-    
-    let n = Math.floor(num);
-    if (n < -0x80000000 || n > 0x7FFFFFFF) {
+
+    const n = Math.floor(num);
+    if (n < -0x80_00_00_00 || n > 0x7f_ff_ff_ff) {
         throw new Error(`SInt32 overflow: ${num} exceeds valid range`);
     }
-    
+
     // Zigzag encoding: maps signed integers to unsigned integers
     // Positive numbers: n * 2
     // Negative numbers: (-n) * 2 - 1
-    const zigzag = n >= 0 ? n * 2 : (-n) * 2 - 1;
+    const zigzag = n >= 0 ? n * 2 : -n * 2 - 1;
     return codec.encodeUInt32(zigzag);
 };
 
@@ -71,7 +71,7 @@ codec.encodeSInt32 = function (num) {
  * @returns {Array<number>} Array of bytes representing the encoded number
  * @throws {Error} If the input is invalid
  */
-codec.encodeUInt64 = function (num) {
+codec.encodeUInt64 = num => {
     let n;
     if (typeof num === 'bigint') {
         n = num;
@@ -83,16 +83,16 @@ codec.encodeUInt64 = function (num) {
     } else {
         throw new Error(`Expected number or bigint, got ${typeof num}`);
     }
-    
+
     if (n < 0n) {
         throw new Error(`UInt64 must be non-negative, got ${num}`);
     }
-    
+
     const result = [];
     do {
-        let tmp = Number(n & 0x7Fn); // Get lower 7 bits
+        let tmp = Number(n & 0x7fn); // Get lower 7 bits
         n >>= 7n; // Right shift by 7 bits
-        
+
         if (n !== 0n) {
             tmp |= 0x80; // Set continuation bit
         }
@@ -108,7 +108,7 @@ codec.encodeUInt64 = function (num) {
  * @returns {Array<number>} Array containing single byte (0 or 1)
  * @throws {Error} If the input is invalid
  */
-codec.encodeBool = function (value) {
+codec.encodeBool = value => {
     if (typeof value !== 'boolean') {
         throw new Error(`Expected boolean, got ${typeof value}`);
     }
@@ -122,14 +122,14 @@ codec.encodeBool = function (value) {
  * @returns {Array<number>} Array of bytes representing the encoded tag
  * @throws {Error} If the inputs are invalid
  */
-codec.encodeTag = function (fieldNumber, wireType) {
+codec.encodeTag = (fieldNumber, wireType) => {
     if (typeof fieldNumber !== 'number' || fieldNumber <= 0) {
         throw new Error(`Invalid field number: ${fieldNumber}`);
     }
     if (typeof wireType !== 'number' || wireType < 0 || wireType > 5) {
         throw new Error(`Invalid wire type: ${wireType}`);
     }
-    
+
     const tag = (fieldNumber << 3) | wireType;
     return codec.encodeUInt32(tag);
 };
@@ -140,7 +140,7 @@ codec.encodeTag = function (fieldNumber, wireType) {
  * @returns {number} The decoded number
  * @throws {Error} If the input is invalid
  */
-codec.decodeUInt32 = function (bytes) {
+codec.decodeUInt32 = bytes => {
     if (!Array.isArray(bytes) || bytes.length === 0) {
         throw new Error('Invalid bytes array for decodeUInt32');
     }
@@ -153,13 +153,13 @@ codec.decodeUInt32 = function (bytes) {
         if (typeof byte !== 'number' || byte < 0 || byte > 255) {
             throw new Error(`Invalid byte value at index ${i}: ${byte}`);
         }
-        
-        result |= (byte & 0x7F) << shift;
-        
+
+        result |= (byte & 0x7f) << shift;
+
         if ((byte & 0x80) === 0) {
             return result >>> 0; // Ensure unsigned 32-bit result
         }
-        
+
         shift += 7;
         if (shift >= 32) {
             throw new Error('UInt32 varint too long');
@@ -175,10 +175,10 @@ codec.decodeUInt32 = function (bytes) {
  * @returns {number} The decoded number
  * @throws {Error} If the input is invalid
  */
-codec.decodeSInt32 = function (bytes) {
+codec.decodeSInt32 = bytes => {
     const n = codec.decodeUInt32(bytes);
     // Zigzag decoding: even numbers are positive, odd numbers are negative
-    return (n >>> 1) ^ (-(n & 1));
+    return (n >>> 1) ^ -(n & 1);
 };
 
 /**
@@ -187,7 +187,7 @@ codec.decodeSInt32 = function (bytes) {
  * @returns {bigint} The decoded number as BigInt
  * @throws {Error} If the input is invalid
  */
-codec.decodeUInt64 = function (bytes) {
+codec.decodeUInt64 = bytes => {
     if (!Array.isArray(bytes) || bytes.length === 0) {
         throw new Error('Invalid bytes array for decodeUInt64');
     }
@@ -200,13 +200,13 @@ codec.decodeUInt64 = function (bytes) {
         if (typeof byte !== 'number' || byte < 0 || byte > 255) {
             throw new Error(`Invalid byte value at index ${i}: ${byte}`);
         }
-        
-        result |= BigInt(byte & 0x7F) << shift;
-        
+
+        result |= BigInt(byte & 0x7f) << shift;
+
         if ((byte & 0x80) === 0) {
             return result;
         }
-        
+
         shift += 7n;
         if (shift >= 64n) {
             throw new Error('UInt64 varint too long');
@@ -222,7 +222,7 @@ codec.decodeUInt64 = function (bytes) {
  * @returns {boolean} The decoded boolean
  * @throws {Error} If the input is invalid
  */
-codec.decodeBool = function (bytes) {
+codec.decodeBool = bytes => {
     if (!Array.isArray(bytes) || bytes.length !== 1) {
         throw new Error('Boolean must be encoded as single byte');
     }
@@ -239,27 +239,29 @@ codec.decodeBool = function (bytes) {
  * @returns {{fieldNumber: number, wireType: number}} The decoded tag
  * @throws {Error} If the input is invalid
  */
-codec.decodeTag = function (bytes) {
+codec.decodeTag = bytes => {
     const tag = codec.decodeUInt32(bytes);
     const wireType = tag & 0x7;
     const fieldNumber = tag >>> 3;
-    
+
     if (fieldNumber === 0) {
         throw new Error('Invalid field number: 0');
     }
-    
+
     return { fieldNumber, wireType };
 };
 
 // Legacy compatibility functions
-codec.encodeSInt32 = codec.encodeSInt32 || function (num) {
-    let n = parseInt(num);
-    if (isNaN(n)) {
-        return null;
-    }
-    n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;
-    return codec.encodeUInt32(n);
-};
+codec.encodeSInt32 =
+    codec.encodeSInt32 ||
+    (num => {
+        let n = Number.parseInt(num);
+        if (isNaN(n)) {
+            return null;
+        }
+        n = n < 0 ? Math.abs(n) * 2 - 1 : n * 2;
+        return codec.encodeUInt32(n);
+    });
 
 // Legacy compatibility - keep old function names
 const Encoder = codec;

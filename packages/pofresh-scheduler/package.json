@@ -1,17 +1,18 @@
 {
-	"name": "pofresh-scheduler",
-	"version": "2.0.2",
-	"main": "./lib/schedule",
-	"author": "XiaogangZhang <zhang0925@gmail.com>, fantasyni <fantasyni@163.com>, luson <ljhxai@163.com>",
-	"scripts": {
-		"test": "vitest",
-		"test:run": "vitest --run",
-		"test:watch": "vitest --watch",
-		"test:coverage": "vitest --coverage",
-		"lint": "eslint",
-		"lint:fix": "eslint --fix"
+    "name": "pofresh-scheduler",
+    "version": "2.0.2",
+    "main": "./lib/schedule",
+    "author": "XiaogangZhang <zhang0925@gmail.com>, fantasyni <fantasyni@163.com>, luson <ljhxai@163.com>",
+    "scripts": {
+        "test": "vitest",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
     },
-	"dependencies": {
-		"log4js": "^6.7.1"
-	}
+    "dependencies": {
+        "log4js": "^6.7.1"
+    }
 }

@@ -24,9 +24,7 @@ const ST_STOPED = 2; // server stoped
  * @param {Object} app  current application context
  * @return {Object} erver instance
  */
-module.exports.create = function (app, opts) {
-    return new Server(app, opts);
-};
+module.exports.create = (app, opts) => new Server(app, opts);
 
 class Server {
     constructor(app, opts) {
@@ -88,27 +86,25 @@ class Server {
             utils.invokeCallback(cb, new Error('meet unknown route message %j', msg.route));
             return;
         }
-
-        const self = this;
-        const dispatch = function (err, resp, opts) {
+        const dispatch = (err, resp, opts) => {
             if (err) {
-                handleError(true, self, err, msg, session, resp, opts, function (err, resp, opts) {
-                    response(true, self, err, msg, session, resp, opts, cb);
+                handleError(true, this, err, msg, session, resp, opts, (err, resp, opts) => {
+                    response(true, this, err, msg, session, resp, opts, cb);
                 });
                 return;
             }
 
-            if (self.app.getServerType() !== routeRecord.serverType) {
-                doForward(self.app, msg, session, routeRecord, function (err, resp, opts) {
-                    response(true, self, err, msg, session, resp, opts, cb);
+            if (this.app.getServerType() !== routeRecord.serverType) {
+                doForward(this.app, msg, session, routeRecord, (err, resp, opts) => {
+                    response(true, this, err, msg, session, resp, opts, cb);
                 });
             } else {
-                doHandle(self, msg, session, routeRecord, function (err, resp, opts) {
-                    response(true, self, err, msg, session, resp, opts, cb);
+                doHandle(this, msg, session, routeRecord, (err, resp, opts) => {
+                    response(true, this, err, msg, session, resp, opts, cb);
                 });
             }
         };
-        beforeFilter(true, self, msg, session, dispatch);
+        beforeFilter(true, this, msg, session, dispatch);
     }
 
     /**
@@ -146,7 +142,7 @@ class Server {
     removeCrons(crons) {
         for (let i = 0, l = crons.length; i < l; i++) {
             const cron = crons[i];
-            const id = parseInt(cron.id);
+            const id = Number.parseInt(cron.id);
             if (this.jobs[id]) {
                 schedule.cancelJob(this.jobs[id]);
             } else {
@@ -212,12 +208,12 @@ function loadCrons(server, app) {
         if (app.serverType === serverType) {
             const list = crons[serverType];
             for (let i = 0; i < list.length; i++) {
-                if (!list[i].serverId) {
-                    checkAndAdd(list[i], server.crons, server);
-                } else {
+                if (list[i].serverId) {
                     if (app.serverId === list[i].serverId) {
                         checkAndAdd(list[i], server.crons, server);
                     }
+                } else {
+                    checkAndAdd(list[i], server.crons, server);
                 }
             }
         }
@@ -253,11 +249,11 @@ function afterFilter(isGlobal, server, err, msg, session, resp, opts, cb) {
     }
     if (fm) {
         if (isGlobal) {
-            fm.afterFilter(err, msg, session, resp, function () {
+            fm.afterFilter(err, msg, session, resp, () => {
                 // do nothing
             });
         } else {
-            fm.afterFilter(err, msg, session, resp, function (err) {
+            fm.afterFilter(err, msg, session, resp, err => {
                 cb(err, resp, opts);
             });
         }
@@ -274,15 +270,15 @@ function handleError(isGlobal, server, err, msg, session, resp, opts, cb) {
     } else {
         handler = server.app.get(Constants.RESERVED.ERROR_HANDLER);
     }
-    if (!handler) {
-        logger.debug('no default error handler to resolve unknown exception. ' + err.stack);
-        utils.invokeCallback(cb, err, resp, opts);
-    } else {
+    if (handler) {
         if (handler.length === 5) {
             handler(err, msg, resp, session, cb);
         } else {
             handler(err, msg, resp, session, opts, cb);
         }
+    } else {
+        logger.debug('no default error handler to resolve unknown exception. ' + err.stack);
+        utils.invokeCallback(cb, err, resp, opts);
     }
 }
 
@@ -316,7 +312,7 @@ function parseRoute(route) {
     }
 
     return {
-        route: route,
+        route,
         serverType: ts[0],
         handler: ts[1],
         method: ts[2]
@@ -337,7 +333,7 @@ function doForward(app, msg, session, routeRecord, cb) {
             // msg.aesPassword,
             // msg.compressGzip,
             session.export(),
-            function (err, resp, opts) {
+            (err, resp, opts) => {
                 if (err) {
                     logger.error('fail to process remote message:' + err.stack);
                 }
@@ -360,19 +356,19 @@ function doHandle(server, msg, session, routeRecord, cb) {
 
     const self = server;
 
-    const handle = function (err, resp, opts) {
+    const handle = (err, resp, opts) => {
         if (err) {
             // error from before filter
-            handleError(false, self, err, msg, session, resp, opts, function (err, resp, opts) {
+            handleError(false, self, err, msg, session, resp, opts, (err, resp, opts) => {
                 response(false, self, err, msg, session, resp, opts, cb);
             });
             return;
         }
 
-        self.handlerService.handle(routeRecord, msg, session, function (err, resp, opts) {
+        self.handlerService.handle(routeRecord, msg, session, (err, resp, opts) => {
             if (err) {
                 //error from handler
-                handleError(false, self, err, msg, session, resp, opts, function (err, resp, opts) {
+                handleError(false, self, err, msg, session, resp, opts, (err, resp, opts) => {
                     response(false, self, err, msg, session, resp, opts, cb);
                 });
                 return;
@@ -395,7 +391,7 @@ function scheduleCrons(server, crons) {
         const action = cronInfo.action;
         const jobId = cronInfo.id;
 
-        if (!time || !action || !jobId) {
+        if (!(time && action && jobId)) {
             logger.error('cron miss necessary parameters: %j', cronInfo);
             continue;
         }
@@ -428,10 +424,10 @@ function scheduleCrons(server, crons) {
  * If cron is not in crons then put it in the array.
  */
 function checkAndAdd(cron, crons, server) {
-    if (!containCron(cron.id, crons)) {
-        server.crons.push(cron);
-    } else {
+    if (containCron(cron.id, crons)) {
         logger.warn('cron is duplicated: %j', cron);
+    } else {
+        server.crons.push(cron);
     }
 }
 

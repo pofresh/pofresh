@@ -21,7 +21,7 @@ class MasterSocket {
     }
 
     onRegister(msg) {
-        if (!msg || !msg.type) {
+        if (!(msg && msg.type)) {
             return;
         }
         const serverId = msg.id;
@@ -160,7 +160,7 @@ class MasterSocket {
 
     onReconnect(msg, pid) {
         // reconnect a new connection
-        if (!msg || !msg.type) {
+        if (!(msg && msg.type)) {
             return;
         }
 

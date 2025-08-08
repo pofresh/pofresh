@@ -11,7 +11,7 @@ const utils = module.exports;
 /**
  * Check and invoke callback
  */
-utils.invokeCallback = function (cb) {
+utils.invokeCallback = cb => {
     if (!!cb && typeof cb === 'function') {
         try {
             cb.apply(null, Array.prototype.slice.call(arguments, 1));
@@ -26,28 +26,24 @@ utils.invokeCallback = function (cb) {
 /**
  * 安全的回调调用，使用ErrorHandler
  */
-utils.safeCallback = function (cb, err, result) {
+utils.safeCallback = (cb, err, result) => {
     ErrorHandler.safeCallback(cb, err, result);
 };
 
 /**
  * 创建带超时的回调
  */
-utils.createTimeoutCallback = function (cb, timeout, operation) {
-    return ErrorHandler.createTimeoutCallback(cb, timeout, operation);
-};
+utils.createTimeoutCallback = (cb, timeout, operation) => ErrorHandler.createTimeoutCallback(cb, timeout, operation);
 
 /**
  * 验证参数
  */
-utils.validateParams = function (params, required, types) {
-    return ErrorHandler.validateParams(params, required, types);
-};
+utils.validateParams = (params, required, types) => ErrorHandler.validateParams(params, required, types);
 
 /*
  * Date format
  */
-utils.format = function (date, format) {
+utils.format = (date, format) => {
     format = format || 'MM-dd-hhmm';
     const o = {
         'M+': date.getMonth() + 1, //month
@@ -74,17 +70,15 @@ utils.format = function (date, format) {
     return format;
 };
 
-utils.compareServer = function (server1, server2) {
-    return server1.host === server2.host && server1.port === server2.port;
-};
+utils.compareServer = (server1, server2) => server1.host === server2.host && server1.port === server2.port;
 
 /**
  * Get the count of elements of object
  */
-utils.size = function (obj, type) {
+utils.size = (obj, type) => {
     let count = 0;
     for (const i in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, i) && typeof obj[i] !== 'function') {
+        if (Object.hasOwn(obj, i) && typeof obj[i] !== 'function') {
             if (!type) {
                 count++;
                 continue;
@@ -98,14 +92,14 @@ utils.size = function (obj, type) {
     return count;
 };
 
-utils.md5 = function (str) {
+utils.md5 = str => {
     const md5sum = crypto.createHash('md5');
     md5sum.update(str);
     str = md5sum.digest('hex');
     return str;
 };
 
-utils.defaultAuthUser = function (msg, env, cb) {
+utils.defaultAuthUser = (msg, env, cb) => {
     // 使用ErrorHandler进行参数验证
     const validationError = ErrorHandler.validateParams(msg, ['username', 'password'], {
         username: 'string',
@@ -121,29 +115,33 @@ utils.defaultAuthUser = function (msg, env, cb) {
     }
 
     // 使用ErrorHandler的安全异步操作和ConfigManager
-    ErrorHandler.safeAsyncOperation(() => {
-        const adminUsers = configManager.loadAdminUsers(env);
+    ErrorHandler.safeAsyncOperation(
+        () => {
+            const adminUsers = configManager.loadAdminUsers(env);
 
-        if (!adminUsers || adminUsers.length === 0) {
-            return null; // 没有配置用户，返回null
-        }
-
-        const username = msg.username;
-        const password = msg.password;
-        const md5 = msg.md5;
-
-        const user = adminUsers.find(u => {
-            if (!u || typeof u !== 'object' || u.username !== username) {
-                return false;
+            if (!adminUsers || adminUsers.length === 0) {
+                return null; // 没有配置用户，返回null
             }
-            return md5 ? utils.md5(u.password) === password : u.password === password;
-        });
 
-        return user;
-    }, cb, 'User authentication');
+            const username = msg.username;
+            const password = msg.password;
+            const md5 = msg.md5;
+
+            const user = adminUsers.find(u => {
+                if (!u || typeof u !== 'object' || u.username !== username) {
+                    return false;
+                }
+                return md5 ? utils.md5(u.password) === password : u.password === password;
+            });
+
+            return user;
+        },
+        cb,
+        'User authentication'
+    );
 };
 
-utils.defaultAuthServerMaster = function (msg, env, cb) {
+utils.defaultAuthServerMaster = (msg, env, cb) => {
     const type = msg.serverType;
     const token = msg.token;
     if (type === 'master') {
@@ -174,7 +172,7 @@ utils.defaultAuthServerMaster = function (msg, env, cb) {
     cb(ok ? 'ok' : 'bad');
 };
 
-utils.defaultAuthServerMonitor = function (msg, env, cb) {
+utils.defaultAuthServerMonitor = (msg, env, cb) => {
     const type = msg.serverType;
 
     let servers = null;
@@ -201,7 +199,7 @@ utils.defaultAuthServerMonitor = function (msg, env, cb) {
     cb(server ? server.token : null);
 };
 
-utils.tail = async function (filename, num) {
+utils.tail = async (filename, num) => {
     const reader = rrl.create(filename);
     await reader.open();
     const lines = await reader.readLines(num || 10);

@@ -1,32 +1,34 @@
 {
-  "name": "pofresh-cli",
-  "version": "2.0.1",
-  "description": "Pofresh command line client for managing pofresh",
-  "main": "index.js",
-  "scripts": {
-    "test": "vitest --run",
-    "test:run": "vitest --run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "lint": "eslint --fix"
-  },
-  "repository": "",
-  "keywords": [
-    "pofresh",
-    "command",
-    "line",
-    "maintaining"
-  ],
-  "bin": {
-    "pofresh-cli": "./bin/pofresh-cli"
-  },
-  "dependencies": {
-    "async": "^3.2.6",
-    "cliff": "^0.1.10",
-    "commander": "^12.1.0",
-    "pofresh-admin": "workspace:*",
-    "pofresh-logger": "workspace:*"
-  },
-  "author": "luson",
-  "license": "MIT"
+    "name": "pofresh-cli",
+    "version": "2.0.1",
+    "description": "Pofresh command line client for managing pofresh",
+    "main": "index.js",
+    "scripts": {
+        "test": "vitest --run",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
+    },
+    "repository": "",
+    "keywords": [
+        "pofresh",
+        "command",
+        "line",
+        "maintaining"
+    ],
+    "bin": {
+        "pofresh-cli": "./bin/pofresh-cli"
+    },
+    "dependencies": {
+        "async": "^3.2.6",
+        "cliff": "^0.1.10",
+        "commander": "^12.1.0",
+        "pofresh-admin": "workspace:*",
+        "pofresh-logger": "workspace:*"
+    },
+    "author": "luson",
+    "license": "MIT"
 }

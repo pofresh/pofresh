@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import logger from '../lib/logger.js';
 
 describe('Environment and Special Features', () => {
@@ -8,7 +7,7 @@ describe('Environment and Special Features', () => {
     beforeEach(() => {
         originalEnv = { ...process.env };
         consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-        
+
         // Clean environment
         delete process.env.RAW_MESSAGE;
         delete process.env.LOGGER_LINE;
@@ -23,7 +22,7 @@ describe('Environment and Special Features', () => {
     describe('Raw Message Mode', () => {
         it('should enable raw message mode via environment variable', () => {
             process.env.RAW_MESSAGE = 'true';
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -32,12 +31,12 @@ describe('Environment and Special Features', () => {
                     default: { appenders: ['console'], level: 'info' }
                 }
             };
-            
+
             logger.configure(config);
             const testLogger = logger.getLogger('raw-test');
-            
+
             testLogger.info('Raw message test');
-            
+
             // In raw mode, the message should be simpler
             expect(() => testLogger.info('test')).not.toThrow();
         });
@@ -52,17 +51,17 @@ describe('Environment and Special Features', () => {
                 },
                 rawMessage: true
             };
-            
+
             logger.configure(config);
             expect(process.env.RAW_MESSAGE).toBe(true);
-            
+
             const testLogger = logger.getLogger('raw-config-test');
             testLogger.info('Raw config message');
         });
 
         it('should handle raw message with different log levels', () => {
             process.env.RAW_MESSAGE = 'true';
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -71,10 +70,10 @@ describe('Environment and Special Features', () => {
                     default: { appenders: ['console'], level: 'debug' }
                 }
             };
-            
+
             logger.configure(config);
             const testLogger = logger.getLogger('raw-levels');
-            
+
             expect(() => {
                 testLogger.debug('Debug raw');
                 testLogger.info('Info raw');
@@ -87,7 +86,7 @@ describe('Environment and Special Features', () => {
     describe('Line Debug Mode', () => {
         it('should enable line debug mode via environment variable', () => {
             process.env.LOGGER_LINE = 'true';
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -96,12 +95,12 @@ describe('Environment and Special Features', () => {
                     default: { appenders: ['console'], level: 'info' }
                 }
             };
-            
+
             logger.configure(config);
             const testLogger = logger.getLogger('line-test');
-            
+
             testLogger.info('Line debug test');
-            
+
             // Should include line number information
             expect(() => testLogger.info('test')).not.toThrow();
         });
@@ -116,10 +115,10 @@ describe('Environment and Special Features', () => {
                 },
                 lineDebug: true
             };
-            
+
             logger.configure(config);
             expect(process.env.LOGGER_LINE).toBe(true);
-            
+
             const testLogger = logger.getLogger('line-config-test');
             testLogger.info('Line config message');
         });
@@ -135,13 +134,13 @@ describe('Environment and Special Features', () => {
                 lineDebug: true,
                 rawMessage: true
             };
-            
+
             logger.configure(config);
             expect(process.env.LOGGER_LINE).toBe(true);
             expect(process.env.RAW_MESSAGE).toBe(true);
-            
+
             const testLogger = logger.getLogger('combined-test');
-            
+
             expect(() => {
                 testLogger.info('Combined mode test');
             }).not.toThrow();
@@ -151,7 +150,7 @@ describe('Environment and Special Features', () => {
     describe('Console Replacement', () => {
         it('should replace console when configured', () => {
             const originalConsole = { ...console };
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -161,15 +160,15 @@ describe('Environment and Special Features', () => {
                 },
                 replaceConsole: true
             };
-            
+
             logger.configure(config);
-            
+
             // Console methods should be replaced
             expect(console.log).not.toBe(originalConsole.log);
             expect(console.info).not.toBe(originalConsole.info);
             expect(console.warn).not.toBe(originalConsole.warn);
             expect(console.error).not.toBe(originalConsole.error);
-            
+
             // Test replaced console methods
             expect(() => {
                 console.log('Replaced log');
@@ -181,7 +180,7 @@ describe('Environment and Special Features', () => {
 
         it('should not replace console when not configured', () => {
             const originalConsole = { ...console };
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -191,9 +190,9 @@ describe('Environment and Special Features', () => {
                 },
                 replaceConsole: false
             };
-            
+
             logger.configure(config);
-            
+
             // Console methods should remain unchanged
             expect(console.log).toBe(originalConsole.log);
             expect(console.info).toBe(originalConsole.info);
@@ -206,7 +205,7 @@ describe('Environment and Special Features', () => {
         it('should replace environment variables in configuration', () => {
             process.env.TEST_LOG_LEVEL = 'debug';
             process.env.TEST_APP_NAME = 'test-app';
-            
+
             const config = {
                 appenders: {
                     console: {
@@ -224,11 +223,11 @@ describe('Environment and Special Features', () => {
                     }
                 }
             };
-            
+
             expect(() => {
                 logger.configure(config);
             }).not.toThrow();
-            
+
             const testLogger = logger.getLogger('env-replace-test');
             testLogger.debug('Environment replacement test');
         });
@@ -251,11 +250,11 @@ describe('Environment and Special Features', () => {
                     }
                 }
             };
-            
+
             expect(() => {
                 logger.configure(config);
             }).not.toThrow();
-            
+
             const testLogger = logger.getLogger('missing-env-test');
             testLogger.info('Missing environment variable test');
         });
@@ -264,7 +263,7 @@ describe('Environment and Special Features', () => {
             // Mock process.argv
             const originalArgv = process.argv;
             process.argv = ['node', 'script.js', '--logLevel=warn', '--appName=test'];
-            
+
             const config = {
                 appenders: {
                     console: { type: 'console' }
@@ -276,14 +275,14 @@ describe('Environment and Special Features', () => {
                     }
                 }
             };
-            
+
             expect(() => {
                 logger.configure(config);
             }).not.toThrow();
-            
+
             const testLogger = logger.getLogger('args-test');
             testLogger.warn('Command line args test');
-            
+
             // Restore original argv
             process.argv = originalArgv;
         });
@@ -310,13 +309,13 @@ describe('Environment and Special Features', () => {
                     }
                 }
             };
-            
+
             logger.configure(config);
-            
+
             const defaultLogger = logger.getLogger('default');
             const debugLogger = logger.getLogger('debug');
             const errorLogger = logger.getLogger('error');
-            
+
             expect(() => {
                 defaultLogger.info('Default category info');
                 debugLogger.debug('Debug category debug');
@@ -336,11 +335,11 @@ describe('Environment and Special Features', () => {
                     }
                 }
             };
-            
+
             logger.configure(config);
-            
+
             const unknownLogger = logger.getLogger('unknown-category');
-            
+
             expect(() => {
                 unknownLogger.info('Unknown category test');
             }).not.toThrow();

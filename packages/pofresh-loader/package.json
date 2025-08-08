@@ -1,13 +1,15 @@
 {
-	"name": "pofresh-loader",
-	"version": "2.0.1",
-	"scripts": {
-		"test": "vitest --run",
-		"test:run": "vitest --run",
-		"test:watch": "vitest --watch",
-		"test:coverage": "vitest --coverage",
-		"lint": "eslint --fix"
-	},
-	"dependencies": {},
-	"devDependencies": {}
+    "name": "pofresh-loader",
+    "version": "2.0.1",
+    "scripts": {
+        "test": "vitest --run",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
+    },
+    "dependencies": {},
+    "devDependencies": {}
 }

@@ -18,11 +18,11 @@ class Tracer {
         return {
             traceId: this.id,
             seq: this.seq++,
-            role: role,
+            role,
             source: this.source,
             remote: this.remote,
             module: getModule(module),
-            method: method,
+            method,
             args: this.msg,
             timestamp: Date.now(),
             description: des

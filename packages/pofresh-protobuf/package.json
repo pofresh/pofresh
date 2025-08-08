@@ -1,23 +1,25 @@
 {
-  "name": "pofresh-protobuf",
-  "version": "2.0.0",
-  "main": "./lib/protobuf",
-  "scripts": {
-    "test": "vitest --run",
-    "test:run": "vitest --run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "test:unit": "vitest --run tests/unit",
-    "test:integration": "vitest --run tests/integration",
-    "test:client": "vitest --run tests/unit/client",
-    "generate:protos": "node scripts/generate-protos.js",
-    "lint": "eslint --fix"
-  },
-  "dependencies": {
-    "protobufjs": "^7.5.3"
-  },
-  "author": {
-    "name": "luson",
-    "email": "ljhxai@163.com"
-  }
+    "name": "pofresh-protobuf",
+    "version": "2.0.0",
+    "main": "./lib/protobuf",
+    "scripts": {
+        "test": "vitest --run",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "test:unit": "vitest --run tests/unit",
+        "test:integration": "vitest --run tests/integration",
+        "test:client": "vitest --run tests/unit/client",
+        "generate:protos": "node scripts/generate-protos.js",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
+    },
+    "dependencies": {
+        "protobufjs": "^7.5.3"
+    },
+    "author": {
+        "name": "luson",
+        "email": "ljhxai@163.com"
+    }
 }

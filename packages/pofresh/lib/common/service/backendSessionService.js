@@ -231,10 +231,9 @@ class BackendSession {
      * @memberOf BackendSession
      */
     bind(uid, cb) {
-        const self = this;
-        this.__sessionService__.bind(this.frontendId, this.id, uid, function (err) {
+        this.__sessionService__.bind(this.frontendId, this.id, uid, err => {
             if (!err) {
-                self.uid = uid;
+                this.uid = uid;
             }
             utils.invokeCallback(cb, err);
         });
@@ -250,10 +249,9 @@ class BackendSession {
      * @memberOf BackendSession
      */
     unbind(uid, cb) {
-        const self = this;
-        this.__sessionService__.unbind(this.frontendId, this.id, uid, function (err) {
+        this.__sessionService__.unbind(this.frontendId, this.id, uid, err => {
             if (!err) {
-                self.uid = null;
+                this.uid = null;
             }
             utils.invokeCallback(cb, err);
         });

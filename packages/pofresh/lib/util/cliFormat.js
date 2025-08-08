@@ -15,8 +15,8 @@ const exp = module.exports;
  * @colors {Array} Set of colors to use for the headers
  * @return {String}
  */
-exp.stringifyRows = function (rows, colors = []) {
-    if (!rows || !rows.length || !rows[0].length) {
+exp.stringifyRows = (rows, colors = []) => {
+    if (!(rows && rows.length && rows[0].length)) {
         return '';
     }
     rows[0].forEach((header, index) => {

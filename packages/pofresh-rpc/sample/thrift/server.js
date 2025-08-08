@@ -25,17 +25,17 @@ const SharedStruct = require('./gen-nodejs/shared_types').SharedStruct;
 const data = {};
 
 const server = thrift.createServer(Calculator, {
-    ping: function (result) {
+    ping(result) {
         // console.log("ping()");
         result();
     },
 
-    add: function (n1, n2, result) {
+    add(n1, n2, result) {
         console.log('add(', n1, ',', n2, ')');
         result(null, n1 + n2);
     },
 
-    calculate: function (logid, work, result) {
+    calculate(logid, work, result) {
         console.log('calculate(', logid, ',', work, ')');
 
         let val = 0;
@@ -70,12 +70,12 @@ const server = thrift.createServer(Calculator, {
         result(null, val);
     },
 
-    getStruct: function (key, result) {
+    getStruct(key, result) {
         console.log('getStruct(', key, ')');
         result(null, data[key]);
     },
 
-    zip: function (result) {
+    zip(result) {
         console.log('zip()');
         result(null);
     }

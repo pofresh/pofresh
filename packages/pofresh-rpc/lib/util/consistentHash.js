@@ -74,7 +74,8 @@ class ConsistentHash {
 
             if (comp === 0) {
                 return idx;
-            } else if (comp > 0) {
+            }
+            if (comp > 0) {
                 upper = idx - 1;
             } else {
                 lower = idx + 1;

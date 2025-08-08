@@ -70,7 +70,7 @@ class Proxy {
         this.sendResult(
             id,
             {
-                headers: headers
+                headers
             },
             clientId,
             agent
@@ -80,12 +80,17 @@ class Proxy {
     takeHeapSnapshot(id, params, clientId, agent) {
         const uid = params.uid;
 
-        agent.notifyById(uid, 'profiler', { type: 'heap', action: 'start', uid: uid, clientId: clientId });
+        agent.notifyById(uid, 'profiler', {
+            type: 'heap',
+            action: 'start',
+            uid,
+            clientId
+        });
 
         this.sendEvent(
             {
                 method: 'Profiler.addProfileHeader',
-                params: { header: { title: uid, uid: uid, typeId: HeapProfileType } }
+                params: { header: { title: uid, uid, typeId: HeapProfileType } }
             },
             clientId,
             agent
@@ -114,7 +119,9 @@ class Proxy {
 
     getProfile(id, params, clientId, agent) {
         let profile = this.profiles[params.type][params.uid];
-        if (!profile || !profile.finish) {
+        if (profile && profile.finish) {
+            this.asyncGet(id, params, profile, clientId, agent);
+        } else {
             const timerId = setInterval(() => {
                 profile = this.profiles[params.type][params.uid];
                 if (profile) {
@@ -122,8 +129,6 @@ class Proxy {
                     this.asyncGet(id, params, profile, clientId, agent);
                 }
             }, 5000);
-        } else {
-            this.asyncGet(id, params, profile, clientId, agent);
         }
     }
 
@@ -135,26 +140,21 @@ class Proxy {
                 this.sendEvent(
                     {
                         method: 'Profiler.addHeapSnapshotChunk',
-                        params: { uid: uid, chunk: chunk }
+                        params: { uid, chunk }
                     },
                     clientId,
                     agent
                 );
             }
-            this.sendEvent({ method: 'Profiler.finishHeapSnapshot', params: { uid: uid } }, clientId, agent);
-            this.sendResult(
-                id,
-                { profile: { title: snapshot.title, uid: uid, typeId: HeapProfileType } },
-                clientId,
-                agent
-            );
+            this.sendEvent({ method: 'Profiler.finishHeapSnapshot', params: { uid } }, clientId, agent);
+            this.sendResult(id, { profile: { title: snapshot.title, uid, typeId: HeapProfileType } }, clientId, agent);
         } else if (params.type === CPUProfileType) {
             this.sendResult(
                 id,
                 {
                     profile: {
                         title: snapshot.title,
-                        uid: uid,
+                        uid,
                         typeId: CPUProfileType,
                         head: snapshot.data.head,
                         bottomUpHead: snapshot.data.bottomUpHead
@@ -174,7 +174,7 @@ class Proxy {
     }
 
     sendResult(id, res, clientId, agent) {
-        agent.notifyClient(clientId, 'profiler', JSON.stringify({ id: id, result: res }));
+        agent.notifyClient(clientId, 'profiler', JSON.stringify({ id, result: res }));
     }
 
     sendEvent(res, clientId, agent) {
@@ -184,14 +184,24 @@ class Proxy {
     start(id, params, clientId, agent) {
         const uid = params.uid;
 
-        agent.notifyById(uid, 'profiler', { type: 'CPU', action: 'start', uid: uid, clientId: clientId });
+        agent.notifyById(uid, 'profiler', {
+            type: 'CPU',
+            action: 'start',
+            uid,
+            clientId
+        });
         this.sendEvent({ method: 'Profiler.setRecordingProfile', params: { isProfiling: true } }, clientId, agent);
         this.sendResult(id, {}, clientId, agent);
     }
 
     stop(id, params, clientId, agent) {
         const uid = params.uid;
-        agent.notifyById(uid, 'profiler', { type: 'CPU', action: 'stop', uid: uid, clientId: clientId });
+        agent.notifyById(uid, 'profiler', {
+            type: 'CPU',
+            action: 'stop',
+            uid,
+            clientId
+        });
         this.sendResult(id, {}, clientId, agent);
     }
 
@@ -211,7 +221,9 @@ class Proxy {
         this.sendEvent(
             {
                 method: 'Profiler.addProfileHeader',
-                params: { header: { title: profiler.title, uid: uid, typeId: CPUProfileType } }
+                params: {
+                    header: { title: profiler.title, uid, typeId: CPUProfileType }
+                }
             },
             clientId,
             agent

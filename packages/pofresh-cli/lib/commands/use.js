@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const helpCommand = 'help use';
 
@@ -43,7 +41,7 @@ class Command {
                 comd: 'servers',
                 context: Context
             },
-            function (err, data) {
+            (err, data) => {
                 if (err) {
                     util.log('Error retrieving server list: ' + err);
                 } else {
@@ -55,9 +53,7 @@ class Command {
                         const PROMPT = user + consts.PROMPT + Context + '>';
                         rl.setPrompt(PROMPT);
                     } else {
-                        util.log(
-                            '\nError: Server "' + comd + '" not found in pofresh clusters\n'
-                        );
+                        util.log('\nError: Server "' + comd + '" not found in pofresh clusters\n');
                     }
                 }
                 rl.prompt();

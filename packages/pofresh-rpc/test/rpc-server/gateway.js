@@ -15,7 +15,7 @@ const services = {
     user: {
         addOneService: new DoService(),
         addTwoService: {
-            doService: function (num, cb) {
+            doService(num, cb) {
                 cb(null, num + 2);
             }
         }
@@ -23,69 +23,69 @@ const services = {
 };
 
 const port = 3333;
-const opts = { services: services, port: port };
+const opts = { services, port };
 
 const server = {
     id: 'area-server-1',
     host: '127.0.0.1',
-    port: port
+    port
 };
 
-describe('gateway', function () {
-    afterEach(function (done) {
+describe('gateway', () => {
+    afterEach(done => {
         done();
         setTimeout(() => process.exit(), WAIT_TIME);
     });
 
-    describe('#start', function () {
-        it('should be ok when listen a valid port and emit a closed event when it closed', function (done) {
+    describe('#start', () => {
+        it('should be ok when listen a valid port and emit a closed event when it closed', done => {
             let errorCount = 0;
             let closeCount = 0;
             const gateway = Gateway.create(opts);
 
             expect(gateway);
-            gateway.on('error', function (_err) {
+            gateway.on('error', _err => {
                 errorCount++;
             });
-            gateway.on('closed', function () {
+            gateway.on('closed', () => {
                 closeCount++;
             });
 
             gateway.start();
             gateway.stop();
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(errorCount).toBe(0);
                 expect(closeCount).toBe(1);
                 done();
             }, WAIT_TIME);
         });
 
-    // it('should emit an error when listen a port in use', function (done) {
-    //     let errorCount = 0;
-    //     let opts = {services: services, port: 80};
-    //     let gateway80 = Gateway.create(opts);
-    //     let gateway = Gateway.create(opts);
-    //
-    //     expect(gateway);
-    //     gateway.on('error', function (err) {
-    //         expect(err);
-    //         errorCount++;
-    //     });
-    //
-    //     gateway80.start();
-    //     gateway.start();
-    //
-    //     setTimeout(function () {
-    //         errorCount).toBe(1);
-    //         done();
-    //     }, WAIT_TIME);
-    // });
+        // it('should emit an error when listen a port in use', function (done) {
+        //     let errorCount = 0;
+        //     let opts = {services: services, port: 80};
+        //     let gateway80 = Gateway.create(opts);
+        //     let gateway = Gateway.create(opts);
+        //
+        //     expect(gateway);
+        //     gateway.on('error', function (err) {
+        //         expect(err);
+        //         errorCount++;
+        //     });
+        //
+        //     gateway80.start();
+        //     gateway.start();
+        //
+        //     setTimeout(function () {
+        //         errorCount).toBe(1);
+        //         done();
+        //     }, WAIT_TIME);
+        // });
     });
 
-    describe('#new message callback', function () {
+    describe('#new message callback', () => {
         // eslint-disable-next-line max-len
-        it('should route msg to the appropriate service object and return response to remote client by callback', function (done) {
+        it('should route msg to the appropriate service object and return response to remote client by callback', done => {
             let clientCallbackCount = 0;
             const value = 1;
             const msg = {
@@ -101,14 +101,14 @@ describe('gateway', function () {
             gateway.start();
 
             const client = Client.create(server);
-            client.connect(null, function () {
-                client.send(null, msg, null, function (tracer, err, result) {
+            client.connect(null, () => {
+                client.send(null, msg, null, (tracer, err, result) => {
                     result[1].should.eql(value + 1);
                     clientCallbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(clientCallbackCount).toBe(1);
                 client.close();
                 gateway.stop();
@@ -116,7 +116,7 @@ describe('gateway', function () {
             }, WAIT_TIME);
         });
 
-        it('should return an error if the service not exist', function (done) {
+        it('should return an error if the service not exist', done => {
             let clientCallbackCount = 0;
             const value = 1;
             const msg = {
@@ -132,15 +132,15 @@ describe('gateway', function () {
             gateway.start();
 
             const client = Client.create(server);
-            client.connect(null, function () {
-                client.send(null, msg, null, function (tracer, err, result) {
+            client.connect(null, () => {
+                client.send(null, msg, null, (tracer, err, result) => {
                     expect(result[0]);
                     should.not.exist(result[1]);
                     clientCallbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(clientCallbackCount).toBe(1);
                 client.close();
                 gateway.stop();
@@ -148,7 +148,7 @@ describe('gateway', function () {
             }, WAIT_TIME);
         });
 
-        it('should keep the relationship with request and response in batch rpc calls', function (done) {
+        it('should keep the relationship with request and response in batch rpc calls', done => {
             let clientCallbackCount = 0;
             const value = 1;
             const msg1 = {
@@ -170,19 +170,19 @@ describe('gateway', function () {
             gateway.start();
 
             const client = Client.create(server);
-            client.connect(null, function () {
-                client.send(null, msg1, null, function (tracer, err, result) {
+            client.connect(null, () => {
+                client.send(null, msg1, null, (tracer, err, result) => {
                     result[1].should.eql(value + 1);
                     clientCallbackCount++;
                 });
 
-                client.send(null, msg2, null, function (tracer, err, result) {
+                client.send(null, msg2, null, (tracer, err, result) => {
                     result[1].should.eql(value + 2);
                     clientCallbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(clientCallbackCount).toBe(2);
                 client.close();
                 gateway.stop();

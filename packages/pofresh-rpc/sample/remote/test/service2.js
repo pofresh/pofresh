@@ -15,6 +15,4 @@ class Service {
     }
 }
 
-module.exports = function (context) {
-    return new Service(context);
-};
+module.exports = context => new Service(context);

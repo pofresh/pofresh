@@ -11,7 +11,7 @@ const ConsistentHash = require('../util/consistentHash');
  */
 function defRoute(session, msg, context, cb) {
     const list = context.getServersByType(msg.serverType);
-    if (!list || !list.length) {
+    if (!(list && list.length)) {
         cb(new Error('can not find server info for type:' + msg.serverType));
         return;
     }
@@ -30,7 +30,7 @@ function defRoute(session, msg, context, cb) {
  */
 function rdRoute(client, serverType, msg, cb) {
     const servers = client._station.serversMap[serverType];
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
         return;
     }
@@ -48,7 +48,7 @@ function rdRoute(client, serverType, msg, cb) {
  */
 function rrRoute(client, serverType, msg, cb) {
     const servers = client._station.serversMap[serverType];
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
         return;
     }
@@ -78,7 +78,7 @@ function rrRoute(client, serverType, msg, cb) {
  */
 function wrrRoute(client, serverType, msg, cb) {
     const servers = client._station.serversMap[serverType];
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         cb(new Error('rpc servers not exist with serverType: ' + serverType));
         return;
     }
@@ -93,7 +93,7 @@ function wrrRoute(client, serverType, msg, cb) {
         index = -1;
         weight = 0;
     }
-    const getMaxWeight = function () {
+    const getMaxWeight = () => {
         let maxWeight = -1;
         for (let i = 0; i < servers.length; i++) {
             const server = client._station.servers[servers[i]];
@@ -118,8 +118,8 @@ function wrrRoute(client, serverType, msg, cb) {
         const server = client._station.servers[servers[index]];
         if (server.weight >= weight) {
             client.wrrParam[serverType] = {
-                index: index,
-                weight: weight
+                index,
+                weight
             };
             cb(null, server.id);
             return;
@@ -137,7 +137,7 @@ function wrrRoute(client, serverType, msg, cb) {
  */
 function laRoute(client, serverType, msg, cb) {
     const servers = client._station.serversMap[serverType];
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         return cb(new Error('rpc servers not exist with serverType: ' + serverType));
     }
     const actives = [];
@@ -186,7 +186,7 @@ function laRoute(client, serverType, msg, cb) {
  */
 function chRoute(client, serverType, msg, cb) {
     const servers = client._station.serversMap[serverType];
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         return cb(new Error('rpc servers not exist with serverType: ' + serverType));
     }
 

@@ -10,7 +10,7 @@ const pro = module.exports;
 /**
  * Load admin modules
  */
-pro.loadModules = function (self, consoleService) {
+pro.loadModules = (self, consoleService) => {
     // load app register modules
     const _modules = self.app.get(Constants.KEYWORDS.MODULE);
 
@@ -43,7 +43,7 @@ pro.loadModules = function (self, consoleService) {
     }
 };
 
-pro.startModules = function (modules, cb) {
+pro.startModules = (modules, cb) => {
     // invoke the start lifecycle method of modules
 
     if (!modules) {
@@ -55,7 +55,7 @@ pro.startModules = function (modules, cb) {
 /**
  * Append the default system admin modules
  */
-pro.registerDefaultModules = function (isMaster, app, closeWatcher) {
+pro.registerDefaultModules = (isMaster, app, closeWatcher) => {
     if (!closeWatcher) {
         if (isMaster) {
             app.registerAdmin(require('../modules/masterwatcher'), { app });
@@ -71,8 +71,13 @@ pro.registerDefaultModules = function (isMaster, app, closeWatcher) {
             app.registerAdmin(admin.modules.nodeInfo);
             app.registerAdmin(admin.modules.profiler);
         }
-        app.registerAdmin(admin.modules.monitorLog, { path: pathUtil.getLogPath(app.getBase()) });
-        app.registerAdmin(admin.modules.scripts, { app, path: pathUtil.getScriptPath(app.getBase()) });
+        app.registerAdmin(admin.modules.monitorLog, {
+            path: pathUtil.getLogPath(app.getBase())
+        });
+        app.registerAdmin(admin.modules.scripts, {
+            app,
+            path: pathUtil.getScriptPath(app.getBase())
+        });
     }
 };
 
@@ -84,7 +89,7 @@ function startModule(err, modules, index, cb) {
 
     const module = modules[index];
     if (module && typeof module.start === 'function') {
-        module.start(function (err) {
+        module.start(err => {
             startModule(err, modules, index + 1, cb);
         });
     } else {

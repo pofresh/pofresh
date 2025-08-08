@@ -5,11 +5,11 @@ socket.connect('tcp://localhost:3331');
 
 run();
 
-socket.on('message', function () {
+socket.on('message', () => {
     run();
 });
 
-const numRequests = 20000;
+const numRequests = 20_000;
 let start = Date.now();
 let times = 0;
 

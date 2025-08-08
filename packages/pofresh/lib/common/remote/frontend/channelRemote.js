@@ -5,9 +5,7 @@
 const utils = require('../../../util/utils');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
-module.exports = function (app) {
-    return new Remote(app);
-};
+module.exports = app => new Remote(app);
 
 class Remote {
     constructor(app) {
@@ -40,16 +38,16 @@ class Remote {
             k;
         for (let i = 0, l = uids.length; i < l; i++) {
             sessions = sessionService.getByUid(uids[i]);
-            if (!sessions) {
-                fails.push(uids[i]);
-            } else {
+            if (sessions) {
                 for (j = 0, k = sessions.length; j < k; j++) {
                     sids.push(sessions[j].id);
                 }
+            } else {
+                fails.push(uids[i]);
             }
         }
         logger.debug('[%s] pushMessage uids: %j, msg: %j, sids: %j', this.app.serverId, uids, msg, sids);
-        connector.send(null, route, msg, sids, opts, function (err) {
+        connector.send(null, route, msg, sids, opts, err => {
             utils.invokeCallback(cb, err, fails);
         });
     }

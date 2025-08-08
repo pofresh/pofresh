@@ -35,13 +35,12 @@ class GlobalChannelService {
         }
 
         if (typeof this.manager.start === 'function') {
-            const self = this;
-            this.manager.start(function (err) {
+            this.manager.start(err => {
                 if (!err) {
-                    self.state = ST_STARTED;
+                    this.state = ST_STARTED;
                 }
-                if (self.cleanOnStartUp) {
-                    self.manager.clean(function (err) {
+                if (this.cleanOnStartUp) {
+                    this.manager.clean(err => {
                         utils.invokeCallback(cb, err);
                     });
                 } else {
@@ -49,7 +48,7 @@ class GlobalChannelService {
                 }
             });
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -61,7 +60,7 @@ class GlobalChannelService {
         if (typeof this.manager.stop === 'function') {
             this.manager.stop(force, cb);
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -162,19 +161,19 @@ class GlobalChannelService {
             return;
         }
 
-        const latch = countDownLatch.createCountDownLatch(servers.length, function () {
+        const latch = countDownLatch.createCountDownLatch(servers.length, () => {
             utils.invokeCallback(cb, null, members);
             return;
         });
 
         for (let i = 0, l = servers.length; i < l; i++) {
-            this.getMembersBySid(name, servers[i].id, function (err, list) {
+            this.getMembersBySid(name, servers[i].id, (err, list) => {
                 if (err) {
                     utils.invokeCallback(cb, err, null);
                     return;
                 }
                 if (list && list.length !== 0) {
-                    list.forEach(function (member) {
+                    list.forEach(member => {
                         members.push(member);
                     });
                 }
@@ -205,8 +204,6 @@ class GlobalChannelService {
         const service = 'channelRemote';
         const method = 'pushMessage';
         let failIds = [];
-
-        const self = this;
         const servers = this.app.getServersByType(serverType);
 
         if (!servers || servers.length === 0) {
@@ -216,7 +213,7 @@ class GlobalChannelService {
         }
 
         let successFlag = false;
-        const latch = countDownLatch.createCountDownLatch(servers.length, function () {
+        const latch = countDownLatch.createCountDownLatch(servers.length, () => {
             if (!successFlag) {
                 utils.invokeCallback(cb, new Error('all frontend server push message fail'));
                 return;
@@ -224,7 +221,7 @@ class GlobalChannelService {
             utils.invokeCallback(cb, null, failIds);
         });
 
-        const rpcCB = function (err, fails) {
+        const rpcCB = (err, fails) => {
             if (err) {
                 logger.error('[pushMessage] fail to dispatch msg, err:' + err.stack);
                 latch.done();
@@ -238,8 +235,8 @@ class GlobalChannelService {
         };
 
         for (let i = 0, l = servers.length; i < l; i++) {
-            (function (self, arg) {
-                self.getMembersBySid(channelName, servers[arg].id, function (err, uids) {
+            ((self, arg) => {
+                self.getMembersBySid(channelName, servers[arg].id, (err, uids) => {
                     if (err) {
                         logger.error('[getMembersBySid] fail to get members, err' + err.stack);
                     }
@@ -247,9 +244,9 @@ class GlobalChannelService {
                         self.app.rpcInvoke(
                             servers[arg].id,
                             {
-                                namespace: namespace,
-                                service: service,
-                                method: method,
+                                namespace,
+                                service,
+                                method,
                                 args: [route, msg, uids, { isPush: true }]
                             },
                             rpcCB
@@ -265,7 +262,7 @@ class GlobalChannelService {
 
 module.exports = GlobalChannelService;
 
-const getChannelManager = function (app, opts) {
+const getChannelManager = (app, opts) => {
     let manager;
     if (typeof opts.channelManager === 'function') {
         manager = opts.channelManager(app, opts);

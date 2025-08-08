@@ -13,9 +13,7 @@ const ErrorHandler = require('../util/errorHandler');
 
 const moduleId = 'scripts';
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 module.exports.moduleId = moduleId;
 
@@ -31,7 +29,7 @@ class Module {
         };
         this.rateLimiter = Security.createRateLimiter({
             maxRequests: 10,
-            windowMs: 60000 // 1分钟内最多10次脚本执行
+            windowMs: 60_000 // 1分钟内最多10次脚本执行
         });
     }
 
@@ -60,8 +58,10 @@ class Module {
         const scriptValidation = Security.validateScript(script);
         if (!scriptValidation.isValid) {
             logger.warn('Unsafe script rejected:', scriptValidation.errors);
-            return ErrorHandler.safeCallback(cb,
-                new Error('Script contains unsafe content: ' + scriptValidation.errors.join(', ')));
+            return ErrorHandler.safeCallback(
+                cb,
+                new Error('Script contains unsafe content: ' + scriptValidation.errors.join(', '))
+            );
         }
 
         // 记录警告
@@ -70,35 +70,37 @@ class Module {
         }
 
         // 使用ErrorHandler的安全异步操作
-        ErrorHandler.safeAsyncOperation(() => {
-            // 创建安全的执行上下文
-            const context = Security.createSecureContext({
-                app: this.app,
-                result: undefined // 用于存储脚本结果
-            });
+        ErrorHandler.safeAsyncOperation(
+            () => {
+                // 创建安全的执行上下文
+                const context = Security.createSecureContext({
+                    app: this.app,
+                    result: undefined // 用于存储脚本结果
+                });
 
-            vm.runInNewContext(script, context, {
-                timeout: 5000,
-                displayErrors: true,
-                breakOnSigint: true
-            });
+                vm.runInNewContext(script, context, {
+                    timeout: 5000,
+                    displayErrors: true,
+                    breakOnSigint: true
+                });
 
-            const result = context.result;
-            if (result === undefined) {
+                const result = context.result;
+                if (result === undefined) {
+                    return {
+                        success: true,
+                        message: 'script result should be assigned to result value to script module context',
+                        warnings: scriptValidation.warnings
+                    };
+                }
                 return {
                     success: true,
-                    message: 'script result should be assigned to result value to script module context',
+                    result,
                     warnings: scriptValidation.warnings
                 };
-            } else {
-                return {
-                    success: true,
-                    result: result,
-                    warnings: scriptValidation.warnings
-                };
-            }
-
-        }, cb, 'Script execution');
+            },
+            cb,
+            'Script execution'
+        );
     }
 
     clientHandler(agent, msg, cb) {
@@ -124,7 +126,7 @@ function list(scriptModule, agent, msg, cb) {
         servers.push(sid);
     }
 
-    fs.readdir(scriptModule.root, function (err, filenames) {
+    fs.readdir(scriptModule.root, (err, filenames) => {
         if (err) {
             filenames = [];
         }
@@ -132,8 +134,8 @@ function list(scriptModule, agent, msg, cb) {
         filenames.forEach(filename => scripts.push(filename));
 
         cb(null, {
-            servers: servers,
-            scripts: scripts
+            servers,
+            scripts
         });
     });
 }
@@ -148,7 +150,7 @@ function get(scriptModule, agent, msg, cb) {
         return;
     }
 
-    fs.readFile(path.join(scriptModule.root, filename), 'utf-8', function (err, data) {
+    fs.readFile(path.join(scriptModule.root, filename), 'utf-8', (err, data) => {
         if (err) {
             logger.error('fail to read script file:' + filename + ', ' + err.stack);
             cb('fail to read script with name:' + filename);
@@ -163,7 +165,7 @@ function get(scriptModule, agent, msg, cb) {
  */
 function save(scriptModule, agent, msg, cb) {
     const filepath = path.join(scriptModule.root, msg.filename);
-    fs.writeFile(filepath, msg.body, function (err) {
+    fs.writeFile(filepath, msg.body, err => {
         if (err) {
             logger.error('fail to write script file:' + msg.filename + ', ' + err.stack);
             cb('fail to write script file:' + msg.filename);
@@ -177,7 +179,7 @@ function save(scriptModule, agent, msg, cb) {
  * Run the script on the specified server
  */
 function run(scriptModule, agent, msg, cb) {
-    agent.request(msg.serverId, moduleId, msg, function (err, res) {
+    agent.request(msg.serverId, moduleId, msg, (err, res) => {
         if (err) {
             logger.error('fail to run script for ' + err.stack);
             return;

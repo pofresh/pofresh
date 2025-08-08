@@ -66,7 +66,7 @@ class ConfigManager {
      */
     watchConfigFile(configPath) {
         try {
-            const watcher = fs.watch(configPath, (eventType) => {
+            const watcher = fs.watch(configPath, eventType => {
                 if (eventType === 'change') {
                     logger.info(`Config file changed: ${configPath}`);
                     this.invalidateCache(configPath);
@@ -75,7 +75,7 @@ class ConfigManager {
 
             this.watchers.set(configPath, watcher);
 
-            watcher.on('error', (err) => {
+            watcher.on('error', err => {
                 logger.error(`Error watching config file ${configPath}:`, err);
                 this.watchers.delete(configPath);
             });
@@ -142,7 +142,7 @@ class ConfigManager {
             adminUsers = config[env];
         }
 
-        if (!adminUsers || !Array.isArray(adminUsers)) {
+        if (!(adminUsers && Array.isArray(adminUsers))) {
             return [];
         }
 
@@ -172,8 +172,9 @@ class ConfigManager {
             if (config[key] !== undefined && validator.type) {
                 const actualType = typeof config[key];
                 if (actualType !== validator.type) {
-                    return new Error(`Invalid type for config property ${key}: ` +
-                        `expected ${validator.type}, got ${actualType}`);
+                    return new Error(
+                        `Invalid type for config property ${key}: ` + `expected ${validator.type}, got ${actualType}`
+                    );
                 }
             }
 

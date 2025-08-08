@@ -18,7 +18,7 @@ class StatusManager {
         // if (this.opts.auth_pass) {
         //   this.redis.auth(this.opts.auth_pass);
         // }
-        this.redis.on('error', function (err) {
+        this.redis.on('error', err => {
             console.error('[status-plugin][redis]' + err.stack);
         });
         this.redis.once('ready', cb);
@@ -35,8 +35,7 @@ class StatusManager {
 
     clean(cb) {
         const cmds = [];
-        const self = this;
-        this.redis.keys(genCleanKey(this), function (err, list) {
+        this.redis.keys(genCleanKey(this), (err, list) => {
             if (err) {
                 utils.invokeCallback(cb, err);
                 return;
@@ -44,18 +43,18 @@ class StatusManager {
             for (let i = 0; i < list.length; i++) {
                 cmds.push(['del', list[i]]);
             }
-            execMultiCommands(self.redis, cmds, cb);
+            execMultiCommands(this.redis, cmds, cb);
         });
     }
 
     add(uid, sid, cb) {
-        this.redis.sAdd(genKey(this, uid), sid, function (err) {
+        this.redis.sAdd(genKey(this, uid), sid, err => {
             utils.invokeCallback(cb, err);
         });
     }
 
     leave(uid, sid, cb) {
-        this.redis.sRem(genKey(this, uid), sid, function (err) {
+        this.redis.sRem(genKey(this, uid), sid, err => {
             utils.invokeCallback(cb, err);
         });
     }
@@ -69,28 +68,24 @@ class StatusManager {
         for (let i = 0; i < uids.length; i++) {
             cmds.push(['exists', genKey(this, uids[i])]);
         }
-        execMultiCommands(this.redis, cmds, function (err, list) {
+        execMultiCommands(this.redis, cmds, (err, list) => {
             utils.invokeCallback(cb, err, list);
         });
     }
 }
 
-const execMultiCommands = function (redis, cmds, cb) {
+const execMultiCommands = (redis, cmds, cb) => {
     if (!cmds.length) {
         utils.invokeCallback(cb);
         return;
     }
-    redis.multi(cmds).exec(function (err, replies) {
+    redis.multi(cmds).exec((err, replies) => {
         utils.invokeCallback(cb, err, replies);
     });
 };
 
-const genKey = function (self, uid) {
-    return self.prefix + ':' + uid;
-};
+const genKey = (self, uid) => self.prefix + ':' + uid;
 
-const genCleanKey = function (self) {
-    return self.prefix + '*';
-};
+const genCleanKey = self => self.prefix + '*';
 
 module.exports = StatusManager;

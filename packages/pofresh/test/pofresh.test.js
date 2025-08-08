@@ -1,12 +1,12 @@
 import path from 'path';
-import { expect, describe, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import pofresh from '../index.js';
 
 const mockBase = path.join(process.cwd(), 'test');
-describe('pofresh', function () {
-    describe('#createApp', function () {
-        it('should create and get app, be the same instance', function () {
+describe('pofresh', () => {
+    describe('#createApp', () => {
+        it('should create and get app, be the same instance', () => {
             const app = pofresh.createApp({ base: mockBase });
             expect(app).toBeDefined();
 

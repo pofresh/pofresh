@@ -9,9 +9,7 @@ const Server = require('../server/server');
  * @param {Object} app  current application context
  * @return {Object}     component instance
  */
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 /**
  * Server component class

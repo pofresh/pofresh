@@ -9,7 +9,7 @@ const options = global.cliOptions || {};
 const username = options.username || 'monitor';
 const password = options.password || 'monitor';
 const host = options.host || 'localhost';
-const port = parseInt(options.port) || 3005;
+const port = Number.parseInt(options.port) || 3005;
 const context = 'all';
 let client = null;
 
@@ -17,12 +17,12 @@ module.exports = doConnect;
 
 function doConnect() {
     client = new adminClient({
-        username: username,
-        password: password,
+        username,
+        password,
         md5: true
     });
     const id = 'pofresh_cli_' + Date.now();
-    client.connect(id, host, port, function (err) {
+    client.connect(id, host, port, err => {
         if (err) {
             util.log('\n' + err + '\n');
             process.exit(0);
@@ -33,12 +33,12 @@ function doConnect() {
         }
     });
 
-    client.on('disconnect', function () {
+    client.on('disconnect', () => {
         util.log('\ndisconnect from master');
         process.exit(0);
     });
 
-    client.on('close', function () {
+    client.on('close', () => {
         client.socket.disconnect();
         util.log('\ndisconnect from master');
         process.exit(0);
@@ -51,7 +51,7 @@ function startCli() {
     rl.setPrompt(PROMPT);
     rl.prompt();
 
-    rl.on('line', function (line) {
+    rl.on('line', line => {
         const key = line.trim();
         if (!key) {
             util.help();
@@ -59,22 +59,22 @@ function startCli() {
             return;
         }
         switch (key) {
-        case 'help':
-        case '?':
-            util.help();
-            rl.prompt();
-            break;
-        case 'quit':
-            command.quit(rl);
-            break;
-        case 'kill':
-            command.kill(rl, client);
-            break;
-        default:
-            command.handle(key, { user: username }, rl, client);
-            break;
+            case 'help':
+            case '?':
+                util.help();
+                rl.prompt();
+                break;
+            case 'quit':
+                command.quit(rl);
+                break;
+            case 'kill':
+                command.kill(rl, client);
+                break;
+            default:
+                command.handle(key, { user: username }, rl, client);
+                break;
         }
-    }).on('close', function () {
+    }).on('close', () => {
         util.log('bye ' + username);
         process.exit(0);
     });

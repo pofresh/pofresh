@@ -7,7 +7,7 @@ const app = pofresh.createApp();
 app.set('name', '$');
 
 // app configuration
-app.configure('production|development', 'connector', function () {
+app.configure('production|development', 'connector', () => {
     app.set('connectorConfig', {
         connector: pofresh.connectors.hybridconnector,
         heartbeat: 3,
@@ -19,6 +19,6 @@ app.configure('production|development', 'connector', function () {
 // start app
 app.start();
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
     console.error(' Caught exception: ' + err.stack);
 });

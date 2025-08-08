@@ -5,9 +5,8 @@ const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 function encode(reqId, route, msg) {
     if (reqId) {
         return composeResponse(this, reqId, route, msg);
-    } else {
-        return composePush(this, route, msg);
     }
+    return composePush(this, route, msg);
 }
 
 function decode(msg) {
@@ -46,7 +45,7 @@ function decode(msg) {
 }
 
 function composeResponse(server, msgId, route, msgBody) {
-    if (!msgId || !route || !msgBody) {
+    if (!(msgId && route && msgBody)) {
         return null;
     }
     msgBody = encodeBody(server, route, msgBody);
@@ -54,7 +53,7 @@ function composeResponse(server, msgId, route, msgBody) {
 }
 
 function composePush(server, route, msgBody) {
-    if (!route || !msgBody) {
+    if (!(route && msgBody)) {
         return null;
     }
     msgBody = encodeBody(server, route, msgBody);
@@ -83,6 +82,6 @@ function encodeBody(server, route, msgBody) {
 }
 
 module.exports = {
-    encode: encode,
-    decode: decode
+    encode,
+    decode
 };

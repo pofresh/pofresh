@@ -38,15 +38,14 @@ class Service {
      * @param cb {Function} cb(err) callback function to invoke next chain node
      */
     beforeFilter(msg, session, cb) {
-        let index = 0,
-            self = this;
-        const next = function (err, resp, opts) {
-            if (err || index >= self.befores.length) {
+        let index = 0;
+        const next = (err, resp, opts) => {
+            if (err || index >= this.befores.length) {
                 cb(err, resp, opts);
                 return;
             }
 
-            const handler = self.befores[index++];
+            const handler = this.befores[index++];
             if (typeof handler === 'function') {
                 handler(msg, session, next);
             } else if (typeof handler.before === 'function') {

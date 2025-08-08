@@ -9,7 +9,7 @@ logger.configure({
         file: {
             type: 'file',
             filename: './logs/app.log',
-            maxLogSize: 10485760, // 10MB
+            maxLogSize: 10_485_760, // 10MB
             backups: 5
         },
         errorFile: {
@@ -36,7 +36,7 @@ const dbLogger = logger.getLogger('database', 'connection');
 
 // Demonstrate improved object logging
 const userObject = {
-    id: 12345,
+    id: 12_345,
     name: 'John Doe',
     email: 'john@example.com',
     preferences: {
@@ -68,9 +68,9 @@ const startTime = process.hrtime.bigint();
 // Simulate some work
 setTimeout(() => {
     const endTime = process.hrtime.bigint();
-    const duration = Number(endTime - startTime) / 1000000; // Convert to milliseconds
+    const duration = Number(endTime - startTime) / 1_000_000; // Convert to milliseconds
     appLogger.info(`Operation completed in ${duration.toFixed(2)}ms`);
-    
+
     // Graceful shutdown
     logger.shutdown(() => {
         console.log('Logger shutdown complete');
@@ -92,6 +92,6 @@ for (let i = 0; i < messageCount; i++) {
 }
 
 const perfEndTime = process.hrtime.bigint();
-const perfDuration = Number(perfEndTime - perfStartTime) / 1000000;
+const perfDuration = Number(perfEndTime - perfStartTime) / 1_000_000;
 console.log(`Logged ${messageCount} messages in ${perfDuration.toFixed(2)}ms`);
 console.log(`Average: ${(perfDuration / messageCount).toFixed(3)}ms per message`);

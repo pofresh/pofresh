@@ -1,11 +1,11 @@
 {
-  "name": "boot",
-  "description": "Main app boot component",
-  "dependencies": {
-    "component/emitter":"master",
-    "ljhsai/pofresh-protocol": "master",
-    "pofreshnode/pofresh-protobuf": "*",
-    "pofreshnode/pofresh-jsclient-websocket": "master"
-  },
-  "scripts": ["index.js"]
+    "name": "boot",
+    "description": "Main app boot component",
+    "dependencies": {
+        "component/emitter": "master",
+        "ljhsai/pofresh-protocol": "master",
+        "pofreshnode/pofresh-protobuf": "*",
+        "pofreshnode/pofresh-jsclient-websocket": "master"
+    },
+    "scripts": ["index.js"]
 }

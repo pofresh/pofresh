@@ -22,7 +22,7 @@ class Socket extends EventEmitter {
         socket.on('error', this.emit.bind(this, 'disconnect'));
         socket.on('disconnect', this.emit.bind(this, 'disconnect'));
 
-        socket.on('pingreq', function (packet) {
+        socket.on('pingreq', packet => {
             socket.pingresp();
         });
 

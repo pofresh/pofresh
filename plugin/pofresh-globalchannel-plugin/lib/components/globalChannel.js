@@ -1,6 +1,6 @@
 const ChannelService = require('../service/globalChannelService');
 
-module.exports = function (app, opts) {
+module.exports = (app, opts) => {
     const service = new ChannelService(app, opts);
     app.set('globalChannelService', service, true);
     service.name = '__globalChannel__';

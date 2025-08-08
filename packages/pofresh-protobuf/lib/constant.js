@@ -5,12 +5,12 @@
 
 // Protobuf wire types
 const WIRE_TYPES = {
-    VARINT: 0,      // int32, int64, uint32, uint64, sint32, sint64, bool, enum
-    FIXED64: 1,     // fixed64, sfixed64, double
+    VARINT: 0, // int32, int64, uint32, uint64, sint32, sint64, bool, enum
+    FIXED64: 1, // fixed64, sfixed64, double
     LENGTH_DELIMITED: 2, // string, bytes, embedded messages, packed repeated fields
     START_GROUP: 3, // groups (deprecated)
-    END_GROUP: 4,   // groups (deprecated)
-    FIXED32: 5      // fixed32, sfixed32, float
+    END_GROUP: 4, // groups (deprecated)
+    FIXED32: 5 // fixed32, sfixed32, float
 };
 
 // Field type to wire type mapping
@@ -35,13 +35,23 @@ const FIELD_TYPES = {
 
 // Simple types that don't require nested handling
 const SIMPLE_TYPES = new Set([
-    'uInt32', 'sInt32', 'int32', 'uInt64', 'sInt64',
-    'bool', 'enum', 'fixed64', 'sfixed64', 'double',
-    'fixed32', 'sfixed32', 'float'
+    'uInt32',
+    'sInt32',
+    'int32',
+    'uInt64',
+    'sInt64',
+    'bool',
+    'enum',
+    'fixed64',
+    'sfixed64',
+    'double',
+    'fixed32',
+    'sfixed32',
+    'float'
 ]);
 
 // Buffer and encoding constants
-const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || 9007199254740991;
+const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER || 9_007_199_254_740_991;
 const BUFFER_SIZE_MULTIPLIER = 2;
 
 // Legacy compatibility - keep old TYPES mapping

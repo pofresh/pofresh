@@ -23,7 +23,7 @@ const path = require('path');
  * @return {Object}          module that has loaded.
  * @throws {Error} when path is invalid or not accessible
  */
-module.exports.load = function (mpath, context, isReload = false) {
+module.exports.load = (mpath, context, isReload = false) => {
     if (!mpath || typeof mpath !== 'string') {
         throw new Error('path should be a non-empty string.');
     }

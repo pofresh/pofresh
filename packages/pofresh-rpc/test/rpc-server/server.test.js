@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { server as Server } from '../../index.js';
 
 const WAIT_TIME = 100;
@@ -14,8 +14,8 @@ describe('server', () => {
     describe('#create', () => {
         it('should create gateway by providing port and paths parameters', done => {
             const opts = {
-                paths: paths,
-                port: port
+                paths,
+                port
             };
 
             let errorCount = 0;
@@ -66,15 +66,15 @@ describe('server', () => {
             }
 
             const acceptorFactory = {
-                create: function (opts, cb) {
+                create(opts, cb) {
                     return new MockAcceptor(null, cb);
                 }
             };
 
             const opts = {
-                paths: paths,
+                paths,
                 port: oport,
-                acceptorFactory: acceptorFactory
+                acceptorFactory
             };
 
             const gateway = Server.create(opts);

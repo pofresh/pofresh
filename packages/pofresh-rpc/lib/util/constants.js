@@ -17,7 +17,7 @@ module.exports = {
         CALLBACK_TIMEOUT: 30 * 1000,
         INTERVAL: 50,
         GRACE_TIMEOUT: 3 * 1000,
-        DEFAULT_PENDING_SIZE: 10000,
+        DEFAULT_PENDING_SIZE: 10_000,
         KEEPALIVE: 10 * 1000
     },
     RPC_ERROR: {

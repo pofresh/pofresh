@@ -9,12 +9,12 @@ const paths = [
 
 const port = 3333;
 
-describe('server', function () {
-    describe('#create', function () {
-        it('should create gateway by providing port and paths parameters', function (done) {
+describe('server', () => {
+    describe('#create', () => {
+        it('should create gateway by providing port and paths parameters', done => {
             const opts = {
-                paths: paths,
-                port: port
+                paths,
+                port
             };
 
             let errorCount = 0;
@@ -39,7 +39,7 @@ describe('server', function () {
             }, WAIT_TIME);
         });
 
-        it('should change the default acceptor by pass the acceptorFactory to the create function', function (done) {
+        it('should change the default acceptor by pass the acceptorFactory to the create function', done => {
             const oport = 3333;
             let constructCount = 0,
                 listenCount = 0,
@@ -65,15 +65,15 @@ describe('server', function () {
             }
 
             const acceptorFactory = {
-                create: function (opts, cb) {
+                create(opts, cb) {
                     return new MockAcceptor(null, cb);
                 }
             };
 
             const opts = {
-                paths: paths,
+                paths,
                 port: oport,
-                acceptorFactory: acceptorFactory
+                acceptorFactory
             };
 
             const gateway = Server.create(opts);

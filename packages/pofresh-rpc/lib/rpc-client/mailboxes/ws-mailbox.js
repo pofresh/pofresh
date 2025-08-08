@@ -77,9 +77,8 @@ class MailBox extends BaseMailbox {
                     console.error('ws-mailbox rpc client checkKeepAlive error because > KEEP_ALIVE_TIMEOUT');
                     this.close();
                     return;
-                } else {
-                    return;
                 }
+                return;
             }
             if (this._kpLastPongTime >= this._kpLastPingTime) {
                 this.socket.ping();
@@ -123,6 +122,4 @@ class MailBox extends BaseMailbox {
  *                      opts.bufferMsg {Boolean} msg should be buffered or send immediately.
  *                      opts.interval {Boolean} msg queue flush interval if bufferMsg is true. default is 50 ms
  */
-module.exports.create = function (server, opts) {
-    return new MailBox(server, opts || {});
-};
+module.exports.create = (server, opts) => new MailBox(server, opts || {});

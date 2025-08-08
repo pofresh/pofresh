@@ -23,7 +23,7 @@ function scheduleJob(trigger, jobFunc, jobData) {
 
     map[id] = job;
     const element = {
-        id: id,
+        id,
         time: executeTime
     };
 
@@ -80,10 +80,10 @@ function executeJob() {
 
         const nextTime = job.nextTime();
 
-        if (!nextTime) {
-            delete map[job.id];
-        } else {
+        if (nextTime) {
             queue.offer({ id: job.id, time: nextTime });
+        } else {
+            delete map[job.id];
         }
         job = peekNextJob();
     }

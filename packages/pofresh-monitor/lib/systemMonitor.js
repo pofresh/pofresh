@@ -24,7 +24,7 @@ module.exports.getSysInfo = getSysInfo;
 function getSysInfo(callback) {
     if (process.platform === 'win32') return;
     const reData = getBasicInfo();
-    exec('iostat ', function (err, output) {
+    exec('iostat ', (err, output) => {
         if (err) {
             console.error('getSysInfo failed! ' + err.stack);
             callback(err, reData);
@@ -51,7 +51,7 @@ function format(data) {
     const output_values = [];
     for (let i = 0, counter = 0; i < output_array.length; i++) {
         if (!isNaN(output_array[i])) {
-            output_values[counter] = parseFloat(output_array[i]);
+            output_values[counter] = Number.parseFloat(output_array[i]);
             counter++;
         }
     }
@@ -115,17 +115,11 @@ info.cpus = os.cpus;
 
 info.networkInterfaces = os.networkInterfaces;
 
-info.versions = function () {
-    return process.versions;
-};
+info.versions = () => process.versions;
 
-info.arch = function () {
-    return process.arch;
-};
+info.arch = () => process.arch;
 
-info.platform = function () {
-    return process.platform;
-};
+info.platform = () => process.platform;
 
 info.memoryUsage = process.memoryUsage;
 

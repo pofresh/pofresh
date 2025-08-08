@@ -129,7 +129,7 @@ class MasterAgent extends EventEmitter {
         }
 
         // 输入验证
-        if (!serverId || !moduleId) {
+        if (!(serverId && moduleId)) {
             utils.invokeCallback(cb, new Error('serverId and moduleId are required'));
             return false;
         }
@@ -151,7 +151,7 @@ class MasterAgent extends EventEmitter {
                 }
                 utils.invokeCallback(cb, new Error('Request timeout'));
             }
-        }, 30000); // 30秒超时
+        }, 30_000); // 30秒超时
 
         this.callbacks[curId] = (...args) => {
             clearTimeout(timeoutId);
@@ -449,15 +449,13 @@ class MasterAgent extends EventEmitter {
         const record = { id, type, pid, info, socket };
         if (type === Constants.TYPE_CLIENT) {
             this.clients[id] = record;
+        } else if (this.idMap[id]) {
+            const slaves = (this.slaveMap[id] = this.slaveMap[id] || []);
+            slaves.push(record);
         } else {
-            if (!this.idMap[id]) {
-                this.idMap[id] = record;
-                const list = (this.typeMap[type] = this.typeMap[type] || []);
-                list.push(record);
-            } else {
-                const slaves = (this.slaveMap[id] = this.slaveMap[id] || []);
-                slaves.push(record);
-            }
+            this.idMap[id] = record;
+            const list = (this.typeMap[type] = this.typeMap[type] || []);
+            list.push(record);
         }
         return record;
     }

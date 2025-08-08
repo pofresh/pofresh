@@ -1,3 +1,1 @@
-module.exports = function (app, opts) {
-    return { name: 'mockPlugin' };
-};
+module.exports = (app, opts) => ({ name: 'mockPlugin' });

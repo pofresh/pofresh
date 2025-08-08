@@ -112,7 +112,7 @@ class Client {
      * @param {Array} records list of proxy description record
      */
     addProxies(records) {
-        if (!records || !records.length) {
+        if (!(records && records.length)) {
             return;
         }
         records.forEach(record => this.addProxy(record));
@@ -313,16 +313,16 @@ function proxyCB(client, serviceName, methodName, args, attach, isToSpecifiedSer
     const serverType = attach.serverType;
     const msg = {
         namespace: attach.namespace,
-        serverType: serverType,
+        serverType,
         service: serviceName,
         method: methodName,
-        args: args
+        args
     };
 
     if (isToSpecifiedServer) {
         rpcToSpecifiedServer(client, msg, serverType, routeParam, cb);
     } else {
-        getRouteTarget(client, serverType, msg, routeParam, function (err, serverId) {
+        getRouteTarget(client, serverType, msg, routeParam, (err, serverId) => {
             if (err) {
                 return cb(err);
             }
@@ -346,23 +346,23 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
     if (client.routerType) {
         let method;
         switch (client.routerType) {
-        case constants.SCHEDULE.ROUNDROBIN:
-            method = router.rr;
-            break;
-        case constants.SCHEDULE.WEIGHT_ROUNDROBIN:
-            method = router.wrr;
-            break;
-        case constants.SCHEDULE.LEAST_ACTIVE:
-            method = router.la;
-            break;
-        case constants.SCHEDULE.CONSISTENT_HASH:
-            method = router.ch;
-            break;
-        default:
-            method = router.rd;
-            break;
+            case constants.SCHEDULE.ROUNDROBIN:
+                method = router.rr;
+                break;
+            case constants.SCHEDULE.WEIGHT_ROUNDROBIN:
+                method = router.wrr;
+                break;
+            case constants.SCHEDULE.LEAST_ACTIVE:
+                method = router.la;
+                break;
+            case constants.SCHEDULE.CONSISTENT_HASH:
+                method = router.ch;
+                break;
+            default:
+                method = router.rd;
+                break;
         }
-        method.call(null, client, serverType, msg, function (err, serverId) {
+        method.call(null, client, serverType, msg, (err, serverId) => {
             cb(err, serverId);
         });
     } else {
@@ -378,7 +378,7 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
             cb(new Error('invalid route function.'));
             return;
         }
-        route.call(target, routeParam, msg, client._routeContext, function (err, serverId) {
+        route.call(target, routeParam, msg, client._routeContext, (err, serverId) => {
             cb(err, serverId);
         });
     }
@@ -411,8 +411,8 @@ function rpcToSpecifiedServer(client, msg, serverType, serverId, cb) {
 
         async.each(
             servers,
-            function (server, next) {
-                client.rpcInvoke(server.id, msg, function (err) {
+            (server, next) => {
+                client.rpcInvoke(server.id, msg, err => {
                     next(err);
                 });
             },
@@ -432,9 +432,7 @@ function rpcToSpecifiedServer(client, msg, serverType, serverId, cb) {
  *                       opts.mailBoxFactory: (optional) mail box factory instance.
  * @return {Object}      client instance.
  */
-module.exports.create = function (opts) {
-    return new Client(opts);
-};
+module.exports.create = opts => new Client(opts);
 
 module.exports.SIOMailbox = require('./mailboxes/sio-mailbox'); // socket.io
 module.exports.WSMailbox = require('./mailboxes/ws-mailbox'); // ws

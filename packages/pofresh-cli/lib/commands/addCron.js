@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const helpCommand = 'help addCron';
 
@@ -18,7 +16,7 @@ class Command {
         }
         const argvs = util.argsFilter(argv);
 
-        rl.question(consts.ADDCRON_QUESTION_INFO, function (answer) {
+        rl.question(consts.ADDCRON_QUESTION_INFO, answer => {
             if (answer === 'yes') {
                 client.request(
                     consts.CONSOLE_MODULE,
@@ -26,7 +24,7 @@ class Command {
                         signal: 'addCron',
                         args: argvs.slice(1)
                     },
-                    function (err, data) {
+                    (err, data) => {
                         if (err) console.log(err);
                         else util.formatOutput(comd, data);
                         rl.prompt();

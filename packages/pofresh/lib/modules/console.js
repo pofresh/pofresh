@@ -9,9 +9,7 @@ const utils = require('../util/utils');
 const Constants = require('../util/constants');
 const starter = require('../master/starter');
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 const moduleId = '__console__';
 
@@ -27,102 +25,104 @@ class Module {
     monitorHandler(agent, msg, cb) {
         const serverId = agent.id;
         switch (msg.signal) {
-        case 'stop':
-            if (agent.type === Constants.RESERVED.MASTER) {
-                return;
-            }
-            this.app.stop(true);
-            break;
-        case 'list':
-            const serverType = agent.type;
-            const pid = process.pid;
-            const heapUsed = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
-            const rss = (process.memoryUsage().rss / (1024 * 1024)).toFixed(2);
-            const heapTotal = (process.memoryUsage().heapTotal / (1024 * 1024)).toFixed(2);
-            const uptime = (process.uptime() / 60).toFixed(2);
-            utils.invokeCallback(cb, {
-                serverId: serverId,
-                body: {
-                    serverId: serverId,
-                    serverType: serverType,
-                    pid: pid,
-                    rss: rss,
-                    heapTotal: heapTotal,
-                    heapUsed: heapUsed,
-                    uptime: uptime
+            case 'stop':
+                if (agent.type === Constants.RESERVED.MASTER) {
+                    return;
                 }
-            });
-            break;
-        case 'kill':
-            utils.invokeCallback(cb, serverId);
-            if (agent.type !== 'master') {
-                setTimeout(function () {
-                    process.exit(-1);
-                }, Constants.TIME.TIME_WAIT_MONITOR_KILL);
-            }
-            break;
-        case 'addCron':
-            this.app.addCrons([msg.cron]);
-            break;
-        case 'removeCron':
-            this.app.removeCrons([msg.cron]);
-            break;
-        case 'blacklist':
-            if (this.app.isFrontend()) {
-                const connector = this.app.components.__connector__;
-                msg.blacklist.forEach(ip => {
-                    if (connector.blacklist.indexOf(ip) === -1) {
-                        connector.blacklist.push(ip);
+                this.app.stop(true);
+                break;
+            case 'list': {
+                const serverType = agent.type;
+                const pid = process.pid;
+                const heapUsed = (process.memoryUsage().heapUsed / (1024 * 1024)).toFixed(2);
+                const rss = (process.memoryUsage().rss / (1024 * 1024)).toFixed(2);
+                const heapTotal = (process.memoryUsage().heapTotal / (1024 * 1024)).toFixed(2);
+                const uptime = (process.uptime() / 60).toFixed(2);
+                utils.invokeCallback(cb, {
+                    serverId,
+                    body: {
+                        serverId,
+                        serverType,
+                        pid,
+                        rss,
+                        heapTotal,
+                        heapUsed,
+                        uptime
                     }
                 });
+                break;
             }
-            break;
-        case 'restart':
-            if (agent.type === Constants.RESERVED.MASTER) {
-                return utils.invokeCallback(cb);
+            case 'kill':
+                utils.invokeCallback(cb, serverId);
+                if (agent.type !== 'master') {
+                    setTimeout(() => {
+                        process.exit(-1);
+                    }, Constants.TIME.TIME_WAIT_MONITOR_KILL);
+                }
+                break;
+            case 'addCron':
+                this.app.addCrons([msg.cron]);
+                break;
+            case 'removeCron':
+                this.app.removeCrons([msg.cron]);
+                break;
+            case 'blacklist':
+                if (this.app.isFrontend()) {
+                    const connector = this.app.components.__connector__;
+                    msg.blacklist.forEach(ip => {
+                        if (connector.blacklist.indexOf(ip) === -1) {
+                            connector.blacklist.push(ip);
+                        }
+                    });
+                }
+                break;
+            case 'restart': {
+                if (agent.type === Constants.RESERVED.MASTER) {
+                    return utils.invokeCallback(cb);
+                }
+                const server = this.app.get(Constants.RESERVED.CURRENT_SERVER);
+                utils.invokeCallback(cb, server);
+                process.nextTick(() => {
+                    setTimeout(() => this.app.stop(true), 1000);
+                });
+                break;
             }
-            const server = this.app.get(Constants.RESERVED.CURRENT_SERVER);
-            utils.invokeCallback(cb, server);
-            process.nextTick(() => {
-                setTimeout(() => this.app.stop(true), 1000);
-            });
-            break;
-        default:
-            logger.error('receive error signal: %j', msg);
-            break;
+            default:
+                logger.error('receive error signal: %j', msg);
+                break;
         }
     }
 
     clientHandler(agent, msg, cb) {
         const app = this.app;
         switch (msg.signal) {
-        case 'kill':
-            kill(app, agent, msg, cb);
-            break;
-        case 'stop':
-            stop(app, agent, msg, cb);
-            break;
-        case 'list':
-            list(agent, msg, cb);
-            break;
-        case 'add':
-            add(app, msg, cb);
-            break;
-        case 'addCron':
-            addCron(app, agent, msg, cb);
-            break;
-        case 'removeCron':
-            removeCron(app, agent, msg, cb);
-            break;
-        case 'blacklist':
-            blacklist(agent, msg, cb);
-            break;
-        case 'restart':
-            restart(app, agent, msg, cb);
-            break;
-        default:
-            utils.invokeCallback(cb, new Error('The command cannot be recognized, please check.'), null);
-            break;
+            case 'kill':
+                kill(app, agent, msg, cb);
+                break;
+            case 'stop':
+                stop(app, agent, msg, cb);
+                break;
+            case 'list':
+                list(agent, msg, cb);
+                break;
+            case 'add':
+                add(app, msg, cb);
+                break;
+            case 'addCron':
+                addCron(app, agent, msg, cb);
+                break;
+            case 'removeCron':
+                removeCron(app, agent, msg, cb);
+                break;
+            case 'blacklist':
+                blacklist(agent, msg, cb);
+                break;
+            case 'restart':
+                restart(app, agent, msg, cb);
+                break;
+            default:
+                utils.invokeCallback(cb, new Error('The command cannot be recognized, please check.'), null);
+                break;
         }
     }
 }
@@ -134,19 +134,19 @@ function kill(app, agent, msg, cb) {
     const latch = countDownLatch.createCountDownLatch(
         count,
         { timeout: Constants.TIME.TIME_WAIT_MASTER_KILL },
-        function (isTimeout) {
-            if (!isTimeout) {
-                utils.invokeCallback(cb, null, { code: 'ok' });
+        isTimeout => {
+            if (isTimeout) {
+                utils.invokeCallback(cb, null, { code: 'remained', serverIds });
             } else {
-                utils.invokeCallback(cb, null, { code: 'remained', serverIds: serverIds });
+                utils.invokeCallback(cb, null, { code: 'ok' });
             }
-            setTimeout(function () {
+            setTimeout(() => {
                 process.exit(-1);
             }, Constants.TIME.TIME_WAIT_MONITOR_KILL);
         }
     );
 
-    const agentRequestCallback = function (msg) {
+    const agentRequestCallback = msg => {
         for (let i = 0; i < serverIds.length; ++i) {
             if (serverIds[i] === msg) {
                 serverIds.splice(i, 1);
@@ -171,10 +171,10 @@ function stop(app, agent, msg, cb) {
         app.set(Constants.RESERVED.STOP_SERVERS, serverIds);
         for (let i = 0; i < serverIds.length; i++) {
             const serverId = serverIds[i];
-            if (!servers[serverId]) {
-                utils.invokeCallback(cb, new Error('Cannot find the server to stop.'), null);
-            } else {
+            if (servers[serverId]) {
                 agent.notifyById(serverId, moduleId, { signal: msg.signal });
+            } else {
+                utils.invokeCallback(cb, new Error('Cannot find the server to stop.'), null);
             }
         }
         utils.invokeCallback(cb, null, { status: 'part' });
@@ -186,7 +186,7 @@ function stop(app, agent, msg, cb) {
         }
         app.set(Constants.RESERVED.STOP_SERVERS, serverIds);
         agent.notifyAll(moduleId, { signal: msg.signal });
-        setTimeout(function () {
+        setTimeout(() => {
             utils.invokeCallback(cb, null, { status: 'all' });
             app.stop(true);
         }, Constants.TIME.TIME_WAIT_STOP);
@@ -215,30 +215,26 @@ function restart(app, agent, msg, cb) {
         }
     }
     const count = serverIds.length;
-    const latch = countDownLatch.createCountDownLatch(
-        count,
-        { timeout: Constants.TIME.TIME_WAIT_COUNTDOWN },
-        function () {
-            if (!successFlag) {
-                utils.invokeCallback(cb, new Error('all servers start failed.'));
-                return;
-            }
-            utils.invokeCallback(cb, null, utils.arrayDiff(serverIds, successIds));
-            successIds.forEach(id =>
-                agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, { action: 'startOver' }, () => {})
-            );
+    const latch = countDownLatch.createCountDownLatch(count, { timeout: Constants.TIME.TIME_WAIT_COUNTDOWN }, () => {
+        if (!successFlag) {
+            utils.invokeCallback(cb, new Error('all servers start failed.'));
+            return;
         }
-    );
+        utils.invokeCallback(cb, null, utils.arrayDiff(serverIds, successIds));
+        successIds.forEach(id =>
+            agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, { action: 'startOver' }, () => {})
+        );
+    });
 
-    const request = function (id) {
-        return (function () {
-            agent.request(id, moduleId, { signal: msg.signal }, function (msg) {
+    const request = id =>
+        (() => {
+            agent.request(id, moduleId, { signal: msg.signal }, msg => {
                 if (!utils.size(msg)) {
                     latch.done();
                     return;
                 }
-                setTimeout(function () {
-                    runServer(app, msg, function (err, status) {
+                setTimeout(() => {
+                    runServer(app, msg, (err, status) => {
                         if (err) {
                             logger.error('restart ' + id + ' failed.');
                         } else {
@@ -250,7 +246,6 @@ function restart(app, agent, msg, cb) {
                 }, Constants.TIME.TIME_WAIT_RESTART);
             });
         })();
-    };
 
     for (let j = 0; j < serverIds.length; j++) {
         request(serverIds[j]);
@@ -261,15 +256,11 @@ function list(agent, msg, cb) {
     let sid, record;
     const serverInfo = {};
     const count = utils.size(agent.idMap);
-    const latch = countDownLatch.createCountDownLatch(
-        count,
-        { timeout: Constants.TIME.TIME_WAIT_COUNTDOWN },
-        function () {
-            utils.invokeCallback(cb, null, { msg: serverInfo });
-        }
-    );
+    const latch = countDownLatch.createCountDownLatch(count, { timeout: Constants.TIME.TIME_WAIT_COUNTDOWN }, () => {
+        utils.invokeCallback(cb, null, { msg: serverInfo });
+    });
 
-    const callback = function (msg) {
+    const callback = msg => {
         serverInfo[msg.serverId] = msg.body;
         latch.done();
     };
@@ -307,7 +298,7 @@ function blacklist(agent, msg, cb) {
         }
     }
     agent.notifyAll(moduleId, { signal: msg.signal, blacklist: msg.args });
-    process.nextTick(function () {
+    process.nextTick(() => {
         cb(null, { status: 'ok' });
     });
 }
@@ -333,11 +324,14 @@ function parseArgs(msg, info, cb) {
 function sendCronInfo(cron, agent, msg, info, cb) {
     if (isReady(info) && (cron.serverId || cron.serverType)) {
         if (cron.serverId) {
-            agent.notifyById(cron.serverId, moduleId, { signal: msg.signal, cron: cron });
+            agent.notifyById(cron.serverId, moduleId, { signal: msg.signal, cron });
         } else {
-            agent.notifyByType(cron.serverType, moduleId, { signal: msg.signal, cron: cron });
+            agent.notifyByType(cron.serverType, moduleId, {
+                signal: msg.signal,
+                cron
+            });
         }
-        process.nextTick(function () {
+        process.nextTick(() => {
             cb(null, { status: 'ok' });
         });
     } else {
@@ -356,17 +350,17 @@ function startServer(app, msg, cb) {
 }
 
 function runServer(app, server, cb) {
-    utils.checkPort(server, function (status) {
+    utils.checkPort(server, status => {
         if (status === 'busy') {
             utils.invokeCallback(cb, new Error('Port occupied already, check your server to add.'));
         } else {
-            starter.run(app, server, function (err) {
+            starter.run(app, server, err => {
                 if (err) {
                     utils.invokeCallback(cb, new Error(err));
                     return;
                 }
             });
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb, null, { status: 'ok' });
             });
         }
@@ -380,7 +374,7 @@ function startCluster(app, msg, cb) {
     const serverInfo = parseArgs(msg, ClusterInfo, cb);
     utils.loadCluster(app, serverInfo, serverMap);
     const count = utils.size(serverMap);
-    const latch = countDownLatch.createCountDownLatch(count, function () {
+    const latch = countDownLatch.createCountDownLatch(count, () => {
         if (!successFlag) {
             utils.invokeCallback(cb, new Error('all servers start failed.'));
             return;
@@ -388,27 +382,26 @@ function startCluster(app, msg, cb) {
         utils.invokeCallback(cb, null, fails);
     });
 
-    const start = function (server) {
-        return (function () {
-            utils.checkPort(server, function (status) {
+    const start = server =>
+        (() => {
+            utils.checkPort(server, status => {
                 if (status === 'busy') {
                     fails.push(server);
                     latch.done();
                 } else {
-                    starter.run(app, server, function (err) {
+                    starter.run(app, server, err => {
                         if (err) {
                             fails.push(server);
                             latch.done();
                         }
                     });
-                    process.nextTick(function () {
+                    process.nextTick(() => {
                         successFlag = true;
                         latch.done();
                     });
                 }
             });
         })();
-    };
     for (const key in serverMap) {
         const server = serverMap[key];
         start(server);

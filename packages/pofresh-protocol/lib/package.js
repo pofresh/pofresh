@@ -52,23 +52,23 @@ class Package {
         }
 
         // Validate body
-        const length = body ? (body.length || body.byteLength || 0) : 0;
+        const length = body ? body.length || body.byteLength || 0 : 0;
 
         // Check maximum body length (24-bit length field)
-        if (length > 0xFFFFFF) {
-            throw new RangeError(`Package body too large: ${length} bytes. Maximum is ${0xFFFFFF} bytes`);
+        if (length > 0xff_ff_ff) {
+            throw new RangeError(`Package body too large: ${length} bytes. Maximum is ${0xff_ff_ff} bytes`);
         }
 
         const buffer = getAllocBuffer(PKG_HEAD_BYTES + length);
         let index = 0;
 
         // Encode package type
-        buffer[index++] = type & 0xFF;
+        buffer[index++] = type & 0xff;
 
         // Encode body length (24-bit big-endian)
-        buffer[index++] = (length >> 16) & 0xFF;
-        buffer[index++] = (length >> 8) & 0xFF;
-        buffer[index++] = length & 0xFF;
+        buffer[index++] = (length >> 16) & 0xff;
+        buffer[index++] = (length >> 8) & 0xff;
+        buffer[index++] = length & 0xff;
 
         // Copy body if present
         if (body && length > 0) {
@@ -103,7 +103,9 @@ class Package {
         while (offset < totalLength) {
             // Check if we have enough bytes for the header
             if (offset + PKG_HEAD_BYTES > totalLength) {
-                throw new Error(`Incomplete package header at offset ${offset}. Need ${PKG_HEAD_BYTES} bytes, got ${totalLength - offset}`);
+                throw new Error(
+                    `Incomplete package header at offset ${offset}. Need ${PKG_HEAD_BYTES} bytes, got ${totalLength - offset}`
+                );
             }
 
             // Read package type
@@ -119,7 +121,9 @@ class Package {
 
             // Check if we have enough bytes for the body
             if (offset + length > totalLength) {
-                throw new Error(`Incomplete package body at offset ${offset}. Need ${length} bytes, got ${totalLength - offset}`);
+                throw new Error(
+                    `Incomplete package body at offset ${offset}. Need ${length} bytes, got ${totalLength - offset}`
+                );
             }
 
             // Extract body

@@ -60,11 +60,11 @@ Decoder.decode = function (route, buf) {
     if (!route || typeof route !== 'string') {
         throw new Error(`Invalid route: ${route}`);
     }
-    
-    if (!buf || (!Buffer.isBuffer(buf) && !(buf instanceof Uint8Array))) {
+
+    if (!(buf && (Buffer.isBuffer(buf) || buf instanceof Uint8Array))) {
         throw new Error('Buffer must be a Buffer or Uint8Array');
     }
-    
+
     if (buf.length === 0) {
         throw new Error('Buffer cannot be empty');
     }
@@ -83,14 +83,14 @@ Decoder.decode = function (route, buf) {
     // Initialize decoding state
     buffer = buf;
     offset = 0;
-    
+
     try {
         const result = decodeMessage({}, protos, buffer.length);
-        
+
         // Reset state after decoding
         buffer = null;
         offset = 0;
-        
+
         return result;
     } catch (error) {
         // Reset state on error
@@ -118,29 +118,29 @@ function decodeMessage(msg, protos, length) {
         const wireType = head.wireType;
         const tag = head.tag;
         const fieldName = protos.__tags && protos.__tags[tag];
-        
-        if (!fieldName || !protos[fieldName]) {
+
+        if (!(fieldName && protos[fieldName])) {
             // Skip unknown fields instead of breaking
             skipUnknownField(wireType);
             continue;
         }
 
         const fieldProto = protos[fieldName];
-        
+
         try {
             switch (fieldProto.option) {
                 case 'optional':
                 case 'required':
                     msg[fieldName] = decodeFieldValue(fieldProto.type, protos, wireType);
                     break;
-                    
+
                 case 'repeated':
                     if (!msg[fieldName]) {
                         msg[fieldName] = [];
                     }
                     decodeRepeatedField(msg[fieldName], fieldProto.type, protos, wireType);
                     break;
-                    
+
                 default:
                     throw new Error(`Unknown field option: ${fieldProto.option}`);
             }
@@ -161,12 +161,12 @@ function getFieldHeader() {
         if (offset >= buffer.length) {
             return null;
         }
-        
+
         const tagBytes = readVarint();
         if (!tagBytes || tagBytes.length === 0) {
             return null;
         }
-        
+
         const tagValue = codec.decodeUInt32(tagBytes);
         return {
             wireType: tagValue & 0x7,
@@ -188,24 +188,25 @@ function skipUnknownField(wireType) {
                 // Skip varint by reading until MSB is 0
                 readVarint();
                 break;
-                
+
             case WIRE_TYPES.FIXED64:
                 // Skip 8 bytes
                 offset += 8;
                 break;
-                
-            case WIRE_TYPES.LENGTH_DELIMITED:
+
+            case WIRE_TYPES.LENGTH_DELIMITED: {
                 // Read length and skip that many bytes
                 const lengthBytes = readVarint();
                 const length = codec.decodeUInt32(lengthBytes);
                 offset += length;
                 break;
-                
+            }
+
             case WIRE_TYPES.FIXED32:
                 // Skip 4 bytes
                 offset += 4;
                 break;
-                
+
             default:
                 throw new Error(`Unknown wire type: ${wireType}`);
         }
@@ -229,88 +230,88 @@ function decodeFieldValue(type, protos, wireType) {
             }
             // For backward compatibility, try to handle other wire types gracefully
             throw new Error(`Invalid wire type ${wireType} for uInt32`);
-            
+
         case 'int32':
         case 'sInt32':
             if (wireType === WIRE_TYPES.VARINT) {
                 return codec.decodeSInt32(readVarint());
             }
             throw new Error(`Invalid wire type ${wireType} for ${type}`);
-            
+
         case 'uInt64':
             if (wireType === WIRE_TYPES.VARINT) {
                 return codec.decodeUInt64(readVarint());
             }
             throw new Error(`Invalid wire type ${wireType} for uInt64`);
-            
+
         case 'bool':
             if (wireType === WIRE_TYPES.VARINT) {
                 return codec.decodeBool(readVarint());
             }
             throw new Error(`Invalid wire type ${wireType} for bool`);
-            
+
         case 'float':
             if (wireType === WIRE_TYPES.FIXED32) {
                 return readFloat32();
             }
             throw new Error(`Invalid wire type ${wireType} for float`);
-            
+
         case 'double':
             if (wireType === WIRE_TYPES.FIXED64) {
                 return readFloat64();
             }
             throw new Error(`Invalid wire type ${wireType} for double`);
-            
+
         case 'string':
             if (wireType !== WIRE_TYPES.LENGTH_DELIMITED) {
                 throw new Error(`Invalid wire type ${wireType} for string`);
             }
             return readString();
-            
+
         case 'bytes':
             if (wireType !== WIRE_TYPES.LENGTH_DELIMITED) {
                 throw new Error(`Invalid wire type ${wireType} for bytes`);
             }
             return readBytes();
-            
-        default:
+
+        default: {
             // Handle nested messages
             if (wireType !== WIRE_TYPES.LENGTH_DELIMITED) {
                 throw new Error(`Invalid wire type ${wireType} for message type ${type}`);
             }
-            
+
             const nestedProtos = protos.__messages && protos.__messages[type];
             const legacyProtos = Decoder.protos && Decoder.protos['message ' + type];
             const messageProtos = nestedProtos || legacyProtos;
-            
+
             if (messageProtos) {
                 const lengthBytes = readVarint();
                 const messageLength = codec.decodeUInt32(lengthBytes);
                 const startOffset = offset;
                 const endOffset = offset + messageLength;
-                
+
                 if (endOffset > buffer.length) {
                     throw new Error('Message length exceeds buffer size');
                 }
-                
+
                 const nestedMessage = {};
-                
+
                 // Initialize repeated fields
                 for (const fieldName in messageProtos) {
                     if (messageProtos[fieldName] && messageProtos[fieldName].option === 'repeated') {
                         nestedMessage[fieldName] = [];
                     }
                 }
-                
+
                 const result = decodeMessage(nestedMessage, messageProtos, endOffset);
-                
+
                 // Ensure we've consumed exactly the expected number of bytes
                 offset = endOffset;
-                
+
                 return result;
-            } else {
-                throw new Error(`Unknown message type: ${type}`);
             }
+            throw new Error(`Unknown message type: ${type}`);
+        }
     }
 }
 
@@ -328,7 +329,7 @@ function decodeRepeatedField(array, type, protos, wireType) {
             const lengthBytes = readVarint();
             const packedLength = codec.decodeUInt32(lengthBytes);
             const endOffset = offset + packedLength;
-            
+
             while (offset < endOffset) {
                 switch (type) {
                     case 'uInt32':
@@ -371,21 +372,21 @@ function decodeRepeatedField(array, type, protos, wireType) {
 function readVarint() {
     const bytes = [];
     let b;
-    
+
     do {
         if (offset >= buffer.length) {
             throw new Error('Buffer overflow while reading varint');
         }
-        
+
         b = buffer[offset];
         bytes.push(b);
         offset++;
     } while ((b & 0x80) !== 0 && offset < buffer.length);
-    
+
     if ((b & 0x80) !== 0) {
         throw new Error('Incomplete varint at end of buffer');
     }
-    
+
     return bytes;
 }
 
@@ -397,7 +398,7 @@ function readFloat32() {
     if (offset + 4 > buffer.length) {
         throw new Error('Buffer overflow while reading float32');
     }
-    
+
     let value;
     if (util.isNode() && Buffer.isBuffer(buffer)) {
         value = buffer.readFloatLE(offset);
@@ -405,7 +406,7 @@ function readFloat32() {
         const view = new DataView(buffer.buffer, buffer.byteOffset + offset, 4);
         value = view.getFloat32(0, true); // true for little-endian
     }
-    
+
     offset += 4;
     return value;
 }
@@ -418,7 +419,7 @@ function readFloat64() {
     if (offset + 8 > buffer.length) {
         throw new Error('Buffer overflow while reading float64');
     }
-    
+
     let value;
     if (util.isNode() && Buffer.isBuffer(buffer)) {
         value = buffer.readDoubleLE(offset);
@@ -426,7 +427,7 @@ function readFloat64() {
         const view = new DataView(buffer.buffer, buffer.byteOffset + offset, 8);
         value = view.getFloat64(0, true); // true for little-endian
     }
-    
+
     offset += 8;
     return value;
 }
@@ -438,11 +439,11 @@ function readFloat64() {
 function readString() {
     const lengthBytes = readVarint();
     const length = codec.decodeUInt32(lengthBytes);
-    
+
     if (offset + length > buffer.length) {
         throw new Error('String length exceeds buffer size');
     }
-    
+
     let str;
     if (util.isNode() && Buffer.isBuffer(buffer)) {
         str = buffer.toString('utf8', offset, offset + length);
@@ -450,7 +451,7 @@ function readString() {
         const bytes = buffer.slice(offset, offset + length);
         str = new TextDecoder('utf-8').decode(bytes);
     }
-    
+
     offset += length;
     return str;
 }
@@ -462,13 +463,13 @@ function readString() {
 function readBytes() {
     const lengthBytes = readVarint();
     const length = codec.decodeUInt32(lengthBytes);
-    
+
     if (offset + length > buffer.length) {
         throw new Error('Bytes length exceeds buffer size');
     }
-    
+
     const bytes = buffer.slice(offset, offset + length);
     offset += length;
-    
+
     return bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
 }

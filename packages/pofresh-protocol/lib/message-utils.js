@@ -99,7 +99,7 @@ function encodeMsgId(id, buffer, offset) {
 
     let tempId = id;
     do {
-        let byte = tempId & 0x7F;
+        let byte = tempId & 0x7f;
         tempId >>>= 7; // Use unsigned right shift
 
         if (tempId !== 0) {
@@ -148,8 +148,8 @@ function encodeMsgRoute(compressRoute, route, buffer, offset) {
             throw new RangeError('Buffer overflow while encoding compressed route');
         }
 
-        buffer[offset++] = (route >> 8) & 0xFF;
-        buffer[offset++] = route & 0xFF;
+        buffer[offset++] = (route >> 8) & 0xff;
+        buffer[offset++] = route & 0xff;
     } else {
         if (offset >= buffer.length) {
             throw new RangeError('Buffer overflow while encoding route length');
@@ -175,7 +175,7 @@ function encodeMsgRoute(compressRoute, route, buffer, offset) {
                 throw new RangeError('Buffer overflow while encoding route');
             }
 
-            buffer[offset++] = routeBuffer.length & 0xFF;
+            buffer[offset++] = routeBuffer.length & 0xff;
             copyArray(buffer, offset, routeBuffer, 0, routeBuffer.length);
             offset += routeBuffer.length;
         } else {

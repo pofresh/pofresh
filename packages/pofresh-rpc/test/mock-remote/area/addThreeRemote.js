@@ -6,6 +6,4 @@ class Service {
         cb(null, value + 3);
     }
 }
-module.exports = function (_app) {
-    return new Service();
-};
+module.exports = _app => new Service();

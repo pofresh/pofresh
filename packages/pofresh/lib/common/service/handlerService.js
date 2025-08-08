@@ -20,7 +20,7 @@ class Service {
             watchHandlers(app, this.handlerMap);
         }
 
-        this.enableForwardLog = opts.enableForwardLog || false;
+        this.enableForwardLog = opts.enableForwardLog;
     }
 
     /**
@@ -60,10 +60,9 @@ class Service {
             return;
         }
         const start = Date.now();
-        const self = this;
 
-        const callback = function (err, resp, opts) {
-            if (self.enableForwardLog) {
+        const callback = (err, resp, opts) => {
+            if (this.enableForwardLog) {
                 const log = {
                     route: msg.__route__,
                     args: msg,
@@ -78,12 +77,12 @@ class Service {
 
         const method = routeRecord.method;
 
-        if (!Array.isArray(msg)) {
-            handler[method](msg, session, callback);
-        } else {
+        if (Array.isArray(msg)) {
             msg.push(session);
             msg.push(callback);
             handler[method].apply(handler, msg);
+        } else {
+            handler[method](msg, session, callback);
         }
         return;
     }
@@ -104,7 +103,7 @@ function loadHandlers(app, serverType, handlerMap) {
 function watchHandlers(app, handlerMap) {
     const p = pathUtil.getHandlerPath(app.getBase(), app.serverType);
     if (p) {
-        fs.watch(p, function (event, name) {
+        fs.watch(p, (event, name) => {
             if (event === 'change') {
                 handlerMap[app.serverType] = Loader.load(p, app);
             }

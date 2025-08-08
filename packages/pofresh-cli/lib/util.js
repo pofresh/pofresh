@@ -48,11 +48,11 @@ function argsFilter(argv) {
     }
 
     let lines;
-    if (argv.indexOf('\'') > 0) {
-        lines = argv.split('\'');
+    if (argv.indexOf("'") > 0) {
+        lines = argv.split("'");
     }
 
-    const getArg = function (argv) {
+    const getArg = argv => {
         if (!argv) return [];
         const argvs = argv.split(' ');
         // Filter out empty strings and spaces more efficiently
@@ -65,9 +65,8 @@ function argsFilter(argv) {
         }
         const bottom = getArg(lines[lines.length - 1]);
         return head.concat(bottom);
-    } else {
-        return getArg(argv);
     }
+    return getArg(argv);
 }
 
 function formatOutput(comd, data) {
@@ -98,10 +97,10 @@ function formatOutput(comd, data) {
         }
         async.sortBy(
             rows,
-            function (server, callback) {
+            (server, callback) => {
                 callback(null, server[0]);
             },
-            function (err, _results) {
+            (err, _results) => {
                 results = header.concat(_results);
                 log('\n' + cliff.stringifyRows(results, color) + '\n');
             }
@@ -147,11 +146,7 @@ function formatOutput(comd, data) {
                     server.loginedCount
             );
             for (let i = 0; i < loginedList.length; i++) {
-                rows.push([
-                    formatDate(new Date(loginedList[i].loginTime)),
-                    loginedList[i].uid,
-                    loginedList[i].address
-                ]);
+                rows.push([formatDate(new Date(loginedList[i].loginTime)), loginedList[i].uid, loginedList[i].address]);
             }
             log('\n' + cliff.stringifyRows(rows, color) + '\n');
         }
@@ -322,14 +317,14 @@ function handleError(err, context, rl) {
 // Input validation function
 function validateInput(input, type) {
     switch (type) {
-    case 'string':
-        return typeof input === 'string' && input.trim().length > 0;
-    case 'number':
-        return !isNaN(input) && isFinite(input);
-    case 'array':
-        return Array.isArray(input) && input.length > 0;
-    default:
-        return input !== null;
+        case 'string':
+            return typeof input === 'string' && input.trim().length > 0;
+        case 'number':
+            return !isNaN(input) && isFinite(input);
+        case 'array':
+            return Array.isArray(input) && input.length > 0;
+        default:
+            return input !== null;
     }
 }
 

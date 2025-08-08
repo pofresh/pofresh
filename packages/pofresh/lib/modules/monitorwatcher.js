@@ -3,9 +3,7 @@ const utils = require('../util/utils');
 const events = require('../util/events');
 const Constants = require('../util/constants');
 
-module.exports = function (opts, consoleService) {
-    return new Module(opts, consoleService);
-};
+module.exports = (opts, consoleService) => new Module(opts, consoleService);
 
 module.exports.moduleId = Constants.KEYWORDS.MONITOR_WATCHER;
 
@@ -23,7 +21,7 @@ class Module {
     }
 
     monitorHandler(agent, msg, cb) {
-        if (!msg || !msg.action) {
+        if (!(msg && msg.action)) {
             return;
         }
         const func = monitorMethods[msg.action];
@@ -38,8 +36,8 @@ class Module {
 // ----------------- monitor start method -------------------------
 
 function subscribeRequest(self, agent, id, cb) {
-    const msg = { action: 'subscribe', id: id };
-    agent.request(Constants.KEYWORDS.MASTER_WATCHER, msg, function (err, servers) {
+    const msg = { action: 'subscribe', id };
+    agent.request(Constants.KEYWORDS.MASTER_WATCHER, msg, (err, servers) => {
         if (err) {
             logger.error('subscribeRequest request to master with error: %j', err.stack);
             utils.invokeCallback(cb, err);
@@ -57,7 +55,7 @@ function subscribeRequest(self, agent, id, cb) {
 
 function addServer(self, agent, msg, cb) {
     logger.debug('[%s] receive addServer signal: %j', self.app.serverId, msg);
-    if (!msg || !msg.server) {
+    if (!(msg && msg.server)) {
         logger.warn('monitorWatcher addServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -68,7 +66,7 @@ function addServer(self, agent, msg, cb) {
 
 function removeServer(self, agent, msg, cb) {
     logger.debug('%s receive removeServer signal: %j', self.app.serverId, msg);
-    if (!msg || !msg.id) {
+    if (!(msg && msg.id)) {
         logger.warn('monitorWatcher removeServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -79,7 +77,7 @@ function removeServer(self, agent, msg, cb) {
 
 function replaceServer(self, agent, msg, cb) {
     logger.debug('%s receive replaceServer signal: %j', self.app.serverId, msg);
-    if (!msg || !msg.servers) {
+    if (!(msg && msg.servers)) {
         logger.warn('monitorWatcher replaceServer receive empty message: %j', msg);
         utils.invokeCallback(cb, Constants.SIGNAL.FAIL);
         return;
@@ -100,14 +98,14 @@ function startOver(self, agent, msg, cb) {
 // ----------------- common methods -------------------------
 
 function addServers(self, servers) {
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         return;
     }
     self.app.addServers(servers);
 }
 
 function removeServers(self, ids) {
-    if (!ids || !ids.length) {
+    if (!(ids && ids.length)) {
         return;
     }
     self.app.removeServers(ids);
@@ -120,13 +118,13 @@ function replaceServers(self, servers) {
 // ----------------- bind methods -------------------------
 
 function finishStart(self, id) {
-    const msg = { action: 'record', id: id };
+    const msg = { action: 'record', id };
     self.service.agent.notify(Constants.KEYWORDS.MASTER_WATCHER, msg);
 }
 
 const monitorMethods = {
-    addServer: addServer,
-    removeServer: removeServer,
-    replaceServer: replaceServer,
-    startOver: startOver
+    addServer,
+    removeServer,
+    replaceServer,
+    startOver
 };

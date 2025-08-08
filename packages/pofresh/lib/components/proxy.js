@@ -19,11 +19,11 @@ const logger = require('pofresh-logger').getLogger('pofresh', __filename);
  *                      opts.mailBoxFactory: (optional) mail box factory instance.
  * @return {Object}     component instance
  */
-module.exports = function (app, opts) {
+module.exports = (app, opts) => {
     opts = opts || {};
     // proxy default config
     // just for compatibility here.
-    opts.bufferMsg = opts.bufferMsg || false;
+    opts.bufferMsg = opts.bufferMsg;
     opts.interval = opts.interval || 30;
     opts.router = genRouteFun();
     opts.context = app;
@@ -99,7 +99,7 @@ class Component {
      * @param {Array} servers server info list, {id, serverType, host, port}
      */
     addServers(servers) {
-        if (!servers || !servers.length) {
+        if (!(servers && servers.length)) {
             return;
         }
 
@@ -122,7 +122,7 @@ class Component {
      * @param  {Array} ids server id list
      */
     replaceServers(servers) {
-        if (!servers || !servers.length) {
+        if (!(servers && servers.length)) {
             return;
         }
 
@@ -157,9 +157,8 @@ function genRpcClient(app, opts) {
     opts.routeContext = app;
     if (opts.rpcClient) {
         return opts.rpcClient.create(opts);
-    } else {
-        return Client.create(opts);
     }
+    return Client.create(opts);
 }
 
 /**
@@ -222,7 +221,7 @@ function getProxyRecords(app, sinfo) {
 }
 
 function genRouteFun() {
-    return function (session, msg, app, cb) {
+    return (session, msg, app, cb) => {
         const routes = app.get('__routes__');
 
         if (!routes) {
@@ -243,7 +242,7 @@ function genRouteFun() {
 
 function defaultRoute(session, msg, app, cb) {
     const list = app.getServersByType(msg.serverType);
-    if (!list || !list.length) {
+    if (!(list && list.length)) {
         cb(new Error('can not find server info for type:' + msg.serverType));
         return;
     }

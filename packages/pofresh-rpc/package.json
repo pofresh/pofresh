@@ -1,27 +1,29 @@
 {
-  "name": "pofresh-rpc",
-  "version": "2.0.1",
-  "scripts": {
-    "test": "vitest",
-    "test:run": "vitest --run",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "lint": "eslint --fix"
-  },
-  "dependencies": {
-    "pofresh-logger": "workspace:*",
-    "pofresh-loader": "workspace:*",
-    "async": "^3.2.6",
-    "bearcat-buffer": "0.1.1",
-    "crc": "^4.3.2",
-    "mqtt-connection": "^4.1.0",
-    "socket.io": "^4.7.5",
-    "socket.io-client": "^4.7.5",
-    "stream-pkg": "0.0.5",
-    "uuid": "^10.0.0",
-    "ws": "^8.18.0"
-  },
-  "devDependencies": {
-    "vitest": "^3.2.4"
-  }
+    "name": "pofresh-rpc",
+    "version": "2.0.1",
+    "scripts": {
+        "test": "vitest",
+        "test:run": "vitest --run",
+        "test:watch": "vitest --watch",
+        "test:coverage": "vitest --coverage",
+        "lint": "npx ultracite@latest lint",
+        "lint:fix": "npx ultracite@latest format",
+        "format": "npx ultracite@latest format"
+    },
+    "dependencies": {
+        "pofresh-logger": "workspace:*",
+        "pofresh-loader": "workspace:*",
+        "async": "^3.2.6",
+        "bearcat-buffer": "0.1.1",
+        "crc": "^4.3.2",
+        "mqtt-connection": "^4.1.0",
+        "socket.io": "^4.7.5",
+        "socket.io-client": "^4.7.5",
+        "stream-pkg": "0.0.5",
+        "uuid": "^10.0.0",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "vitest": "^3.2.4"
+    }
 }

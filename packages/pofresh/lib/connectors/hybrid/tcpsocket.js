@@ -24,7 +24,7 @@ class Socket extends Stream {
     constructor(socket, opts) {
         super();
 
-        if (!socket || !opts) {
+        if (!(socket && opts)) {
             throw new Error('invalid socket or opts');
         }
 

@@ -1,6 +1,6 @@
 const zlibjs = require('browserify-zlib');
 
-const num = 20000;
+const num = 20_000;
 let start = null;
 
 const message = {

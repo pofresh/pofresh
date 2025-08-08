@@ -40,7 +40,7 @@ Encoder.encode = function (route, msg) {
     if (!route || typeof route !== 'string') {
         throw new Error(`Invalid route: ${route}`);
     }
-    
+
     if (!msg || typeof msg !== 'object') {
         throw new Error(`Invalid message: ${msg}`);
     }
@@ -65,7 +65,7 @@ Encoder.encode = function (route, msg) {
     // Estimate buffer size more accurately
     const estimatedSize = estimateBufferSize(msg, protos);
     const bufferSize = Math.max(estimatedSize * BUFFER_SIZE_MULTIPLIER, 64);
-    
+
     // Create buffer with cross-environment compatibility
     const buffer = util.createBuffer(bufferSize);
     let offset = 0;
@@ -76,9 +76,8 @@ Encoder.encode = function (route, msg) {
             // Return properly sized buffer
             if (util.isNode() && Buffer.isBuffer(buffer)) {
                 return buffer.slice(0, offset);
-            } else {
-                return buffer.subarray(0, offset);
             }
+            return buffer.subarray(0, offset);
         }
     } catch (error) {
         throw new Error(`Encoding failed: ${error.message}`);
@@ -95,15 +94,15 @@ Encoder.encode = function (route, msg) {
  */
 function estimateBufferSize(msg, protos) {
     let size = 0;
-    
+
     for (const name in msg) {
         if (protos[name]) {
             const proto = protos[name];
             const value = msg[name];
-            
+
             // Add tag size (usually 1-2 bytes)
             size += 2;
-            
+
             switch (proto.type) {
                 case 'string':
                     if (typeof value === 'string') {
@@ -140,7 +139,7 @@ function estimateBufferSize(msg, protos) {
                     }
                     break;
             }
-            
+
             // Handle repeated fields
             if (proto.option === 'repeated' && Array.isArray(value)) {
                 size *= value.length;
@@ -148,7 +147,7 @@ function estimateBufferSize(msg, protos) {
             }
         }
     }
-    
+
     return Math.max(size, 32); // Minimum buffer size
 }
 
@@ -162,7 +161,7 @@ function validateMessage(msg, protos) {
     if (!protos || typeof protos !== 'object') {
         return { isValid: false, error: 'Invalid protos definition' };
     }
-    
+
     if (!msg || typeof msg !== 'object') {
         return { isValid: false, error: 'Invalid message object' };
     }
@@ -170,20 +169,18 @@ function validateMessage(msg, protos) {
     // Check all proto fields
     for (const name in protos) {
         if (name.startsWith('__')) continue; // Skip internal fields
-        
+
         const proto = protos[name];
         const value = msg[name];
-        
+
         // Validate required fields
-        if (proto.option === 'required') {
-            if (value === undefined || value === null) {
-                return { 
-                    isValid: false, 
-                    error: `Required field '${name}' is missing` 
-                };
-            }
+        if (proto.option === 'required' && (value === undefined || value === null)) {
+            return {
+                isValid: false,
+                error: `Required field '${name}' is missing`
+            };
         }
-        
+
         // Validate field values if present
         if (value !== undefined && value !== null) {
             const fieldValidation = validateFieldValue(value, proto, protos, name);
@@ -208,12 +205,12 @@ function validateFieldValue(value, proto, protos, fieldName) {
     // Handle repeated fields
     if (proto.option === 'repeated') {
         if (!Array.isArray(value)) {
-            return { 
-                isValid: false, 
-                error: `Field '${fieldName}' must be an array for repeated option` 
+            return {
+                isValid: false,
+                error: `Field '${fieldName}' must be an array for repeated option`
             };
         }
-        
+
         // Validate each array element
         for (let i = 0; i < value.length; i++) {
             const elementValidation = validateSingleValue(value[i], proto.type, protos, `${fieldName}[${i}]`);
@@ -223,7 +220,7 @@ function validateFieldValue(value, proto, protos, fieldName) {
         }
         return { isValid: true };
     }
-    
+
     // Handle single values
     return validateSingleValue(value, proto.type, protos, fieldName);
 }
@@ -241,61 +238,77 @@ function validateSingleValue(value, type, protos, fieldName) {
         case 'uInt32':
         case 'int32':
         case 'sInt32':
-            if (!util.isValidNumber(value) || !Number.isInteger(value)) {
-                return { isValid: false, error: `Field '${fieldName}' must be an integer` };
+            if (!(util.isValidNumber(value) && Number.isInteger(value))) {
+                return {
+                    isValid: false,
+                    error: `Field '${fieldName}' must be an integer`
+                };
             }
             break;
-            
+
         case 'uInt64':
         case 'sInt64':
             if (!util.isValidNumber(value) && typeof value !== 'bigint') {
-                return { isValid: false, error: `Field '${fieldName}' must be a number or bigint` };
+                return {
+                    isValid: false,
+                    error: `Field '${fieldName}' must be a number or bigint`
+                };
             }
             break;
-            
+
         case 'float':
         case 'double':
             if (!util.isValidNumber(value)) {
-                return { isValid: false, error: `Field '${fieldName}' must be a number` };
+                return {
+                    isValid: false,
+                    error: `Field '${fieldName}' must be a number`
+                };
             }
             break;
-            
+
         case 'bool':
             if (!util.isValidBoolean(value)) {
-                return { isValid: false, error: `Field '${fieldName}' must be a boolean` };
+                return {
+                    isValid: false,
+                    error: `Field '${fieldName}' must be a boolean`
+                };
             }
             break;
-            
+
         case 'string':
             if (!util.isValidString(value)) {
-                return { isValid: false, error: `Field '${fieldName}' must be a string` };
+                return {
+                    isValid: false,
+                    error: `Field '${fieldName}' must be a string`
+                };
             }
             break;
-            
-        default:
+
+        default: {
             // Handle nested messages
             const nestedProtos = protos.__messages && protos.__messages[type];
             if (nestedProtos) {
                 const nestedValidation = validateMessage(value, nestedProtos);
                 if (!nestedValidation.isValid) {
-                    return { 
-                        isValid: false, 
-                        error: `Nested message '${fieldName}': ${nestedValidation.error}` 
+                    return {
+                        isValid: false,
+                        error: `Nested message '${fieldName}': ${nestedValidation.error}`
                     };
                 }
             } else if (Encoder.protos && Encoder.protos['message ' + type]) {
                 // Legacy support
                 const legacyValidation = validateMessage(value, Encoder.protos['message ' + type]);
                 if (!legacyValidation.isValid) {
-                    return { 
-                        isValid: false, 
-                        error: `Nested message '${fieldName}': ${legacyValidation.error}` 
+                    return {
+                        isValid: false,
+                        error: `Nested message '${fieldName}': ${legacyValidation.error}`
                     };
                 }
             }
             break;
+        }
     }
-    
+
     return { isValid: true };
 }
 
@@ -312,7 +325,7 @@ function encodeMessage(buffer, offset, protos, msg) {
         if (protos[name]) {
             const proto = protos[name];
             const value = msg[name];
-            
+
             // Skip undefined/null values for optional fields
             if ((value === undefined || value === null) && proto.option === 'optional') {
                 continue;
@@ -320,18 +333,19 @@ function encodeMessage(buffer, offset, protos, msg) {
 
             switch (proto.option) {
                 case 'required':
-                case 'optional':
+                case 'optional': {
                     // Get wire type for the field
                     const wireType = FIELD_TYPES[proto.type] || 2; // Default to LENGTH_DELIMITED
-                    
+
                     // Encode tag
                     const tagBytes = codec.encodeTag(proto.tag, wireType);
                     offset = writeBytes(buffer, offset, tagBytes);
-                    
+
                     // Encode value
                     offset = encodeProperty(value, proto.type, offset, buffer, protos);
                     break;
-                    
+                }
+
                 case 'repeated':
                     if (Array.isArray(value) && value.length > 0) {
                         offset = encodeRepeatedField(value, proto, offset, buffer, protos);
@@ -355,23 +369,26 @@ function encodeMessage(buffer, offset, protos, msg) {
  */
 function encodeProperty(value, type, offset, buffer, protos) {
     switch (type) {
-        case 'uInt32':
+        case 'uInt32': {
             const uintBytes = codec.encodeUInt32(value);
             offset = writeBytes(buffer, offset, uintBytes);
             break;
-            
+        }
+
         case 'int32':
-        case 'sInt32':
+        case 'sInt32': {
             const sintBytes = codec.encodeSInt32(value);
             offset = writeBytes(buffer, offset, sintBytes);
             break;
-            
-        case 'uInt64':
+        }
+
+        case 'uInt64': {
             const uint64Bytes = codec.encodeUInt64(value);
             offset = writeBytes(buffer, offset, uint64Bytes);
             break;
-            
-        case 'float':
+        }
+
+        case 'float': {
             // Float is 4 bytes, little-endian
             const floatBuffer = util.createBuffer(4);
             if (util.isNode()) {
@@ -382,8 +399,9 @@ function encodeProperty(value, type, offset, buffer, protos) {
             }
             offset = writeBytes(buffer, offset, floatBuffer);
             break;
-            
-        case 'double':
+        }
+
+        case 'double': {
             // Double is 8 bytes, little-endian
             const doubleBuffer = util.createBuffer(8);
             if (util.isNode()) {
@@ -394,29 +412,34 @@ function encodeProperty(value, type, offset, buffer, protos) {
             }
             offset = writeBytes(buffer, offset, doubleBuffer);
             break;
-            
-        case 'bool':
+        }
+
+        case 'bool': {
             const boolBytes = codec.encodeBool(value);
             offset = writeBytes(buffer, offset, boolBytes);
             break;
-            
-        case 'string':
+        }
+
+        case 'string': {
             const stringBuffer = util.isNode() ? Buffer.from(value, 'utf8') : new TextEncoder().encode(value);
             const lengthBytes = codec.encodeUInt32(stringBuffer.length);
             offset = writeBytes(buffer, offset, lengthBytes);
             offset = writeBytes(buffer, offset, stringBuffer);
             break;
-            
-        case 'bytes':
+        }
+
+        case 'bytes': {
             const bytesData = value instanceof Uint8Array ? value : new Uint8Array(value);
             const bytesLengthBytes = codec.encodeUInt32(bytesData.length);
             offset = writeBytes(buffer, offset, bytesLengthBytes);
             offset = writeBytes(buffer, offset, bytesData);
             break;
-            
-        default:
+        }
+
+        default: {
             // Handle nested messages
-            const message = protos.__messages && protos.__messages[type] || Encoder.protos && Encoder.protos['message ' + type];
+            const message =
+                (protos.__messages && protos.__messages[type]) || (Encoder.protos && Encoder.protos['message ' + type]);
             if (message) {
                 // Use a tmp buffer to build an internal msg
                 const tmpBuffer = util.createBuffer(estimateBufferSize(value, message));
@@ -432,6 +455,7 @@ function encodeProperty(value, type, offset, buffer, protos) {
                 throw new Error(`Unknown field type: ${type}`);
             }
             break;
+        }
     }
 
     return offset;
@@ -450,18 +474,18 @@ function encodeRepeatedField(array, proto, offset, buffer, protos) {
     if (!Array.isArray(array) || array.length === 0) {
         return offset;
     }
-    
+
     const wireType = FIELD_TYPES[proto.type] || 2; // Default to LENGTH_DELIMITED
-    
+
     if (util.isSimpleType(proto.type)) {
         // For simple types, use packed encoding
         const tagBytes = codec.encodeTag(proto.tag, wireType);
         offset = writeBytes(buffer, offset, tagBytes);
-        
+
         // Calculate total length of packed data
         let packedLength = 0;
         const packedData = [];
-        
+
         for (let i = 0; i < array.length; i++) {
             let valueBytes;
             switch (proto.type) {
@@ -478,7 +502,7 @@ function encodeRepeatedField(array, proto, offset, buffer, protos) {
                 case 'bool':
                     valueBytes = codec.encodeBool(array[i]);
                     break;
-                case 'float':
+                case 'float': {
                     const floatBuffer = util.createBuffer(4);
                     if (util.isNode()) {
                         floatBuffer.writeFloatLE(array[i], 0);
@@ -488,7 +512,8 @@ function encodeRepeatedField(array, proto, offset, buffer, protos) {
                     }
                     valueBytes = floatBuffer;
                     break;
-                case 'double':
+                }
+                case 'double': {
                     const doubleBuffer = util.createBuffer(8);
                     if (util.isNode()) {
                         doubleBuffer.writeDoubleLE(array[i], 0);
@@ -498,17 +523,18 @@ function encodeRepeatedField(array, proto, offset, buffer, protos) {
                     }
                     valueBytes = doubleBuffer;
                     break;
+                }
                 default:
                     throw new Error(`Unsupported simple type for packed encoding: ${proto.type}`);
             }
             packedData.push(valueBytes);
             packedLength += valueBytes.length;
         }
-        
+
         // Encode packed length
         const lengthBytes = codec.encodeUInt32(packedLength);
         offset = writeBytes(buffer, offset, lengthBytes);
-        
+
         // Write packed data
         for (const data of packedData) {
             offset = writeBytes(buffer, offset, data);
@@ -521,7 +547,7 @@ function encodeRepeatedField(array, proto, offset, buffer, protos) {
             offset = encodeProperty(array[i], proto.type, offset, buffer, protos);
         }
     }
-    
+
     return offset;
 }
 
@@ -536,7 +562,7 @@ function writeBytes(buffer, offset, bytes) {
     if (!bytes || bytes.length === 0) {
         return offset;
     }
-    
+
     // Handle different input types
     if (util.isNode() && Buffer.isBuffer(bytes)) {
         bytes.copy(buffer, offset);
@@ -549,6 +575,6 @@ function writeBytes(buffer, offset, bytes) {
     } else {
         throw new Error('Invalid bytes type for writeBytes');
     }
-    
+
     return offset + bytes.length;
 }

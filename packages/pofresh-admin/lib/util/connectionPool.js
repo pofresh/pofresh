@@ -14,20 +14,25 @@ class ConnectionPool extends EventEmitter {
         this.options = {
             maxConnections: options.maxConnections || 10,
             minConnections: options.minConnections || 2,
-            acquireTimeout: options.acquireTimeout || 30000,
-            idleTimeout: options.idleTimeout || 300000, // 5分钟
+            acquireTimeout: options.acquireTimeout || 30_000,
+            idleTimeout: options.idleTimeout || 300_000, // 5分钟
             maxRetries: options.maxRetries || 3,
             retryDelay: options.retryDelay || 1000,
             validateConnection: options.validateConnection || (() => true),
-            createConnection: options.createConnection ||
-                (() => { throw new Error('createConnection must be provided'); }),
-            destroyConnection: options.destroyConnection || ((conn) => {
-                if (conn && typeof conn.close === 'function') {
-                    conn.close();
-                } else if (conn && typeof conn.destroy === 'function') {
-                    conn.destroy();
-                }
-            })
+            createConnection:
+                options.createConnection ||
+                (() => {
+                    throw new Error('createConnection must be provided');
+                }),
+            destroyConnection:
+                options.destroyConnection ||
+                (conn => {
+                    if (conn && typeof conn.close === 'function') {
+                        conn.close();
+                    } else if (conn && typeof conn.destroy === 'function') {
+                        conn.destroy();
+                    }
+                })
         };
 
         this.connections = new Set();
@@ -72,11 +77,10 @@ class ConnectionPool extends EventEmitter {
                 this.activeConnections.set(connection, Date.now());
                 this.connectionStats.acquired++;
                 return timeoutWrapper.callback(null, connection);
-            } else {
-                // 连接无效，销毁并重试
-                this.destroyConnection(connection);
-                return this.acquire(timeoutWrapper.callback);
             }
+            // 连接无效，销毁并重试
+            this.destroyConnection(connection);
+            return this.acquire(timeoutWrapper.callback);
         }
 
         // 检查是否可以创建新连接
@@ -181,7 +185,7 @@ class ConnectionPool extends EventEmitter {
 
         // 设置连接错误处理
         if (connection && typeof connection.on === 'function') {
-            connection.on('error', (err) => {
+            connection.on('error', err => {
                 logger.error('Connection error:', err);
                 this.connectionStats.errors++;
                 this.destroyConnection(connection);
@@ -245,7 +249,7 @@ class ConnectionPool extends EventEmitter {
     startMaintenanceTimer() {
         const maintenanceTimer = setInterval(() => {
             this.performMaintenance();
-        }, 60000); // 每分钟执行一次
+        }, 60_000); // 每分钟执行一次
 
         this.timers.add(maintenanceTimer);
     }

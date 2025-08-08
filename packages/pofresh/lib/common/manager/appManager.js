@@ -6,7 +6,7 @@ const transactionErrorLogger = require('pofresh-logger').getLogger('transaction-
 
 const manager = module.exports;
 
-manager.transaction = function (name, conditions, handlers, retry) {
+manager.transaction = (name, conditions, handlers, retry) => {
     if (!retry) {
         retry = 1;
     }
@@ -44,14 +44,14 @@ manager.transaction = function (name, conditions, handlers, retry) {
     // execute conditions
     async.forEachSeries(
         cmethods,
-        function (method, cb) {
+        (method, cb) => {
             method(cb);
             transactionLogger.info('[%s]:[%s] condition is executed.', name, cnames[i]);
             i++;
         },
-        function (err) {
+        err => {
             if (err) {
-                process.nextTick(function () {
+                process.nextTick(() => {
                     transactionLogger.error(
                         '[%s]:[%s] condition is executed with err: %j.',
                         name,
@@ -59,7 +59,7 @@ manager.transaction = function (name, conditions, handlers, retry) {
                         err.stack
                     );
                     const log = {
-                        name: name,
+                        name,
                         method: cnames[i],
                         time: Date.now(),
                         type: 'condition',
@@ -68,83 +68,80 @@ manager.transaction = function (name, conditions, handlers, retry) {
                     transactionErrorLogger.error(JSON.stringify(log));
                 });
                 return;
-            } else {
-                // execute handlers
-                process.nextTick(function () {
-                    for (const key in handlers) {
-                        if (typeof key !== 'string' || typeof handlers[key] !== 'function') {
-                            logger.error(
-                                'transcation handlers parameter is error format, handler name: %s, handler function: %j.',
-                                key,
-                                handlers[key]
-                            );
-                            return;
-                        }
-                        dnames.push(key);
-                        dmethods.push(handlers[key]);
-                    }
-
-                    let flag = true;
-                    const times = retry;
-
-                    // do retry if failed util retry times
-                    async.whilst(
-                        function () {
-                            return retry > 0 && flag;
-                        },
-                        function (callback) {
-                            let j = 0;
-                            retry--;
-                            async.forEachSeries(
-                                dmethods,
-                                function (method, cb) {
-                                    method(cb);
-                                    transactionLogger.info('[%s]:[%s] handler is executed.', name, dnames[j]);
-                                    j++;
-                                },
-                                function (err) {
-                                    if (err) {
-                                        process.nextTick(function () {
-                                            transactionLogger.error(
-                                                '[%s]:[%s]:[%s] handler is executed with err: %j.',
-                                                name,
-                                                dnames[--j],
-                                                times - retry,
-                                                err.stack
-                                            );
-                                            const log = {
-                                                name: name,
-                                                method: dnames[j],
-                                                retry: times - retry,
-                                                time: Date.now(),
-                                                type: 'handler',
-                                                description: err.stack
-                                            };
-                                            transactionErrorLogger.error(JSON.stringify(log));
-                                            utils.invokeCallback(callback);
-                                        });
-                                        return;
-                                    }
-                                    flag = false;
-                                    utils.invokeCallback(callback);
-                                    process.nextTick(function () {
-                                        transactionLogger.info(
-                                            '[%s] all conditions and handlers are executed successfully.',
-                                            name
-                                        );
-                                    });
-                                }
-                            );
-                        },
-                        function (err) {
-                            if (err) {
-                                logger.error('transaction process is executed with error: %j', err);
-                            }
-                            // callback will not pass error
-                        }
-                    );
-                });
             }
+            // execute handlers
+            process.nextTick(() => {
+                for (const key in handlers) {
+                    if (typeof key !== 'string' || typeof handlers[key] !== 'function') {
+                        logger.error(
+                            'transcation handlers parameter is error format, handler name: %s, handler function: %j.',
+                            key,
+                            handlers[key]
+                        );
+                        return;
+                    }
+                    dnames.push(key);
+                    dmethods.push(handlers[key]);
+                }
+
+                let flag = true;
+                const times = retry;
+
+                // do retry if failed util retry times
+                async.whilst(
+                    () => retry > 0 && flag,
+                    callback => {
+                        let j = 0;
+                        retry--;
+                        async.forEachSeries(
+                            dmethods,
+                            (method, cb) => {
+                                method(cb);
+                                transactionLogger.info('[%s]:[%s] handler is executed.', name, dnames[j]);
+                                j++;
+                            },
+                            err => {
+                                if (err) {
+                                    process.nextTick(() => {
+                                        transactionLogger.error(
+                                            '[%s]:[%s]:[%s] handler is executed with err: %j.',
+                                            name,
+                                            dnames[--j],
+                                            times - retry,
+                                            err.stack
+                                        );
+                                        const log = {
+                                            name,
+                                            method: dnames[j],
+                                            retry: times - retry,
+                                            time: Date.now(),
+                                            type: 'handler',
+                                            description: err.stack
+                                        };
+                                        transactionErrorLogger.error(JSON.stringify(log));
+                                        utils.invokeCallback(callback);
+                                    });
+                                    return;
+                                }
+                                flag = false;
+                                utils.invokeCallback(callback);
+                                process.nextTick(() => {
+                                    transactionLogger.info(
+                                        '[%s] all conditions and handlers are executed successfully.',
+                                        name
+                                    );
+                                });
+                            }
+                        );
+                    },
+                    err => {
+                        if (err) {
+                            logger.error('transaction process is executed with error: %j', err);
+                        }
+                        // callback will not pass error
+                    }
+                );
+            });
         }
     );
 };

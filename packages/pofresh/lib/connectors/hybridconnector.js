@@ -36,15 +36,14 @@ class Connector extends EventEmitter {
      */
     start(cb) {
         const app = require('../pofresh').app;
-        const self = this;
 
-        const gensocket = function (socket) {
+        const gensocket = socket => {
             const hybridsocket = new HybridSocket(curId++, socket);
-            hybridsocket.on('handshake', self.handshake.handle.bind(self.handshake, hybridsocket));
-            hybridsocket.on('heartbeat', self.heartbeat.handle.bind(self.heartbeat, hybridsocket));
-            hybridsocket.on('disconnect', self.heartbeat.clear.bind(self.heartbeat, hybridsocket.id));
+            hybridsocket.on('handshake', this.handshake.handle.bind(this.handshake, hybridsocket));
+            hybridsocket.on('heartbeat', this.heartbeat.handle.bind(this.heartbeat, hybridsocket));
+            hybridsocket.on('disconnect', this.heartbeat.clear.bind(this.heartbeat, hybridsocket.id));
             hybridsocket.on('closing', Kick.handle.bind(null, hybridsocket));
-            self.emit('connection', hybridsocket);
+            this.emit('connection', hybridsocket);
         };
 
         this.connector = app.components.__connector__.connector;
@@ -52,14 +51,14 @@ class Connector extends EventEmitter {
         this.protobuf = app.components.__protobuf__;
         this.decodeIO_protobuf = app.components.__decodeIO__protobuf__;
 
-        if (!this.ssl) {
-            this.listeningServer = net.createServer();
-        } else {
+        if (this.ssl) {
             this.listeningServer = tls.createServer(this.ssl);
+        } else {
+            this.listeningServer = net.createServer();
         }
-        this.switcher = new Switcher(this.listeningServer, self.opts);
+        this.switcher = new Switcher(this.listeningServer, this.opts);
 
-        this.switcher.on('connection', function (socket) {
+        this.switcher.on('connection', socket => {
             gensocket(socket);
         });
 

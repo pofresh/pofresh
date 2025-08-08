@@ -5,9 +5,7 @@
 const DefaultScheduler = require('../pushSchedulers/direct');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
-module.exports = function (app, opts) {
-    return new PushScheduler(app, opts);
-};
+module.exports = (app, opts) => new PushScheduler(app, opts);
 
 class PushScheduler {
     constructor(app, opts) {
@@ -73,25 +71,22 @@ class PushScheduler {
      * @param  {Function} cb
      */
     schedule(reqId, route, msg, recvs, opts, cb) {
-        const self = this;
-        if (self.isSelectable) {
-            if (typeof self.selector === 'function') {
-                self.selector(reqId, route, msg, recvs, opts, function (id) {
-                    if (self.scheduler[id] && typeof self.scheduler[id].schedule === 'function') {
-                        self.scheduler[id].schedule(reqId, route, msg, recvs, opts, cb);
+        if (this.isSelectable) {
+            if (typeof this.selector === 'function') {
+                this.selector(reqId, route, msg, recvs, opts, id => {
+                    if (this.scheduler[id] && typeof this.scheduler[id].schedule === 'function') {
+                        this.scheduler[id].schedule(reqId, route, msg, recvs, opts, cb);
                     } else {
                         logger.error('invalid pushScheduler id, id: %j', id);
                     }
                 });
             } else {
-                logger.error('the selector for pushScheduler is not a function, selector: %j', self.selector);
+                logger.error('the selector for pushScheduler is not a function, selector: %j', this.selector);
             }
+        } else if (typeof this.scheduler.schedule === 'function') {
+            this.scheduler.schedule(reqId, route, msg, recvs, opts, cb);
         } else {
-            if (typeof self.scheduler.schedule === 'function') {
-                self.scheduler.schedule(reqId, route, msg, recvs, opts, cb);
-            } else {
-                logger.error('the scheduler does not have a schedule function, scheduler: %j', self.scheduler);
-            }
+            logger.error('the scheduler does not have a schedule function, scheduler: %j', this.scheduler);
         }
     }
 }
@@ -104,7 +99,7 @@ function getScheduler(pushSchedulerComp, app, opts) {
 
     if (Array.isArray(scheduler)) {
         const res = {};
-        scheduler.forEach(function (sch) {
+        scheduler.forEach(sch => {
             if (typeof sch.scheduler === 'function') {
                 res[sch.id] = new sch.scheduler(app, sch.options);
             } else {

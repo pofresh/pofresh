@@ -1,23 +1,23 @@
 [
-  {
-    "id": "user-1",
-    "username": "admin",
-    "password": "{{GENERATE_SECURE_PASSWORD}}",
-    "level": 1,
-    "note": "首次启动时自动生成安全密码，请在logs/admin-password.log中查看"
-  },
-  {
-    "id": "user-2",
-    "username": "monitor",
-    "password": "{{GENERATE_SECURE_PASSWORD}}",
-    "level": 2,
-    "note": "只读权限用户"
-  },
-  {
-    "id": "user-3",
-    "username": "test",
-    "password": "{{GENERATE_SECURE_PASSWORD}}",
-    "level": 2,
-    "note": "测试用户"
-  }
+    {
+        "id": "user-1",
+        "username": "admin",
+        "password": "{{GENERATE_SECURE_PASSWORD}}",
+        "level": 1,
+        "note": "首次启动时自动生成安全密码，请在logs/admin-password.log中查看"
+    },
+    {
+        "id": "user-2",
+        "username": "monitor",
+        "password": "{{GENERATE_SECURE_PASSWORD}}",
+        "level": 2,
+        "note": "只读权限用户"
+    },
+    {
+        "id": "user-3",
+        "username": "test",
+        "password": "{{GENERATE_SECURE_PASSWORD}}",
+        "level": 2,
+        "note": "测试用户"
+    }
 ]

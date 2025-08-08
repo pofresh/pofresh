@@ -5,9 +5,7 @@
 const conLogger = require('pofresh-logger').getLogger('con-log', __filename);
 const utils = require('../../util/utils');
 
-module.exports = function () {
-    return new Filter();
-};
+module.exports = () => new Filter();
 
 class Filter {
     before(msg, session, next) {
@@ -23,7 +21,7 @@ class Filter {
                 route: msg.__route__,
                 args: msg,
                 time: utils.format(new Date(start)),
-                timeUsed: timeUsed
+                timeUsed
             };
             conLogger.info(JSON.stringify(log));
         }

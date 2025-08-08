@@ -6,32 +6,32 @@ taskManager.timeout = 100;
 
 const WAIT_TIME = 200;
 
-describe('#taskManager', function () {
-    it('should add task and execute it', function (done) {
+describe('#taskManager', () => {
+    it('should add task and execute it', done => {
         const key = 'key-1';
-        const fn = function (task) {
+        const fn = task => {
             taskCount++;
             task.done();
         };
-        const onTimeout = function () {
+        const onTimeout = () => {
             should.fail('should not timeout.');
         };
         let taskCount = 0;
 
         taskManager.addTask(key, fn, onTimeout);
 
-        setTimeout(function () {
+        setTimeout(() => {
             taskCount.should.equal(1);
             done();
         }, WAIT_TIME);
     });
 
-    it('should fire timeout callback if task timeout', function (done) {
+    it('should fire timeout callback if task timeout', done => {
         const key = 'key-1';
-        const fn = function (task) {
+        const fn = task => {
             taskCount++;
         };
-        const onTimeout = function () {
+        const onTimeout = () => {
             timeoutCount++;
         };
         let taskCount = 0;
@@ -39,19 +39,19 @@ describe('#taskManager', function () {
 
         taskManager.addTask(key, fn, onTimeout);
 
-        setTimeout(function () {
+        setTimeout(() => {
             taskCount.should.equal(1);
             timeoutCount.should.equal(1);
             done();
         }, WAIT_TIME);
     });
 
-    it('should not fire timeout after close the task', function (done) {
+    it('should not fire timeout after close the task', done => {
         const key = 'key-1';
-        const fn = function (task) {
+        const fn = task => {
             taskCount++;
         };
-        const onTimeout = function () {
+        const onTimeout = () => {
             timeoutCount++;
         };
         let taskCount = 0;
@@ -59,10 +59,10 @@ describe('#taskManager', function () {
 
         taskManager.addTask(key, fn, onTimeout);
 
-        process.nextTick(function () {
+        process.nextTick(() => {
             taskManager.closeQueue(key, true);
 
-            setTimeout(function () {
+            setTimeout(() => {
                 taskCount.should.equal(1);
                 timeoutCount.should.equal(0);
                 done();
@@ -70,7 +70,7 @@ describe('#taskManager', function () {
         });
     });
 
-    it('should be ok to remove a queue not exist', function () {
+    it('should be ok to remove a queue not exist', () => {
         const key = 'key-n';
         taskManager.closeQueue(key, true);
     });

@@ -1,12 +1,12 @@
 const utils = require('../../lib/util/utils');
 
-describe('utils test', function () {
-    describe('#invokeCallback', function () {
-        it('should invoke the function with the parameters', function () {
+describe('utils test', () => {
+    describe('#invokeCallback', () => {
+        it('should invoke the function with the parameters', () => {
             const p1 = 1,
                 p2 = 'str';
 
-            const func = function (arg1, arg2) {
+            const func = (arg1, arg2) => {
                 p1.should.equal(arg1);
                 p2.should.equal(arg2);
             };
@@ -14,36 +14,36 @@ describe('utils test', function () {
             utils.invokeCallback(func, p1, p2);
         });
 
-        it('should ok if cb is null', function () {
+        it('should ok if cb is null', () => {
             const p1 = 1,
                 p2 = 'str';
-            (function () {
+            (() => {
                 utils.invokeCallback(null, p1, p2);
             }).should.not.throw();
         });
     });
 
-    describe('#size', function () {
-        it('should return the own property count of the object', function () {
+    describe('#size', () => {
+        it('should return the own property count of the object', () => {
             const obj = {
                 p1: 'str',
                 p2: 1,
-                m1: function () {}
+                m1() {}
             };
 
             utils.size(obj).should.equal(2);
         });
     });
 
-    describe('#startsWith', function () {
-        it('should return true if the string do start with the prefix', function () {
+    describe('#startsWith', () => {
+        it('should return true if the string do start with the prefix', () => {
             const src = 'prefix with a string';
             const prefix = 'prefix';
 
             utils.startsWith(src, prefix).should.be.true;
         });
 
-        it('should return false if the string not start with the prefix', function () {
+        it('should return false if the string not start with the prefix', () => {
             const src = 'prefix with a string';
             let prefix = 'prefix222';
 
@@ -53,20 +53,20 @@ describe('utils test', function () {
             utils.startsWith(src, prefix).should.be.false;
         });
 
-        it('should return false if the src not a string', function () {
+        it('should return false if the src not a string', () => {
             utils.startsWith(1, 'str').should.be.false;
         });
     });
 
-    describe('#endsWith', function () {
-        it('should return true if the string do end with the prefix', function () {
+    describe('#endsWith', () => {
+        it('should return true if the string do end with the prefix', () => {
             const src = 'string with a suffix';
             const suffix = 'suffix';
 
             utils.endsWith(src, suffix).should.be.true;
         });
 
-        it('should return false if the string not end with the prefix', function () {
+        it('should return false if the string not end with the prefix', () => {
             const src = 'string with a suffix';
             let suffix = 'suffix222';
 
@@ -76,37 +76,37 @@ describe('utils test', function () {
             utils.endsWith(src, suffix).should.be.false;
         });
 
-        it('should return false if the src not a string', function () {
+        it('should return false if the src not a string', () => {
             utils.endsWith(1, 'str').should.be.false;
         });
     });
 
-    describe('#hasChineseChar', function () {
-        it('should return false if the string does not have any Chinese characters', function () {
+    describe('#hasChineseChar', () => {
+        it('should return false if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
             utils.hasChineseChar(src).should.be.false;
         });
 
-        it('should return true if the string has Chinese characters', function () {
+        it('should return true if the string has Chinese characters', () => {
             const src = 'string with Chinese characters 你好';
             utils.hasChineseChar(src).should.be.true;
         });
     });
 
-    describe('#unicodeToUtf8', function () {
-        it('should return the origin string if the string does not have any Chinese characters', function () {
+    describe('#unicodeToUtf8', () => {
+        it('should return the origin string if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
             utils.unicodeToUtf8(src).should.equal(src);
         });
 
-        it('should not return the origin string if the string has Chinese characters', function () {
+        it('should not return the origin string if the string has Chinese characters', () => {
             const src = 'string with Chinese characters 你好';
             utils.unicodeToUtf8(src).should.not.equal(src);
         });
     });
 
-    describe('#isLocal', function () {
-        it('should return true if the ip is local', function () {
+    describe('#isLocal', () => {
+        it('should return true if the ip is local', () => {
             const ip = '127.0.0.1';
             const host = 'localhost';
             const other = '192.168.1.1';
@@ -116,8 +116,8 @@ describe('utils test', function () {
         });
     });
 
-    describe('#loadCluster', function () {
-        it('should produce cluster servers', function () {
+    describe('#loadCluster', () => {
+        it('should produce cluster servers', () => {
             const clusterServer = {
                 host: '127.0.0.1',
                 port: '3010++',
@@ -132,8 +132,8 @@ describe('utils test', function () {
         });
     });
 
-    describe('#arrayDiff', function () {
-        it('should return the difference of two arrays', function () {
+    describe('#arrayDiff', () => {
+        it('should return the difference of two arrays', () => {
             const array1 = [1, 2, 3, 4, 5];
             const array2 = [1, 2, 3];
             const array = utils.arrayDiff(array1, array2);
@@ -141,8 +141,8 @@ describe('utils test', function () {
         });
     });
 
-    describe('#extends', function () {
-        it('should extends opts', function () {
+    describe('#extends', () => {
+        it('should extends opts', () => {
             const opts = {
                 test: 123
             };
@@ -157,12 +157,12 @@ describe('utils test', function () {
         });
     });
 
-    describe('#ping', function () {
-        it('should ping server', function () {
-            utils.ping('127.0.0.1', function (flag) {
+    describe('#ping', () => {
+        it('should ping server', () => {
+            utils.ping('127.0.0.1', flag => {
                 flag.should.be.true;
             });
-            utils.ping('111.111.111.111', function (flag) {
+            utils.ping('111.111.111.111', flag => {
                 flag.should.be.false;
             });
         });

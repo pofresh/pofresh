@@ -11,7 +11,7 @@ const exp = module.exports;
 /**
  * Initialize application configuration.
  */
-exp.defaultConfiguration = function (app) {
+exp.defaultConfiguration = app => {
     const args = parseArgs(process.argv);
     setupEnv(app, args);
     loadMaster(app);
@@ -23,7 +23,7 @@ exp.defaultConfiguration = function (app) {
 /**
  * Start servers by type.
  */
-exp.startByType = function (app, cb) {
+exp.startByType = (app, cb) => {
     loadLifecycle(app, app.enabled(Constants.LIFECYCLE.RELOAD));
 
     if (app.startId) {
@@ -32,19 +32,17 @@ exp.startByType = function (app, cb) {
         } else {
             starter.runServers(app);
         }
+    } else if (!!app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER) {
+        starter.runServers(app);
     } else {
-        if (!!app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER) {
-            starter.runServers(app);
-        } else {
-            utils.invokeCallback(cb);
-        }
+        utils.invokeCallback(cb);
     }
 };
 
 /**
  * Load default components for application.
  */
-exp.loadDefaultComponents = function (app) {
+exp.loadDefaultComponents = app => {
     const pofresh = require('../pofresh');
     // load system default components
     if (app.serverType === Constants.RESERVED.MASTER) {
@@ -75,14 +73,14 @@ exp.loadDefaultComponents = function (app) {
  * @param  {Boolean}  force whether stop component immediately
  * @param  {Function} cb
  */
-exp.stopComps = function (comps, index, force, cb) {
+exp.stopComps = (comps, index, force, cb) => {
     if (index >= comps.length) {
         utils.invokeCallback(cb);
         return;
     }
     const comp = comps[index];
     if (typeof comp.stop === 'function') {
-        comp.stop(force, function () {
+        comp.stop(force, () => {
             // ignore any error
             exp.stopComps(comps, index + 1, force, cb);
         });
@@ -100,17 +98,17 @@ exp.stopComps = function (comps, index, force, cb) {
  * @param {String} method component lifecycle method name, such as: start, stop
  * @param {Function} cb
  */
-exp.optComponents = function (comps, method, cb) {
+exp.optComponents = (comps, method, cb) => {
     async.forEachSeries(
         comps,
-        function (comp, done) {
+        (comp, done) => {
             if (typeof comp[method] === 'function') {
                 comp[method](done);
             } else {
                 done();
             }
         },
-        function (err) {
+        err => {
             if (err) {
                 if (typeof err === 'string') {
                     logger.error('fail to operate component, method: %s, err: %j', method, err);

@@ -177,7 +177,7 @@ OutputBuffer.prototype.grow = function (minCapacity) {
         throw new Error('OutOfMemoryError');
     }
     if (newCapacity < 0) {
-        newCapacity = 0x7fffffff; // Integer.MAX_VALUE
+        newCapacity = 0x7f_ff_ff_ff; // Integer.MAX_VALUE
     }
 
     // console.log('grow minCapacity %d newCapacity %d', minCapacity, newCapacity);

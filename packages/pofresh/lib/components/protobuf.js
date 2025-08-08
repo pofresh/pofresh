@@ -5,9 +5,7 @@ const Constants = require('../util/constants');
 const crypto = require('crypto');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 class Component {
     constructor(app, opts) {
@@ -44,7 +42,10 @@ class Component {
         this.setProtos(Constants.RESERVED.SERVER, path.join(app.getBase(), this.serverProtosPath));
         this.setProtos(Constants.RESERVED.CLIENT, path.join(app.getBase(), this.clientProtosPath));
 
-        protobuf.init({ encoderProtos: this.serverProtos, decoderProtos: this.clientProtos });
+        protobuf.init({
+            encoderProtos: this.serverProtos,
+            decoderProtos: this.clientProtos
+        });
     }
 
     encode(key, msg) {
@@ -99,22 +100,20 @@ class Component {
         if (event !== 'change') {
             return;
         }
-
-        const self = this;
-        fs.readFile(path, 'utf8', function (err, data) {
+        fs.readFile(path, 'utf8', (err, data) => {
             try {
                 const protos = protobuf.parse(JSON.parse(data));
                 if (type === Constants.RESERVED.SERVER) {
                     protobuf.setEncoderProtos(protos);
-                    self.serverProtos = protos;
+                    this.serverProtos = protos;
                 } else {
                     protobuf.setDecoderProtos(protos);
-                    self.clientProtos = protos;
+                    this.clientProtos = protos;
                 }
 
-                const protoStr = JSON.stringify(self.clientProtos) + JSON.stringify(self.serverProtos);
-                self.version = crypto.createHash('md5').update(protoStr).digest('base64');
-                logger.info('change proto file , type : %j, path : %j, version : %j', type, path, self.version);
+                const protoStr = JSON.stringify(this.clientProtos) + JSON.stringify(this.serverProtos);
+                this.version = crypto.createHash('md5').update(protoStr).digest('base64');
+                logger.info('change proto file , type : %j, path : %j, version : %j', type, path, this.version);
             } catch (e) {
                 logger.warn('change proto file error! path : %j', path);
                 logger.warn(e);

@@ -12,12 +12,11 @@ const fs = require('fs');
 const ProfileProxy = require('../util/profileProxy');
 const path = require('path');
 
-module.exports = function (opts) {
-    if (!profiler) {
-        return {};
-    } else {
+module.exports = opts => {
+    if (profiler) {
         return new Module(opts);
     }
+    return {};
 };
 
 if (!profiler) {
@@ -60,7 +59,7 @@ class Module {
                     res.head = result.getTopDownRoot();
                     res.bottomUpHead = result.getBottomUpRoot();
                     res.msg = msg;
-                    agent.notify(moduleId, { clientId: msg.clientId, type: type, body: res });
+                    agent.notify(moduleId, { clientId: msg.clientId, type, body: res });
                     cb && cb(null, 'CPU profiling stopped');
                 }
             } else {
@@ -78,34 +77,38 @@ class Module {
                 let data;
 
                 // 添加错误处理
-                log.on('error', (err) => {
+                log.on('error', err => {
                     logger.error('Failed to write heap snapshot:', err);
                     cb && cb(err);
                 });
 
                 snapshot.serialize({
-                    onData: function (chunk) {
+                    onData(chunk) {
                         try {
                             chunk = chunk + '';
                             data = {
                                 method: 'Profiler.addHeapSnapshotChunk',
                                 params: {
-                                    uid: uid,
-                                    chunk: chunk
+                                    uid,
+                                    chunk
                                 }
                             };
                             log.write(chunk);
-                            agent.notify(moduleId, { clientId: msg.clientId, type: type, body: data });
+                            agent.notify(moduleId, {
+                                clientId: msg.clientId,
+                                type,
+                                body: data
+                            });
                         } catch (err) {
                             logger.error('Error processing heap snapshot chunk:', err);
                         }
                     },
-                    onEnd: function () {
+                    onEnd() {
                         try {
                             agent.notify(moduleId, {
                                 clientId: msg.clientId,
-                                type: type,
-                                body: { params: { uid: uid } }
+                                type,
+                                body: { params: { uid } }
                             });
                             profiler.deleteAllSnapshots();
                             log.end(); // 确保文件流正确关闭

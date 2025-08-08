@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const helpCommand = 'help add';
 
@@ -19,7 +17,7 @@ class Command {
 
         const argvs = util.argsFilter(argv);
 
-        rl.question(consts.ADD_QUESTION_INFO, function (answer) {
+        rl.question(consts.ADD_QUESTION_INFO, answer => {
             if (answer === 'yes') {
                 client.request(
                     consts.CONSOLE_MODULE,
@@ -27,7 +25,7 @@ class Command {
                         signal: 'add',
                         args: argvs.slice(1)
                     },
-                    function (err, data) {
+                    (err, data) => {
                         if (err) {
                             util.log('Error adding server: ' + err);
                         } else {

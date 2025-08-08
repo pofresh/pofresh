@@ -25,14 +25,14 @@ class Switcher extends EventEmitter {
         this.timeout = (opts.timeout || DEFAULT_TIMEOUT) * 1000;
         this.setNoDelay = opts.setNoDelay;
 
-        if (!opts.ssl) {
-            this.server.on('connection', this.newSocket.bind(this));
-        } else {
+        if (opts.ssl) {
             this.server.on('secureConnection', this.newSocket.bind(this));
-            this.server.on('clientError', function (e, tlsSo) {
+            this.server.on('clientError', (e, tlsSo) => {
                 logger.warn('an ssl error occured before handshake established: ', e);
                 tlsSo.destroy();
             });
+        } else {
+            this.server.on('connection', this.newSocket.bind(this));
         }
 
         this.wsprocessor.on('connection', this.emit.bind(this, 'connection'));
@@ -46,7 +46,7 @@ class Switcher extends EventEmitter {
             return;
         }
 
-        socket.setTimeout(this.timeout, function () {
+        socket.setTimeout(this.timeout, () => {
             logger.warn(
                 'connection is timeout without communication, the remote ip is %s && port is %s',
                 socket.remoteAddress,
@@ -55,17 +55,15 @@ class Switcher extends EventEmitter {
             socket.destroy();
         });
 
-        const self = this;
-
-        socket.once('data', function (data) {
+        socket.once('data', data => {
             // HTTP method handling
             if (isHttp(data)) {
-                processHttp(self, self.wsprocessor, socket, data);
+                processHttp(this, this.wsprocessor, socket, data);
             } else {
-                if (self.setNoDelay) {
+                if (this.setNoDelay) {
                     socket.setNoDelay(true);
                 }
-                processTcp(self, self.tcpprocessor, socket, data);
+                processTcp(this, this.tcpprocessor, socket, data);
             }
         });
     }

@@ -24,13 +24,12 @@ class StatusService {
         }
 
         if (typeof this.manager.start === 'function') {
-            const self = this;
-            this.manager.start(function (err) {
+            this.manager.start(err => {
                 if (!err) {
-                    self.state = ST_STARTED;
+                    this.state = ST_STARTED;
                 }
-                if (self.cleanOnStartUp) {
-                    self.manager.clean(function (err) {
+                if (this.cleanOnStartUp) {
+                    this.manager.clean(err => {
                         utils.invokeCallback(cb, err);
                     });
                 } else {
@@ -38,7 +37,7 @@ class StatusService {
                 }
             });
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -50,7 +49,7 @@ class StatusService {
         if (typeof this.manager.stop === 'function') {
             this.manager.stop(force, cb);
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -88,7 +87,7 @@ class StatusService {
             return;
         }
 
-        this.manager.getSidsByUid(uid, function (err, list) {
+        this.manager.getSidsByUid(uid, (err, list) => {
             if (err) {
                 utils.invokeCallback(
                     cb,
@@ -111,7 +110,7 @@ class StatusService {
             return;
         }
 
-        this.manager.getSidsByUids(uids, function (err, replies) {
+        this.manager.getSidsByUids(uids, (err, replies) => {
             if (err) {
                 utils.invokeCallback(
                     cb,
@@ -140,22 +139,22 @@ class StatusService {
         const count = utils.size(uids);
         const records = [];
 
-        const latch = countDownLatch.createCountDownLatch(count, function () {
-            if (!successFlag) {
-                utils.invokeCallback(cb, new Error(util.format('failed to get sids for uids: %j', uids)), null);
-                return;
-            } else {
+        const latch = countDownLatch.createCountDownLatch(count, () => {
+            if (successFlag) {
                 if (records != null && records.length !== 0) {
                     channelService.pushMessageByUids(route, msg, records, cb);
                 } else {
                     utils.invokeCallback(cb, null, null);
                 }
+            } else {
+                utils.invokeCallback(cb, new Error(util.format('failed to get sids for uids: %j', uids)), null);
+                return;
             }
         });
 
         for (let i = 0; i < uids.length; i++) {
-            (function (self, arg) {
-                self.getSidsByUid(uids[arg], function (err, list) {
+            ((self, arg) => {
+                self.getSidsByUid(uids[arg], (err, list) => {
                     if (err) {
                         utils.invokeCallback(
                             cb,
@@ -178,7 +177,7 @@ class StatusService {
     }
 }
 
-const getStatusManager = function (app, opts) {
+const getStatusManager = (app, opts) => {
     let manager;
 
     if (typeof opts.statusManager === 'function') {

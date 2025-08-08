@@ -38,7 +38,7 @@ class SecurityUtils {
         } catch (e) {
             // Fallback to crypto-based hashing
             const salt = crypto.randomBytes(16).toString('hex');
-            const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+            const hash = crypto.pbkdf2Sync(password, salt, 10_000, 64, 'sha512').toString('hex');
             return `${salt}:${hash}`;
         }
     }
@@ -59,7 +59,7 @@ class SecurityUtils {
         } catch (e) {
             // Fallback to crypto format
             const [salt, originalHash] = hash.split(':');
-            const newHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+            const newHash = crypto.pbkdf2Sync(password, salt, 10_000, 64, 'sha512').toString('hex');
             return originalHash === newHash;
         }
     }
@@ -83,8 +83,8 @@ class SecurityUtils {
 
             config.forEach(user => {
                 if (user.password === '{{GENERATE_SECURE_PASSWORD}}') {
-                    const newPassword = this.generateSecurePassword();
-                    user.password = this.hashPassword(newPassword);
+                    const newPassword = SecurityUtils.generateSecurePassword();
+                    user.password = SecurityUtils.hashPassword(newPassword);
                     passwords[user.username] = newPassword;
                 }
             });
@@ -102,11 +102,13 @@ class SecurityUtils {
 
             const logEntry = {
                 timestamp: new Date().toISOString(),
-                passwords: passwords,
+                passwords,
                 note: 'Generated on first startup. Change these passwords immediately.'
             };
 
-            fs.writeFileSync(logPath, JSON.stringify(logEntry, null, 2), { mode: 0o600 });
+            fs.writeFileSync(logPath, JSON.stringify(logEntry, null, 2), {
+                mode: 0o600
+            });
 
             logger.warn('Admin passwords generated and stored in %s', logPath);
             logger.warn('IMPORTANT: Change these passwords immediately after first login!');
@@ -121,8 +123,8 @@ class SecurityUtils {
      * @returns {boolean} Port validity
      */
     static isValidPort(port) {
-        const portNum = parseInt(port, 10);
-        return !isNaN(portNum) && portNum > 0 && portNum <= 65535;
+        const portNum = Number.parseInt(port, 10);
+        return !isNaN(portNum) && portNum > 0 && portNum <= 65_535;
     }
 
     /**

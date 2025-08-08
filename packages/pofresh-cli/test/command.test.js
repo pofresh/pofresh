@@ -1,4 +1,3 @@
-
 describe('Command', () => {
     let Command;
     let command;

@@ -12,6 +12,4 @@ class Service {
     }
 }
 
-module.exports = function () {
-    return new Service();
-};
+module.exports = () => new Service();

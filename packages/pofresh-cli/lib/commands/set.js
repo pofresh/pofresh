@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const commandId = 'set';
 const helpCommand = 'help set';
@@ -45,7 +43,7 @@ class Command {
                 param,
                 context: Context
             },
-            function (err, data) {
+            (err, data) => {
                 if (err) console.error(err);
                 else util.formatOutput(commandId, data);
                 rl.prompt();

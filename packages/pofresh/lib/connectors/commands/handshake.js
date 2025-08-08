@@ -36,11 +36,12 @@ class Command {
             return;
         }
 
-        if (typeof this.checkClient === 'function') {
-            if (!msg || !msg.sys || !this.checkClient(msg.sys.type, msg.sys.version)) {
-                processError(socket, CODE_OLD_CLIENT);
-                return;
-            }
+        if (
+            typeof this.checkClient === 'function' &&
+            !(msg && msg.sys && this.checkClient(msg.sys.type, msg.sys.version))
+        ) {
+            processError(socket, CODE_OLD_CLIENT);
+            return;
         }
 
         const opts = {
@@ -86,14 +87,14 @@ class Command {
         if (typeof this.userHandshake === 'function') {
             this.userHandshake(
                 msg,
-                function (err, resp) {
+                (err, resp) => {
                     if (err) {
-                        process.nextTick(function () {
+                        process.nextTick(() => {
                             processError(socket, CODE_USE_ERROR);
                         });
                         return;
                     }
-                    process.nextTick(function () {
+                    process.nextTick(() => {
                         response(socket, opts, resp);
                     });
                 },
@@ -102,7 +103,7 @@ class Command {
             return;
         }
 
-        process.nextTick(function () {
+        process.nextTick(() => {
             response(socket, opts);
         });
     }
@@ -113,7 +114,7 @@ module.exports = Command;
 function response(socket, sys, resp) {
     const res = {
         code: CODE_OK,
-        sys: sys
+        sys
     };
     if (resp) {
         res.user = resp;
@@ -123,7 +124,7 @@ function response(socket, sys, resp) {
 
 function processError(socket, code) {
     const res = {
-        code: code
+        code
     };
     socket.sendForce(Package.encode(Package.TYPE_HANDSHAKE, Buffer.from(JSON.stringify(res))));
     process.nextTick(() => {

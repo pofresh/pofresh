@@ -34,7 +34,7 @@ describe('File Logging', () => {
     beforeEach(() => {
         // Save original environment
         originalEnv = { ...process.env };
-        
+
         // Create test log directory
         testLogDir = path.join(process.cwd(), 'test-logs');
         if (!fs.existsSync(testLogDir)) {
@@ -45,16 +45,16 @@ describe('File Logging', () => {
     afterEach(async () => {
         // Restore original environment
         process.env = originalEnv;
-        
+
         // Shutdown logger first
         logger.shutdown();
-        
+
         // Clean up test log files with retry mechanism for Windows
         if (fs.existsSync(testLogDir)) {
             try {
                 // Wait for file handles to be released
                 await new Promise(resolve => setTimeout(resolve, 100));
-                
+
                 const files = fs.readdirSync(testLogDir);
                 files.forEach(file => {
                     try {
@@ -63,7 +63,7 @@ describe('File Logging', () => {
                         console.warn(`Could not delete file ${file}:`, error.message);
                     }
                 });
-                
+
                 try {
                     fs.rmdirSync(testLogDir);
                 } catch (error) {
@@ -100,11 +100,11 @@ describe('File Logging', () => {
             console.log('Logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('file-test');
             console.log('Logger instance created:', testLogger.name);
-            
+
             testLogger.info('Test file logging message');
             testLogger.warn('Test warning message');
             testLogger.error('Test error message');
-            
+
             // Wait longer for file write to complete since we disabled batching
             await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -113,7 +113,7 @@ describe('File Logging', () => {
             if (fs.existsSync(logFile)) {
                 console.log(`Log file content: ${fs.readFileSync(logFile, 'utf8')}`);
             }
-            
+
             expect(fs.existsSync(logFile)).toBe(true);
             const logContent = fs.readFileSync(logFile, 'utf8');
             expect(logContent).toContain('Test file logging message');
@@ -145,16 +145,16 @@ describe('File Logging', () => {
 
             logger.configure(config);
             const testLogger = logger.getLogger('rotate-test');
-            
+
             testLogger.info('Test rotate logging message');
-            
+
             // Wait a bit for file write
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             // Check if log file with today's date exists
             const today = new Date().toISOString().split('T')[0];
             const expectedFile = path.join(testLogDir, `rotate-${today}.log`);
-            
+
             // Note: The actual file creation depends on winston-daily-rotate-file
             // We just ensure no errors are thrown
             expect(() => testLogger.info('Another message')).not.toThrow();
@@ -165,7 +165,7 @@ describe('File Logging', () => {
         it('should write to multiple appenders simultaneously', async () => {
             const logFile1 = path.join(testLogDir, 'app1.log');
             const logFile2 = path.join(testLogDir, 'app2.log');
-            
+
             const config = {
                 appenders: {
                     file1: {
@@ -195,9 +195,9 @@ describe('File Logging', () => {
             console.log('Multi-appender logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('multi-test');
             console.log('Multi-appender logger instance created:', testLogger.name);
-            
+
             testLogger.info('Multi-appender test message');
-            
+
             // Wait for file writes to complete
             await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -210,13 +210,13 @@ describe('File Logging', () => {
             if (fs.existsSync(logFile2)) {
                 console.log(`Log file 2 content: ${fs.readFileSync(logFile2, 'utf8')}`);
             }
-            
+
             expect(fs.existsSync(logFile1)).toBe(true);
             expect(fs.existsSync(logFile2)).toBe(true);
-            
+
             const content1 = fs.readFileSync(logFile1, 'utf8');
             const content2 = fs.readFileSync(logFile2, 'utf8');
-            
+
             expect(content1).toContain('Multi-appender test message');
             expect(content2).toContain('Multi-appender test message');
         });
@@ -247,15 +247,15 @@ describe('File Logging', () => {
             console.log('Level test logger configured with batch disabled:', JSON.stringify(config));
             const testLogger = logger.getLogger('level-test');
             console.log('Level test logger instance created:', testLogger.name);
-            
+
             testLogger.debug('Debug message - should not appear');
             testLogger.info('Info message - should not appear');
             testLogger.warn('Warning message - should appear');
             testLogger.error('Error message - should appear');
-            
+
             // Wait a bit for file write
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             const logContent = fs.readFileSync(logFile, 'utf8');
             expect(logContent).not.toContain('Debug message');
             expect(logContent).not.toContain('Info message');
@@ -274,7 +274,7 @@ describe('File Logging', () => {
                     default: { appenders: ['console'], level: 'info' }
                 }
             };
-            
+
             const config2 = {
                 appenders: {
                     console: { type: 'console' }
@@ -286,10 +286,10 @@ describe('File Logging', () => {
 
             logger.configure(config1);
             const testLogger1 = logger.getLogger('reload-test');
-            
+
             logger.configure(config2);
             const testLogger2 = logger.getLogger('reload-test');
-            
+
             // Should not throw errors
             expect(() => {
                 testLogger1.info('Message 1');

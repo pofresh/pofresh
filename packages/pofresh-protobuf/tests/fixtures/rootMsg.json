@@ -1,53 +1,53 @@
 {
-  "onMove": {
-    "required uInt32 entityId": 1,
-    "message Path": {
-      "required double x": 1,
-      "required double y": 2
+    "onMove": {
+        "required uInt32 entityId": 1,
+        "message Path": {
+            "required double x": 1,
+            "required double y": 2
+        },
+        "repeated Path path": 2,
+        "required float speed": 3
     },
-    "repeated Path path": 2,
-    "required float speed": 3
-  },
 
-  "area.playerHandler.enterScene": {
-    "message Entities": {
-      "repeated Entity item": 1,
-      "repeated Entity equipment": 2
-    },
-    "required Entities entities": 1,
-    "message Player": {
-      "required uInt32 entityId": 1,
-      "required uInt32 kindId": 2,
-      "required Bag bag": 3,
-      "repeated Entity equipments": 4
-    },
-    "required Player curPlayer": 2,
-    "message Map": {
-      "required string name": 1,
-      "required uInt32 width": 2,
-      "required uInt32 height": 3,
-      "required uInt32 tileW": 4,
-      "required uInt32 tileH": 5,
-      "repeated WeightMapEntry weightMap": 6
-    },
-    "required Map map": 3,
-    "message Entity": {
-      "required uInt32 entityId": 1,
-      "required uInt32 kindId": 2
-    },
-    "message Bag": {
-      "repeated Item items": 1
-    },
-    "message Item": {
-      "required uInt32 id": 1,
-      "required string type": 2
-    },
-    "message WeightMapEntry": {
-      "repeated Collision collisions": 1
-    },
-    "message Collision": {
-      "required uInt32 start": 1,
-      "required uInt32 length": 2
+    "area.playerHandler.enterScene": {
+        "message Entities": {
+            "repeated Entity item": 1,
+            "repeated Entity equipment": 2
+        },
+        "required Entities entities": 1,
+        "message Player": {
+            "required uInt32 entityId": 1,
+            "required uInt32 kindId": 2,
+            "required Bag bag": 3,
+            "repeated Entity equipments": 4
+        },
+        "required Player curPlayer": 2,
+        "message Map": {
+            "required string name": 1,
+            "required uInt32 width": 2,
+            "required uInt32 height": 3,
+            "required uInt32 tileW": 4,
+            "required uInt32 tileH": 5,
+            "repeated WeightMapEntry weightMap": 6
+        },
+        "required Map map": 3,
+        "message Entity": {
+            "required uInt32 entityId": 1,
+            "required uInt32 kindId": 2
+        },
+        "message Bag": {
+            "repeated Item items": 1
+        },
+        "message Item": {
+            "required uInt32 id": 1,
+            "required string type": 2
+        },
+        "message WeightMapEntry": {
+            "repeated Collision collisions": 1
+        },
+        "message Collision": {
+            "required uInt32 start": 1,
+            "required uInt32 length": 2
+        }
     }
-  }
 }

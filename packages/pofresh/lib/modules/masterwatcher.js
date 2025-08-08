@@ -3,9 +3,7 @@ const utils = require('../util/utils');
 const Constants = require('../util/constants');
 const MasterWatchdog = require('../master/watchdog');
 
-module.exports = function (opts, consoleService) {
-    return new Module(opts, consoleService);
-};
+module.exports = (opts, consoleService) => new Module(opts, consoleService);
 
 module.exports.moduleId = Constants.KEYWORDS.MASTER_WATCHER;
 
@@ -105,8 +103,8 @@ function record(module, agent, msg, cb) {
 }
 
 const masterMethods = {
-    subscribe: subscribe,
-    unsubscribe: unsubscribe,
-    query: query,
-    record: record
+    subscribe,
+    unsubscribe,
+    query,
+    record
 };

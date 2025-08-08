@@ -17,13 +17,13 @@ const servers = [{ id: 'test-server-1', serverType: 'test', host: '127.0.0.1', p
 const routeContext = servers;
 
 // route function to calculate the remote server id
-const routeFunc = function (_routeParam, _msg, routeContext, cb) {
+const routeFunc = (_routeParam, _msg, routeContext, cb) => {
     cb(null, routeContext[0].id);
 };
 
-const client = Client.create({ routeContext: routeContext, router: routeFunc, context: context });
+const client = Client.create({ routeContext, router: routeFunc, context });
 
-client.start(function (_err) {
+client.start(_err => {
     console.log('rpc client start ok.');
 
     client.addProxies(records);
@@ -32,13 +32,9 @@ client.start(function (_err) {
     let m = Buffer.from('hello');
     // const fs = require('fs');
     // m = fs.readFileSync('./skill.js').toString();
-    m = [
-        'onReloadSkill',
-        ['210108'],
-        { type: 'push', userOptions: {}, isPush: true }
-    ];
+    m = ['onReloadSkill', ['210108'], { type: 'push', userOptions: {}, isPush: true }];
 
-    client.proxies.user.test.service.echo.toServer('test-server-1', m, 'aaa', function (err, resp, data) {
+    client.proxies.user.test.service.echo.toServer('test-server-1', m, 'aaa', (err, resp, data) => {
         if (err) {
             console.error(err.stack);
         }
@@ -48,6 +44,6 @@ client.start(function (_err) {
     });
 });
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
     console.error(err);
 });

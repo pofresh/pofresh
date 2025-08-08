@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 const commandId = 'run';
 const helpCommand = 'help run';
 
@@ -38,7 +36,7 @@ class Command {
                 param: comd,
                 context: Context
             },
-            function (err, data) {
+            (err, data) => {
                 if (err) console.log(err);
                 else util.formatOutput(commandId, data);
                 rl.prompt();

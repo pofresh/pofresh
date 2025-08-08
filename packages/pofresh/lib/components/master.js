@@ -9,9 +9,7 @@ const Master = require('../master/master');
  * @param  {Object} app  current application context
  * @return {Object}      component instances
  */
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 /**
  * Master component class

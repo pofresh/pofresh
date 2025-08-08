@@ -8,7 +8,9 @@
         "test:run": "vitest --run",
         "test:watch": "vitest --watch",
         "test:coverage": "vitest --coverage --run",
-        "lint": "eslint --fix"
+        "lint": "ultracite lint",
+        "lint:fix": "ultracite format",
+        "format": "ultracite format"
     },
     "dependencies": {
         "winston": "^3.17.0",

@@ -147,7 +147,7 @@ describe('PriorityQueue', () => {
             }
 
             // Verify they come out in order
-            let prev = -Infinity;
+            let prev = Number.NEGATIVE_INFINITY;
             for (let i = 0; i < count; i++) {
                 const current = queue.pop();
                 expect(current).toBeGreaterThanOrEqual(prev);

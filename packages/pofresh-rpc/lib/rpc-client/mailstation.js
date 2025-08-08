@@ -92,7 +92,7 @@ class MailStation extends EventEmitter {
      * @param {Object} serverInfo server info such as {id, host, port}
      */
     addServer(serverInfo) {
-        if (!serverInfo || !serverInfo.id) {
+        if (!(serverInfo && serverInfo.id)) {
             return;
         }
 
@@ -117,7 +117,7 @@ class MailStation extends EventEmitter {
      * @param {Array} serverInfos server info list
      */
     addServers(serverInfos) {
-        if (!serverInfos || !serverInfos.length) {
+        if (!(serverInfos && serverInfos.length)) {
             return;
         }
         serverInfos.forEach(serverInfo => this.addServer(serverInfo));
@@ -154,7 +154,7 @@ class MailStation extends EventEmitter {
      * @param  {Array} ids server id list
      */
     removeServers(ids) {
-        if (!ids || !ids.length) {
+        if (!(ids && ids.length)) {
             return;
         }
         ids.forEach(id => this.removeServer(id));
@@ -177,7 +177,7 @@ class MailStation extends EventEmitter {
      */
     replaceServers(serverInfos) {
         this.clearStation();
-        if (!serverInfos || !serverInfos.length) {
+        if (!(serverInfos && serverInfos.length)) {
             return;
         }
 
@@ -206,7 +206,7 @@ class MailStation extends EventEmitter {
      * @return {Void}
      */
     dispatch(tracer, serverId, msg, opts, cb) {
-        cb = cb || function () {};
+        cb = cb || (() => {});
         tracer && tracer.info('client', __filename, 'dispatch', 'dispatch rpc message to the mailbox');
         tracer && (tracer.cb = cb);
         if (this.state !== STATE_STARTED) {
@@ -253,7 +253,7 @@ class MailStation extends EventEmitter {
                 self.emit('error', constants.RPC_ERROR.FAIL_FIND_MAILBOX, tracer, serverId, msg, opts);
                 return;
             }
-            mailbox.send(tracer, msg, opts, function (tracerSend, sendErr, args) {
+            mailbox.send(tracer, msg, opts, (tracerSend, sendErr, args) => {
                 // let tracerSend = arguments[0];
                 // let sendErr = arguments[1];
                 if (sendErr) {
@@ -273,7 +273,7 @@ class MailStation extends EventEmitter {
                     self.afters,
                     0,
                     'after',
-                    function (tracer, err, serverId, msg, opts) {
+                    (tracer, err, serverId, msg, opts) => {
                         if (err) {
                             errorHandler(tracer, self, err, serverId, msg, opts);
                         }
@@ -379,7 +379,7 @@ function doFilter(tracer, err, serverId, msg, opts, filters, index, operate, cb)
         filterFn = filter[operate];
     }
     if (filterFn) {
-        filterFn(serverId, msg, opts, function (target, message, options) {
+        filterFn(serverId, msg, opts, (target, message, options) => {
             index++;
             //compatible for pofresh filter next(err) method
             if (utils.getObjectClass(target) === 'Error') {
@@ -443,7 +443,7 @@ function flushPending(tracer, station, serverId) {
     tracer && tracer.info('client', __filename, 'flushPending', 'flush pending requests to dispatch method');
     const pending = station.pendings[serverId];
     const mailbox = station.mailboxes[serverId];
-    if (!pending || !pending.length) {
+    if (!(pending && pending.length)) {
         return;
     }
     if (!mailbox) {
@@ -477,6 +477,4 @@ function errorHandler(tracer, station, err, serverId, msg, opts) {
  *           opts.mailboxFactory {Function} mailbox factory function
  * @return {Object}      mail station instance
  */
-module.exports.create = function (opts) {
-    return new MailStation(opts || {});
-};
+module.exports.create = opts => new MailStation(opts || {});

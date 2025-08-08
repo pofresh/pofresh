@@ -1,29 +1,29 @@
 const CountDownLatch = require('../../lib/util/countDownLatch');
 const should = require('should');
 
-const cbCreator = (function () {
+const cbCreator = (() => {
     let count = 0;
 
     return {
-        callback: function () {
+        callback() {
             count++;
         },
-        getCount: function () {
+        getCount() {
             return count;
         },
-        count: count
+        count
     };
 })();
 
-describe('countdown latch test', function () {
+describe('countdown latch test', () => {
     let countDownLatch1;
     let countDownLatch2;
 
-    describe('#count down', function () {
-        it('should invoke the callback after the done method was invoked the specified times', function (done) {
+    describe('#count down', () => {
+        it('should invoke the callback after the done method was invoked the specified times', done => {
             let n = 3,
                 doneCount = 0;
-            const cdl = CountDownLatch.createCountDownLatch(n, function () {
+            const cdl = CountDownLatch.createCountDownLatch(n, () => {
                 doneCount.should.equal(n);
                 done();
             });
@@ -34,38 +34,38 @@ describe('countdown latch test', function () {
             }
         });
 
-        it('should throw exception if pass a negative or zero to the create method', function () {
-            (function () {
-                CountDownLatch.createCountDownLatch(-1, function () {});
+        it('should throw exception if pass a negative or zero to the create method', () => {
+            (() => {
+                CountDownLatch.createCountDownLatch(-1, () => {});
             }).should.throw();
 
-            (function () {
-                CountDownLatch.createCountDownLatch(0, function () {});
+            (() => {
+                CountDownLatch.createCountDownLatch(0, () => {});
             }).should.throw();
         });
 
-        it('should throw exception if pass illegal cb to the create method', function () {
-            (function () {
+        it('should throw exception if pass illegal cb to the create method', () => {
+            (() => {
                 CountDownLatch.createCountDownLatch(1, null);
             }).should.throw();
         });
 
-        it('should throw exception if try to invoke done metho of a latch that has fired cb', function () {
+        it('should throw exception if try to invoke done metho of a latch that has fired cb', () => {
             const n = 3;
-            const cdl = CountDownLatch.createCountDownLatch(n, function () {});
+            const cdl = CountDownLatch.createCountDownLatch(n, () => {});
 
             for (let i = 0; i < n; i++) {
                 cdl.done();
             }
 
-            (function () {
+            (() => {
                 cdl.done();
             }).should.throw();
         });
 
-        it('should invoke the callback if timeout', function () {
+        it('should invoke the callback if timeout', () => {
             const n = 3;
-            const cdl = CountDownLatch.createCountDownLatch(n, { timeout: 3000 }, function (isTimeout) {
+            const cdl = CountDownLatch.createCountDownLatch(n, { timeout: 3000 }, isTimeout => {
                 isTimeout.should.equal(true);
             });
 

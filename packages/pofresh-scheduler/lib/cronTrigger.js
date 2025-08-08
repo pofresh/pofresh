@@ -46,7 +46,7 @@ class CronTrigger {
 
         outmost: while (true) {
             if (date.getFullYear() > 2999) {
-                logger.error('Can\'t compute the next time, exceed the limit');
+                logger.error("Can't compute the next time, exceed the limit");
                 return null;
             }
             if (!decoder.timeMatch(date.getMonth(), cronTrigger[MONTH])) {
@@ -72,8 +72,10 @@ class CronTrigger {
             }
 
             if (
-                !decoder.timeMatch(date.getDate(), cronTrigger[DOM]) ||
-                !decoder.timeMatch(date.getDay(), cronTrigger[DOW])
+                !(
+                    decoder.timeMatch(date.getDate(), cronTrigger[DOM]) &&
+                    decoder.timeMatch(date.getDay(), cronTrigger[DOW])
+                )
             ) {
                 const domLimit = decoder.getDomLimit(date.getFullYear(), date.getMonth());
 

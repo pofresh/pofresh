@@ -36,7 +36,7 @@ class Service {
         }
 
         for (const p in info) {
-            if (info.hasOwnProperty(p) && typeof info[p] !== 'function') {
+            if (Object.hasOwn(info, p) && typeof info[p] !== 'function') {
                 user[p] = info[p];
             }
         }

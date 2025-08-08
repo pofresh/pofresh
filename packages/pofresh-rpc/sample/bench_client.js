@@ -27,18 +27,18 @@ const servers = [
 const routeContext = servers;
 
 // route function to caculate the remote server id
-const routeFunc = function (_routeParam, _msg, routeContext, cb) {
+const routeFunc = (_routeParam, _msg, routeContext, cb) => {
     cb(null, routeContext[0].id);
 };
 
 const client = Client.create({
-    routeContext: routeContext,
+    routeContext,
     router: routeFunc,
-    context: context
+    context
 });
 
 let start = null;
-client.start(function (_err) {
+client.start(_err => {
     console.log('rpc client start ok.');
 
     client.addProxies(records);
@@ -48,7 +48,7 @@ client.start(function (_err) {
     run();
 });
 
-const numRequests = 100000;
+const numRequests = 100_000;
 let times = 0;
 const mockData1 = 'hello';
 let mockData2 = 'hello';
@@ -91,13 +91,13 @@ function run() {
     }
 
     times++;
-    rpcRequest(payload, function () {
+    rpcRequest(payload, () => {
         run();
     });
 }
 
 function rpcRequest(param, cb) {
-    client.proxies.user.test.service.echo(null, param, 123, function (_err, _resp) {
+    client.proxies.user.test.service.echo(null, param, 123, (_err, _resp) => {
         if (_err) {
             console.error(_err.stack);
         }

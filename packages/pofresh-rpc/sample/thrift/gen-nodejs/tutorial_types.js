@@ -16,7 +16,7 @@ ttypes.Operation = {
     MULTIPLY: 3,
     DIVIDE: 4
 };
-const Work = module.exports.Work = function (args) {
+const Work = (module.exports.Work = function (args) {
     this.num1 = 0;
     this.num2 = null;
     this.op = null;
@@ -35,7 +35,7 @@ const Work = module.exports.Work = function (args) {
             this.comment = args.comment;
         }
     }
-};
+});
 Work.prototype = {};
 Work.prototype.read = function (input) {
     input.readStructBegin();
@@ -48,36 +48,36 @@ Work.prototype.read = function (input) {
             break;
         }
         switch (fid) {
-        case 1:
-            if (ftype === Thrift.Type.I32) {
-                this.num1 = input.readI32();
-            } else {
+            case 1:
+                if (ftype === Thrift.Type.I32) {
+                    this.num1 = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 2:
+                if (ftype === Thrift.Type.I32) {
+                    this.num2 = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 3:
+                if (ftype === Thrift.Type.I32) {
+                    this.op = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 4:
+                if (ftype === Thrift.Type.STRING) {
+                    this.comment = input.readString();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            default:
                 input.skip(ftype);
-            }
-            break;
-        case 2:
-            if (ftype === Thrift.Type.I32) {
-                this.num2 = input.readI32();
-            } else {
-                input.skip(ftype);
-            }
-            break;
-        case 3:
-            if (ftype === Thrift.Type.I32) {
-                this.op = input.readI32();
-            } else {
-                input.skip(ftype);
-            }
-            break;
-        case 4:
-            if (ftype === Thrift.Type.STRING) {
-                this.comment = input.readString();
-            } else {
-                input.skip(ftype);
-            }
-            break;
-        default:
-            input.skip(ftype);
         }
         input.readFieldEnd();
     }
@@ -112,7 +112,7 @@ Work.prototype.write = function (output) {
     return;
 };
 
-const InvalidOperation = module.exports.InvalidOperation = function (args) {
+const InvalidOperation = (module.exports.InvalidOperation = function (args) {
     Thrift.TException.call(this, 'InvalidOperation');
     this.name = 'InvalidOperation';
     this.whatOp = null;
@@ -125,7 +125,7 @@ const InvalidOperation = module.exports.InvalidOperation = function (args) {
             this.why = args.why;
         }
     }
-};
+});
 Thrift.inherits(InvalidOperation, Thrift.TException);
 InvalidOperation.prototype.name = 'InvalidOperation';
 InvalidOperation.prototype.read = function (input) {
@@ -139,22 +139,22 @@ InvalidOperation.prototype.read = function (input) {
             break;
         }
         switch (fid) {
-        case 1:
-            if (ftype === Thrift.Type.I32) {
-                this.whatOp = input.readI32();
-            } else {
+            case 1:
+                if (ftype === Thrift.Type.I32) {
+                    this.whatOp = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 2:
+                if (ftype === Thrift.Type.STRING) {
+                    this.why = input.readString();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            default:
                 input.skip(ftype);
-            }
-            break;
-        case 2:
-            if (ftype === Thrift.Type.STRING) {
-                this.why = input.readString();
-            } else {
-                input.skip(ftype);
-            }
-            break;
-        default:
-            input.skip(ftype);
         }
         input.readFieldEnd();
     }

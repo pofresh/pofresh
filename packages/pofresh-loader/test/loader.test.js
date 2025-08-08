@@ -1,15 +1,14 @@
-import Loader from '../index.js';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import Loader from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const testPath = path.join(__dirname, 'mock-remote/area/');
 
-
-describe('loader', function () {
-    describe('#load', function () {
-        it('should load all modules under the path but sub-directory', function () {
+describe('loader', () => {
+    describe('#load', () => {
+        it('should load all modules under the path but sub-directory', () => {
             const services = Loader.load(testPath);
             expect(services).toBeDefined();
             expect(services).toHaveProperty('addOneRemote');
@@ -33,7 +32,7 @@ describe('loader', function () {
             expect(services.whoAmIRemote.name).toBeTypeOf('string');
         });
 
-        it('should invoke functions of loaded object successfully', async function () {
+        it('should invoke functions of loaded object successfully', async () => {
             let callbackCount = 0;
             const sid = 'area-server-1';
             const context = { id: sid };
@@ -42,77 +41,85 @@ describe('loader', function () {
 
             const promises = [];
 
-            promises.push(new Promise((resolve) => {
-                services.addOneRemote.doService(1, function (err, res) {
-                    callbackCount++;
-                    expect(res).toBe(2);
-                    resolve();
-                });
-            }));
+            promises.push(
+                new Promise(resolve => {
+                    services.addOneRemote.doService(1, (err, res) => {
+                        callbackCount++;
+                        expect(res).toBe(2);
+                        resolve();
+                    });
+                })
+            );
 
-            promises.push(new Promise((resolve) => {
-                services.addOneRemote.doAddTwo(1, function (err, res) {
-                    callbackCount++;
-                    expect(res).toBe(3);
-                    resolve();
-                });
-            }));
+            promises.push(
+                new Promise(resolve => {
+                    services.addOneRemote.doAddTwo(1, (err, res) => {
+                        callbackCount++;
+                        expect(res).toBe(3);
+                        resolve();
+                    });
+                })
+            );
 
-            promises.push(new Promise((resolve) => {
-                services.addThreeRemote.doService(1, function (err, res) {
-                    callbackCount++;
-                    expect(res).toBe(4);
-                    resolve();
-                });
-            }));
+            promises.push(
+                new Promise(resolve => {
+                    services.addThreeRemote.doService(1, (err, res) => {
+                        callbackCount++;
+                        expect(res).toBe(4);
+                        resolve();
+                    });
+                })
+            );
 
             // context should be pass to factory function for each module
-            promises.push(new Promise((resolve) => {
-                services.whoAmIRemote.doService(function (err, res) {
-                    callbackCount++;
-                    expect(res).toBe(sid);
-                    resolve();
-                });
-            }));
+            promises.push(
+                new Promise(resolve => {
+                    services.whoAmIRemote.doService((err, res) => {
+                        callbackCount++;
+                        expect(res).toBe(sid);
+                        resolve();
+                    });
+                })
+            );
 
             await Promise.all(promises);
             expect(callbackCount).toBe(4);
         });
 
-        it('should throw an error if the path is empty', function () {
+        it('should throw an error if the path is empty', () => {
             const emptyPath = './mock-remote/connector';
             expect(() => {
                 Loader.load(emptyPath);
             }).toThrow();
         });
 
-        it('should throw exception if the path dose not exist', function () {
+        it('should throw exception if the path dose not exist', () => {
             const errorPath = './some/error/path';
             expect(() => {
                 Loader.load(errorPath);
             }).toThrow();
         });
 
-        it('should reload module', function () {
+        it('should reload module', () => {
             const servicePath = path.join(__dirname, 'mock-remote/service');
             let services = Loader.load(servicePath);
             expect(services).toBeDefined();
-            services.reloadService.doService(function (err, res) {
+            services.reloadService.doService((err, res) => {
                 expect(res).toBe(1);
             });
 
-            services.reloadService.doService(function (err, res) {
+            services.reloadService.doService((err, res) => {
                 expect(res).toBe(2);
             });
 
             services = Loader.load(servicePath, null, true);
             expect(services).toBeDefined();
 
-            services.reloadService.doService(function (err, res) {
+            services.reloadService.doService((err, res) => {
                 expect(res).toBe(1);
             });
 
-            services.reloadService.doService(function (err, res) {
+            services.reloadService.doService((err, res) => {
                 expect(res).toBe(2);
             });
         });

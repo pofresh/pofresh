@@ -5,9 +5,7 @@ const DEFAULT_DELAY = 1; // in second
 
 const moduleId = 'test_module';
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 module.exports.moduleId = moduleId;
 

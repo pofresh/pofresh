@@ -1,1 +1,5 @@
-{"keys":["getLogger","configure","shutdown","connectLogger","levels","addLayout"],"hasBatchManager":false,"hasConfig":false}
+{
+    "keys": ["getLogger", "configure", "shutdown", "connectLogger", "levels", "addLayout"],
+    "hasBatchManager": false,
+    "hasConfig": false
+}

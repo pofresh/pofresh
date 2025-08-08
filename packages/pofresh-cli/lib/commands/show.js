@@ -1,9 +1,7 @@
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const helpCommand = 'help show';
 
@@ -39,11 +37,11 @@ class Command {
         client.request(
             'watchServer',
             {
-                comd: comd,
-                param: param,
+                comd,
+                param,
                 context: Context
             },
-            function (err, data) {
+            (err, data) => {
                 if (err) {
                     util.log('Error retrieving information: ' + err);
                 } else {

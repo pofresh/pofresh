@@ -27,23 +27,23 @@ const transport = thrift.TBufferedTransport();
 const protocol = thrift.TBinaryProtocol();
 
 const connection = thrift.createConnection('localhost', 9090, {
-    transport: transport,
-    protocol: protocol
+    transport,
+    protocol
 });
 
-connection.on('error', function (err) {
+connection.on('error', err => {
     assert(false, err);
 });
 
 // Create a Calculator client with the connection
 const client = thrift.createClient(Calculator, connection);
 
-const num_requests = 20000;
+const num_requests = 20_000;
 let times = 0;
 let start = Date.now();
 
-const rpcRequest = function (msg, cb) {
-    client.ping(function (err, response) {
+const rpcRequest = (msg, cb) => {
+    client.ping((err, response) => {
         cb();
     });
 };
@@ -69,7 +69,7 @@ function run() {
     }
 
     times++;
-    rpcRequest({}, function () {
+    rpcRequest({}, () => {
         run();
     });
 }

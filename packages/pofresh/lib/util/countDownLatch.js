@@ -6,10 +6,9 @@ const exp = module.exports;
 const CountDownLatch = function (count, opts, cb) {
     this.count = count;
     this.cb = cb;
-    const self = this;
     if (opts.timeout) {
-        this.timerId = setTimeout(function () {
-            self.cb(true);
+        this.timerId = setTimeout(() => {
+            this.cb(true);
         }, opts.timeout);
     }
 };
@@ -42,7 +41,7 @@ CountDownLatch.prototype.done = function () {
  *
  * @api public
  */
-exp.createCountDownLatch = function (count, opts, cb) {
+exp.createCountDownLatch = (count, opts, cb) => {
     if (!count || count <= 0) {
         throw new Error('count should be positive.');
     }

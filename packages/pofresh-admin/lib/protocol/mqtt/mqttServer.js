@@ -56,9 +56,9 @@ class MqttServer extends EventEmitter {
                 socket.pingresp();
             });
 
-            socket.send = function (topic, msg) {
+            socket.send = (topic, msg) => {
                 socket.publish({
-                    topic: topic,
+                    topic,
                     payload: JSON.stringify(msg)
                 });
             };
@@ -69,7 +69,7 @@ class MqttServer extends EventEmitter {
 
     send(topic, msg) {
         this.socket.publish({
-            topic: topic,
+            topic,
             payload: msg
         });
     }

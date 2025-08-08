@@ -5,20 +5,20 @@ const mockSession = {
     key: '123'
 };
 
-describe('#toobusyFilter', function () {
-    it('should do before filter ok', function (done) {
+describe('#toobusyFilter', () => {
+    it('should do before filter ok', done => {
         const service = new FilterService();
         const filter = toobusyFilter();
         service.before(filter);
 
-        service.beforeFilter(null, mockSession, function (err) {
+        service.beforeFilter(null, mockSession, err => {
             should.not.exist(err);
             should.exist(mockSession);
             done();
         });
     });
 
-    it('should do before filter error because of too busy', function (done) {
+    it('should do before filter error because of too busy', done => {
         const service = new FilterService();
         const filter = toobusyFilter(10, 100);
         service.before(filter);
@@ -26,7 +26,7 @@ describe('#toobusyFilter', function () {
         let exit = false;
 
         function load() {
-            service.beforeFilter(null, mockSession, function (err, resp) {
+            service.beforeFilter(null, mockSession, (err, resp) => {
                 should.exist(mockSession);
                 if (err) {
                     exit = true;

@@ -2,9 +2,7 @@ const fs = require('fs');
 const util = require('../util');
 const consts = require('../consts');
 
-module.exports = function (opts) {
-    return new Command(opts);
-};
+module.exports = opts => new Command(opts);
 
 const commandId = 'exec';
 const helpCommand = 'help exec';
@@ -56,7 +54,7 @@ class Command {
                 serverId: Context,
                 script: file
             },
-            function (err, msg) {
+            (err, msg) => {
                 if (err) {
                     util.log('Error executing script: ' + err);
                 } else {

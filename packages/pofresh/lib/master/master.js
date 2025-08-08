@@ -25,66 +25,64 @@ class Server {
     start(cb) {
         moduleUtil.registerDefaultModules(true, this.app, this.closeWatcher);
         moduleUtil.loadModules(this, this.masterConsole);
-
-        const self = this;
         // start master console
-        this.masterConsole.start(function (err) {
+        this.masterConsole.start(err => {
             if (err) {
                 process.exit(0);
             }
-            moduleUtil.startModules(self.modules, function (err) {
+            moduleUtil.startModules(this.modules, err => {
                 if (err) {
                     utils.invokeCallback(cb, err);
                     return;
                 }
 
-                if (self.app.get(Constants.RESERVED.MODE) !== Constants.RESERVED.STAND_ALONE) {
-                    starter.runServers(self.app);
+                if (this.app.get(Constants.RESERVED.MODE) !== Constants.RESERVED.STAND_ALONE) {
+                    starter.runServers(this.app);
                 }
                 utils.invokeCallback(cb);
             });
         });
 
-        this.masterConsole.on('error', function (err) {
+        this.masterConsole.on('error', err => {
             if (err) {
                 logger.error('masterConsole encounters with error: ' + err.stack);
             }
         });
 
-        this.masterConsole.on('reconnect', function (info) {
-            self.app.addServers([info]);
+        this.masterConsole.on('reconnect', info => {
+            this.app.addServers([info]);
         });
 
         // monitor servers disconnect event
-        this.masterConsole.on('disconnect', function (id, type, info, reason) {
+        this.masterConsole.on('disconnect', (id, type, info, reason) => {
             const dateTime = utils.format(new Date(), 'yyyy-MM-dd hh:mm:ss');
             const log = util.format('[%s],[%s],[%s],[%s]', type, id, dateTime, reason || 'disconnect');
             switch (type) {
-            case 'master':
-                crashLogger.error(log);
-                break;
-            case 'client':
-                crashLogger.info(log);
-                break;
-            default:
-                crashLogger.warn(log);
-                break;
+                case 'master':
+                    crashLogger.error(log);
+                    break;
+                case 'client':
+                    crashLogger.info(log);
+                    break;
+                default:
+                    crashLogger.warn(log);
+                    break;
             }
 
             let count = 0;
             const time = 0;
             let pingTimer = null;
-            const server = self.app.getServerById(id);
-            const stopFlags = self.app.get(Constants.RESERVED.STOP_SERVERS) || [];
+            const server = this.app.getServerById(id);
+            const stopFlags = this.app.get(Constants.RESERVED.STOP_SERVERS) || [];
             if (
                 !!server &&
                 (server[Constants.RESERVED.AUTO_RESTART] === 'true' ||
                     server[Constants.RESERVED.RESTART_FORCE] === 'true') &&
                 stopFlags.indexOf(id) < 0
             ) {
-                const setTimer = function (time) {
-                    pingTimer = setTimeout(function () {
-                        utils.ping(server.host, function (flag) {
+                const setTimer = time => {
+                    pingTimer = setTimeout(() => {
+                        utils.ping(server.host, flag => {
                             if (flag) {
                                 handle();
                             } else {
@@ -100,13 +98,14 @@ class Server {
                     }, time);
                 };
                 setTimer(time);
-                const handle = function () {
+                const handle = () => {
                     clearTimeout(pingTimer);
-                    utils.checkPort(server, function (status) {
+                    utils.checkPort(server, status => {
                         if (status === 'error') {
                             utils.invokeCallback(cb, new Error('Check port command executed with error.'));
                             return;
-                        } else if (status === 'busy') {
+                        }
+                        if (status === 'busy') {
                             if (server[Constants.RESERVED.RESTART_FORCE]) {
                                 starter.kill([info.pid], [server]);
                             } else {
@@ -114,8 +113,8 @@ class Server {
                                 return;
                             }
                         }
-                        setTimeout(function () {
-                            starter.run(self.app, server, null);
+                        setTimeout(() => {
+                            starter.run(this.app, server, null);
                         }, Constants.TIME.TIME_WAIT_STOP);
                     });
                 };
@@ -123,11 +122,11 @@ class Server {
         });
 
         // monitor servers register event
-        this.masterConsole.on('register', function (record) {
+        this.masterConsole.on('register', record => {
             starter.bindCpu(record.id, record.pid, record.host);
         });
 
-        this.masterConsole.on('admin-log', function (log, error) {
+        this.masterConsole.on('admin-log', (log, error) => {
             if (error) {
                 adminLogger.error(JSON.stringify(log));
             } else {

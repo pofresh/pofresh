@@ -6,13 +6,13 @@ const mockSession = {
 };
 
 const WAIT_TIME = 100;
-describe('#serialFilter', function () {
-    it('should do before filter ok', function (done) {
+describe('#serialFilter', () => {
+    it('should do before filter ok', done => {
         const service = new FilterService();
         const filter = timeoutFilter();
         service.before(filter);
 
-        service.beforeFilter({}, mockSession, function () {
+        service.beforeFilter({}, mockSession, () => {
             should.exist(mockSession);
 
             should.exist(mockSession.__timeout__);
@@ -20,13 +20,13 @@ describe('#serialFilter', function () {
         });
     });
 
-    it('should do after filter by doing before filter ok', function (done) {
+    it('should do after filter by doing before filter ok', done => {
         const service = new FilterService();
         const filter = timeoutFilter();
         let _session;
         service.before(filter);
 
-        service.beforeFilter(null, mockSession, function () {
+        service.beforeFilter(null, mockSession, () => {
             should.exist(mockSession);
             should.exist(mockSession.__timeout__);
             _session = mockSession;
@@ -34,7 +34,7 @@ describe('#serialFilter', function () {
 
         service.after(filter);
 
-        service.afterFilter(null, null, mockSession, null, function () {
+        service.afterFilter(null, null, mockSession, null, () => {
             should.exist(mockSession);
             should.strictEqual(mockSession, _session);
         });

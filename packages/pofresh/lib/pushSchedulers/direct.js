@@ -14,7 +14,7 @@ class Service {
         }
 
         if (cb) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -28,7 +28,7 @@ function doBroadcast(self, msg, opts) {
     const sessionService = self.app.get('sessionService');
 
     if (opts.binded) {
-        sessionService.forEachBindedSession(function (session) {
+        sessionService.forEachBindedSession(session => {
             if (channelService.broadcastFilter && !channelService.broadcastFilter(session, msg, opts.filterParam)) {
                 return;
             }
@@ -36,7 +36,7 @@ function doBroadcast(self, msg, opts) {
             sessionService.sendMessageByUid(session.uid, msg);
         });
     } else {
-        sessionService.forEachSession(function (session) {
+        sessionService.forEachSession(session => {
             if (channelService.broadcastFilter && !channelService.broadcastFilter(session, msg, opts.filterParam)) {
                 return;
             }

@@ -20,7 +20,7 @@ class Adaptor {
 
         const req = {
             id: packet.messageId,
-            route: route,
+            route,
             body: packet
         };
 
@@ -40,7 +40,7 @@ class Adaptor {
 
         const req = {
             id: packet.messageId,
-            route: route,
+            route,
             body: {
                 subscriptions: packet.subscriptions
             }

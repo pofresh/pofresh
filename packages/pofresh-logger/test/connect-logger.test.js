@@ -6,7 +6,7 @@ const createMockRequest = (overrides = {}) => ({
     url: '/test',
     headers: {
         'user-agent': 'test-agent',
-        'host': 'localhost'
+        host: 'localhost'
     },
     connection: {
         remoteAddress: '127.0.0.1'
@@ -55,7 +55,7 @@ describe('Connect Logger Middleware', () => {
     });
 
     describe('connectLogger', () => {
-        const expectValidMiddleware = (middleware) => {
+        const expectValidMiddleware = middleware => {
             expect(typeof middleware).toBe('function');
             expect(middleware.length).toBe(3); // req, res, next
         };
@@ -83,18 +83,18 @@ describe('Connect Logger Middleware', () => {
         it('should handle HTTP request logging', () => {
             const testLogger = logger.getLogger('default', 'ConnectTest');
             const middleware = logger.connectLogger(testLogger);
-            
+
             const req = createMockRequest();
             const res = createMockResponse();
             const next = vi.fn();
-            
+
             // Execute middleware
             middleware(req, res, next);
-            
+
             // Verify middleware behavior
             expect(next).toHaveBeenCalled();
             expectValidMiddleware(middleware);
-            
+
             // Verify response listener was attached (if the implementation uses it)
             // Note: The actual implementation might not use res.on('finish')
             // so we just verify the middleware executed without errors
@@ -106,26 +106,26 @@ describe('Connect Logger Middleware', () => {
                 format: ':method :url took :response-time ms'
             };
             const middleware = logger.connectLogger(null, options);
-            
+
             const req = createMockRequest({
                 method: 'POST',
                 url: '/api/test',
                 headers: {}
             });
-            
+
             const res = createAsyncMockResponse({ statusCode: 201 });
             const next = vi.fn();
-            
+
             middleware(req, res, next);
             expect(next).toHaveBeenCalled();
-            
+
             // Wait for async operations to complete
             await new Promise(resolve => setTimeout(resolve, 20));
         });
 
         it('should handle request with different log levels', () => {
             const levels = ['debug', 'info', 'warn', 'error'];
-            
+
             levels.forEach(level => {
                 const middleware = logger.connectLogger(null, { level });
                 expect(typeof middleware).toBe('function');
@@ -135,60 +135,60 @@ describe('Connect Logger Middleware', () => {
         it('should handle request with custom logger category', async () => {
             const customLogger = logger.getLogger('http-access');
             const middleware = logger.connectLogger(customLogger);
-            
+
             const req = createMockRequest({
                 url: '/health',
                 headers: {}
             });
-            
+
             const res = createAsyncMockResponse();
             const next = vi.fn();
-            
+
             middleware(req, res, next);
             expect(next).toHaveBeenCalled();
-            
+
             // Wait for async operations to complete
             await new Promise(resolve => setTimeout(resolve, 20));
         });
 
         it('should handle missing request properties gracefully', async () => {
             const middleware = logger.connectLogger();
-            
+
             // Minimal request object
             const req = createMockRequest({
                 url: '/minimal',
                 headers: undefined,
                 connection: undefined
             });
-            
+
             const res = createAsyncMockResponse();
             const next = vi.fn();
-            
+
             expect(() => {
                 middleware(req, res, next);
             }).not.toThrow();
-            
+
             expect(next).toHaveBeenCalled();
-            
+
             // Wait for async operations to complete
             await new Promise(resolve => setTimeout(resolve, 20));
         });
 
         it('should handle response errors gracefully', () => {
             const middleware = logger.connectLogger();
-            
+
             const req = createMockRequest({
                 url: '/error-test',
                 headers: {}
             });
-            
+
             const res = createMockResponse({ statusCode: 500 });
             const next = vi.fn();
-            
+
             expect(() => {
                 middleware(req, res, next);
             }).not.toThrow();
-            
+
             expect(next).toHaveBeenCalled();
         });
     });
@@ -200,28 +200,27 @@ describe('Connect Logger Middleware', () => {
                 res.statusCode = 200;
                 next();
             };
-            
+
             const req = createMockRequest({
                 url: '/chain-test',
                 headers: {}
             });
-            
+
             const res = createMockResponse();
             const callOrder = [];
-            
+
             const next1 = () => {
                 callOrder.push('middleware1');
                 middleware2(req, res, next2);
             };
-            
+
             const next2 = () => {
                 callOrder.push('middleware2');
             };
-            
+
             middleware1(req, res, next1);
-            
+
             expect(callOrder).toEqual(['middleware1', 'middleware2']);
         });
     });
-
 });

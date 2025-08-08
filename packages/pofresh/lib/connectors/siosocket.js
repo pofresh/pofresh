@@ -18,14 +18,12 @@ class Socket extends EventEmitter {
             port: socket.handshake.address.port
         };
 
-        const self = this;
-
         socket.on('disconnect', this.emit.bind(this, 'disconnect'));
 
         socket.on('error', this.emit.bind(this, 'error'));
 
-        socket.on(this.messageString, function (msg) {
-            self.emit('message', msg);
+        socket.on(this.messageString, msg => {
+            this.emit('message', msg);
         });
 
         this.state = ST_INITED;

@@ -5,9 +5,7 @@ const Loader = require('pofresh-loader');
 const pathUtil = require('../util/pathUtil');
 const crypto = require('crypto');
 
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 class Component {
     constructor(app, opts) {

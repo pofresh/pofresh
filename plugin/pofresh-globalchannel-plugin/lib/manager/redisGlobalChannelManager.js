@@ -93,10 +93,6 @@ class GlobalChannelManager {
 
 module.exports = GlobalChannelManager;
 
-const genKey = function (self, name, sid) {
-    return self.prefix + ':' + name + ':' + sid;
-};
+const genKey = (self, name, sid) => self.prefix + ':' + name + ':' + sid;
 
-const genCleanKey = function (self) {
-    return self.prefix + '*';
-};
+const genCleanKey = self => self.prefix + '*';

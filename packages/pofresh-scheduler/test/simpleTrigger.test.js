@@ -15,7 +15,11 @@ describe('SimpleTrigger', () => {
             const startTime = Date.now();
             const period = 5000;
             const count = 3;
-            const trigger = SimpleTrigger.createTrigger({ start: startTime, period, count });
+            const trigger = SimpleTrigger.createTrigger({
+                start: startTime,
+                period,
+                count
+            });
 
             expect(trigger.nextTime).toBe(startTime);
             expect(trigger.period).toBe(period);
@@ -25,7 +29,11 @@ describe('SimpleTrigger', () => {
         test('should create trigger with infinite count when count is 0', () => {
             const startTime = Date.now();
             const period = 5000;
-            const trigger = SimpleTrigger.createTrigger({ start: startTime, period, count: 0 });
+            const trigger = SimpleTrigger.createTrigger({
+                start: startTime,
+                period,
+                count: 0
+            });
 
             expect(trigger.count).toBe(-1); // The actual implementation converts 0 to -1 (no limit)
         });

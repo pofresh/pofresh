@@ -16,13 +16,13 @@ const config = {
         app: {
             type: 'file',
             filename: path.join(__dirname, 'logs', 'app.log'),
-            maxLogSize: 10485760,
+            maxLogSize: 10_485_760,
             backups: 5
         },
         error: {
             type: 'file',
             filename: path.join(__dirname, 'logs', 'error.log'),
-            maxLogSize: 5242880,
+            maxLogSize: 5_242_880,
             backups: 3
         }
     },
@@ -62,15 +62,17 @@ const accessLoggerMiddleware = logger.connectLogger(accessLogger, {
 // Alternative middleware with custom format
 const customAccessLogger = logger.connectLogger(accessLogger, {
     level: 'info',
-    format: function(req, res, format) {
-        return format(`:remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms`);
+    format(req, res, format) {
+        return format(
+            `:remote-addr - ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms`
+        );
     }
 });
 
 // Simulate Express middleware usage
 function simulateExpressApp() {
     appLogger.info('Express application starting...');
-    
+
     // Simulate different HTTP requests
     const requests = [
         { method: 'GET', url: '/', status: 200, responseTime: 45 },
@@ -81,7 +83,7 @@ function simulateExpressApp() {
         { method: 'GET', url: '/api/nonexistent', status: 404, responseTime: 12 },
         { method: 'POST', url: '/api/login', status: 401, responseTime: 56 }
     ];
-    
+
     requests.forEach((reqData, index) => {
         setTimeout(() => {
             // Simulate request/response objects
@@ -90,17 +92,17 @@ function simulateExpressApp() {
                 url: reqData.url,
                 headers: {
                     'user-agent': 'Mozilla/5.0 (Example Browser)',
-                    'referer': 'http://example.com'
+                    referer: 'http://example.com'
                 },
                 connection: {
                     remoteAddress: '192.168.1.' + (100 + index)
                 },
                 httpVersion: '1.1'
             };
-            
+
             const res = {
                 statusCode: reqData.status,
-                getHeader: (name) => {
+                getHeader: name => {
                     const headers = {
                         'content-length': '1234',
                         'content-type': 'application/json'
@@ -118,13 +120,13 @@ function simulateExpressApp() {
                     }
                 }
             };
-            
+
             // Simulate middleware execution
             const next = () => {
                 // Log the request using access logger
                 const logMessage = `${req.connection.remoteAddress} - ${req.method} ${req.url} HTTP/${req.httpVersion} ${res.statusCode} ${res.getHeader('content-length')} - ${reqData.responseTime}ms`;
                 accessLogger.info(logMessage);
-                
+
                 // Log application events
                 if (res.statusCode >= 400) {
                     if (res.statusCode >= 500) {
@@ -136,10 +138,9 @@ function simulateExpressApp() {
                     appLogger.info(`Request processed: ${req.method} ${req.url} - ${res.statusCode}`);
                 }
             };
-            
+
             // Execute middleware
             accessLoggerMiddleware(req, res, next);
-            
         }, index * 200); // Stagger requests
     });
 }
@@ -154,7 +155,7 @@ function errorHandlingMiddleware(err, req, res, next) {
         userAgent: req.headers['user-agent'],
         ip: req.connection.remoteAddress
     });
-    
+
     res.statusCode = 500;
     next();
 }

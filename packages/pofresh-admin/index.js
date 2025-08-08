@@ -14,14 +14,12 @@ exports.protocols = {
 
 exports.modules = {};
 
-fs.readdirSync(__dirname + '/lib/modules').forEach(function (filename) {
+fs.readdirSync(__dirname + '/lib/modules').forEach(filename => {
     if (/\.js$/.test(filename)) {
         const name = filename.substring(0, filename.lastIndexOf('.'));
         const _module = require('./lib/modules/' + name);
         if (!_module.moduleError) {
-            exports.modules.__defineGetter__(name, function () {
-                return _module;
-            });
+            exports.modules.__defineGetter__(name, () => _module);
         }
     }
 });

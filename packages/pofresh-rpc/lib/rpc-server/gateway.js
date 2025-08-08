@@ -50,8 +50,8 @@ function watchServices(gateway, dispatcher) {
     const paths = gateway.opts.paths;
     const app = gateway.opts.context;
     paths.forEach(item => {
-        (function () {
-            fs.watch(item.path, function (event, _name) {
+        (() => {
+            fs.watch(item.path, (event, _name) => {
                 if (event === 'change') {
                     const res = {};
                     const m = Loader.load(item.path, app);
@@ -70,8 +70,8 @@ function watchServices(gateway, dispatcher) {
  *
  * @param opts {services: {rpcServices}, connector:conFactory(optional), router:routeFunction(optional)}
  */
-module.exports.create = function (opts) {
-    if (!opts || !opts.services) {
+module.exports.create = opts => {
+    if (!(opts && opts.services)) {
         throw new Error('opts and opts.services should not be empty.');
     }
 

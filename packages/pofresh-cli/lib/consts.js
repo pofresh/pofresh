@@ -9,7 +9,7 @@ consts.PROMPT = '@pofresh : ';
 consts.WELCOME_INFO = [
     '\nWelcome to Pofresh interactive client.',
     'Pofresh is a fast, scalable game server framework for node.js. ',
-    'Type \'help\' for more information.\n'
+    "Type 'help' for more information.\n"
 ];
 
 consts.HELP_INFO_1 = [
@@ -58,7 +58,7 @@ consts.COMANDS_MAP = {
         'add args are key=value from servers.json config files',
         'example: add host=127.0.0.1 port=3451 serverType=chat id=chat-server-2',
         'example: add host=127.0.0.1 port=3152 serverType=connector id=connector-server-3 ' +
-        'clientPort=3012 frontend=true\n'
+            'clientPort=3012 frontend=true\n'
     ],
     show: [
         '\nshow infos like : servers, connections',
@@ -112,14 +112,14 @@ consts.COMANDS_MAP = {
         'filepath can be relative path to your pofresh-cli pwd path',
         'example : exec xxx.js',
         'equals to : exec pwd/xxx.js',
-        'filepath also can be absolute with \'/\' ahead',
+        "filepath also can be absolute with '/' ahead",
         'example : exec /home/user/xxx.js\n'
     ],
     addCron: [
         '\nadd cron for server',
         'addCron args are key=value from crons.json config files',
-        'example: addCron id=8 serverId=chat-server-1 \'time=0 30 10 * * *\' action=chatCron.send',
-        'example: addCron id=8 serverType=chat \'time=0 30 10 * * *\' action=chatCron.send\n'
+        "example: addCron id=8 serverId=chat-server-1 'time=0 30 10 * * *' action=chatCron.send",
+        "example: addCron id=8 serverType=chat 'time=0 30 10 * * *' action=chatCron.send\n"
     ],
     removeCron: [
         '\nremove cron for server',
@@ -193,7 +193,7 @@ consts.ASCII_LOGO = [
     '|   _  \\   /  __  \\  |   ____||   _  \\     |   ____|   /       ||  |  |  |',
     '|  |_)  | |  |  |  | |  |__   |  |_)  |    |  |__     |   (----`|  |__|  |',
     '|   ___/  |  |  |  | |   __|  |      /     |   __|     \\   \\    |   __   |',
-    '|  |      |  `--\'  | |  |     |  |\\  \\----.|  |____.----)   |   |  |  |  |',
+    "|  |      |  `--'  | |  |     |  |\\  \\----.|  |____.----)   |   |  |  |  |",
     '| _|       \\______/  |__|     | _| `._____||_______|_______/    |__|  |__| '
 ];
 
@@ -224,8 +224,8 @@ consts.COMANDS_KILL_ERROR = '\nkill command error\n';
 consts.COMANDS_USE_ERROR = '\nuse command error\n';
 consts.COMANDS_STOP_ERROR = '\nstop command error\n';
 consts.COMANDS_EXEC_ERROR = '\nexec command script filepath error\n';
-consts.COMANDS_CONTEXT_ERROR = 'this command cannot be used in this context\n' +
-    'you can use command \'use\' to switch context';
+consts.COMANDS_CONTEXT_ERROR =
+    "this command cannot be used in this context\nyou can use command 'use' to switch context";
 consts.MODULE_INFO = 'there are following modules registered in pofresh clusters';
 consts.COMPONENTS_INFO = 'there are following components registered in current server';
 consts.STATUS_ERROR = 'can not get status in this server';

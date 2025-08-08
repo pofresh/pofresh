@@ -11,8 +11,8 @@ const exp = module.exports;
  *           opts.attach {Object} attach parameter pass to proxyCB
  * @return {Object}      proxy instance
  */
-exp.create = function (opts) {
-    if (!opts || !opts.origin) {
+exp.create = opts => {
+    if (!(opts && opts.origin)) {
         logger.warn('opts and opts.origin should not be empty.');
         return null;
     }
@@ -53,13 +53,13 @@ exp.create = function (opts) {
  * @returns function proxy
  */
 function genFunctionProxy(serviceName, methodName, origin, attach, proxyCB) {
-    return (function () {
-        const proxy = function () {
+    return (() => {
+        const proxy = () => {
             const args = Array.from(arguments);
             proxyCB(serviceName, methodName, args, attach);
         };
 
-        proxy.toServer = function () {
+        proxy.toServer = () => {
             const args = Array.from(arguments);
             proxyCB(serviceName, methodName, args, attach, true);
         };

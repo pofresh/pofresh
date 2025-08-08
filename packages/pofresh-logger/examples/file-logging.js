@@ -12,7 +12,7 @@ const config = {
         file: {
             type: 'file',
             filename: path.join(__dirname, 'logs', 'app.log'),
-            maxLogSize: 10485760, // 10MB
+            maxLogSize: 10_485_760, // 10MB
             backups: 5,
             compress: true
         },
@@ -22,14 +22,14 @@ const config = {
             filename: path.join(__dirname, 'logs', 'access-%DATE%.log'),
             pattern: 'YYYY-MM-DD',
             maxFiles: '14d', // Keep logs for 14 days
-            maxSize: '20m',  // Max 20MB per file
+            maxSize: '20m', // Max 20MB per file
             compress: true
         },
         // Error-only file
         errorFile: {
             type: 'file',
             filename: path.join(__dirname, 'logs', 'error.log'),
-            maxLogSize: 5242880, // 5MB
+            maxLogSize: 5_242_880, // 5MB
             backups: 3
         }
     },
@@ -93,8 +93,14 @@ devLogger.warn('Development warning');
 
 // Demonstrate logger with prefixes
 const userServiceLogger = logger.getLogger('default', 'UserService', 'Authentication');
-userServiceLogger.info('User login attempt', { userId: 12345, ip: '192.168.1.100' });
-userServiceLogger.warn('Failed login attempt', { userId: 12345, reason: 'Invalid password' });
+userServiceLogger.info('User login attempt', {
+    userId: 12_345,
+    ip: '192.168.1.100'
+});
+userServiceLogger.warn('Failed login attempt', {
+    userId: 12_345,
+    reason: 'Invalid password'
+});
 
 // Demonstrate different log levels
 const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'];

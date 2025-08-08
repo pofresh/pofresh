@@ -5,9 +5,7 @@ const pofresh = require('../pofresh');
 const events = require('../util/events');
 const utils = require('../util/utils');
 
-module.exports = function (app, opts) {
-    return new Component(app, opts);
-};
+module.exports = (app, opts) => new Component(app, opts);
 
 /**
  * Connector component. Receive client requests and attach session with socket.
@@ -52,14 +50,14 @@ class Component {
         this.connection = this.app.components.__connection__;
         // check component dependencies
         if (!this.server) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb, new Error('fail to start connector component for no server component loaded'));
             });
             return;
         }
 
         if (!this.session) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(
                     cb,
                     new Error('fail to start connector component for no session component loaded')
@@ -114,36 +112,33 @@ class Component {
 
     sendAsync(reqId, route, msg, recvs, opts, cb) {
         let emsg = msg;
-        const self = this;
 
         if (this.encode) {
             // use costumized encode
-            this.encode(reqId, route, msg, function (err, encodeMsg) {
+            this.encode(reqId, route, msg, (err, encodeMsg) => {
                 if (err) {
                     return cb(err);
                 }
 
                 emsg = encodeMsg;
-                self.doSend(reqId, route, emsg, recvs, opts, cb);
+                this.doSend(reqId, route, emsg, recvs, opts, cb);
             });
         } else if (this.connector.encode) {
             // use connector default encode
-            this.connector.encode(reqId, route, msg, function (err, encodeMsg) {
+            this.connector.encode(reqId, route, msg, (err, encodeMsg) => {
                 if (err) {
                     return cb(err);
                 }
 
                 emsg = encodeMsg;
-                self.doSend(reqId, route, emsg, recvs, opts, cb);
+                this.doSend(reqId, route, emsg, recvs, opts, cb);
             });
         }
     }
 
     doSend(reqId, route, emsg, recvs, opts, cb) {
         if (!emsg) {
-            process.nextTick(function () {
-                return cb && cb(new Error('fail to send message for encode result is empty.'));
-            });
+            process.nextTick(() => cb && cb(new Error('fail to send message for encode result is empty.')));
         }
 
         this.app.components.__pushScheduler__.schedule(reqId, route, emsg, recvs, opts, cb);
@@ -183,7 +178,7 @@ function hostFilter(cb, socket) {
     }
 
     const ip = socket.remoteAddress.ip;
-    const check = function (list) {
+    const check = list => {
         for (const address in list) {
             const exp = new RegExp(list[address]);
             if (exp.test(ip)) {
@@ -199,23 +194,21 @@ function hostFilter(cb, socket) {
     }
     // static check
     if (!!this.blacklistFun && typeof this.blacklistFun === 'function') {
-        const self = this;
-        self.blacklistFun(function (err, list) {
+        this.blacklistFun((err, list) => {
             if (err) {
                 logger.error('connector blacklist error: %j', err.stack);
-                utils.invokeCallback(cb, self, socket);
+                utils.invokeCallback(cb, this, socket);
                 return;
             }
             if (!Array.isArray(list)) {
                 logger.error('connector blacklist is not array: %j', list);
-                utils.invokeCallback(cb, self, socket);
+                utils.invokeCallback(cb, this, socket);
                 return;
             }
             if (check(list)) {
                 return;
-            } else {
-                utils.invokeCallback(cb, self, socket);
             }
+            utils.invokeCallback(cb, this, socket);
         });
     } else {
         utils.invokeCallback(cb, this, socket);
@@ -239,7 +232,7 @@ function bindEvents(self, socket) {
     const session = getSession(self, socket);
     let closed = false;
 
-    socket.on('disconnect', function () {
+    socket.on('disconnect', () => {
         if (closed) {
             return;
         }
@@ -249,7 +242,7 @@ function bindEvents(self, socket) {
         }
     });
 
-    socket.on('error', function () {
+    socket.on('error', () => {
         if (closed) {
             return;
         }
@@ -260,7 +253,7 @@ function bindEvents(self, socket) {
     });
 
     // new message
-    socket.on('message', function (msg) {
+    socket.on('message', msg => {
         let dmsg = msg;
         if (self.useAsyncCoder) {
             return handleMessageAsync(self, msg, session, socket);
@@ -290,7 +283,7 @@ function bindEvents(self, socket) {
 
 function handleMessageAsync(self, msg, session, socket) {
     if (self.decode) {
-        self.decode(msg, session, function (err, dmsg) {
+        self.decode(msg, session, (err, dmsg) => {
             if (err) {
                 logger.error('fail to decode message from client %s .', err.stack);
                 return;
@@ -299,7 +292,7 @@ function handleMessageAsync(self, msg, session, socket) {
             doHandleMessage(self, dmsg, session);
         });
     } else if (self.connector.decode) {
-        self.connector.decode(msg, socket, function (err, dmsg) {
+        self.connector.decode(msg, socket, (err, dmsg) => {
             if (err) {
                 logger.error('fail to decode message from client %s .', err.stack);
                 return;
@@ -346,20 +339,20 @@ function getSession(self, socket) {
     socket.on('disconnect', session.closed.bind(session));
     socket.on('error', session.closed.bind(session));
     session.on('closed', onSessionClose.bind(null, app));
-    session.on('bind', function (uid) {
+    session.on('bind', uid => {
         logger.debug('session on [%s] bind with uid: %s', self.app.serverId, uid);
         // update connection statistics if necessary
         if (self.connection) {
             self.connection.addLoginedUser(uid, {
                 loginTime: Date.now(),
-                uid: uid,
+                uid,
                 address: socket.remoteAddress.ip + ':' + socket.remoteAddress.port
             });
         }
         self.app.event.emit(events.BIND_SESSION, session);
     });
 
-    session.on('unbind', function (uid) {
+    session.on('unbind', uid => {
         if (self.connection) {
             self.connection.removeLoginedUser(uid);
         }
@@ -381,12 +374,12 @@ function handleMessage(self, session, msg) {
         logger.error('invalid route string. route : %j', msg.route);
         return;
     }
-    self.server.globalHandle(msg, session.toFrontendSession(), function (err, resp, opts) {
+    self.server.globalHandle(msg, session.toFrontendSession(), (err, resp, opts) => {
         if (resp && !msg.id) {
             logger.warn('try to response to a notify: %j', msg.route);
             return;
         }
-        if (!msg.id && !resp) return;
+        if (!(msg.id || resp)) return;
         if (!resp) resp = {};
         if (!!err && !resp.code) {
             resp.code = 500;
@@ -398,7 +391,7 @@ function handleMessage(self, session, msg) {
         // for compatiablity
         opts.isResponse = true;
 
-        self.send(msg.id, msg.route, resp, [session.id], opts, function () {});
+        self.send(msg.id, msg.route, resp, [session.id], opts, () => {});
     });
 }
 
@@ -430,7 +423,9 @@ function verifyMessage(self, session, msg) {
         return false;
     }
 
-    if (!session.get('pubKey')) {
+    if (session.get('pubKey')) {
+        pubKey = session.get('pubKey');
+    } else {
         pubKey = self.getPubKey(session.id);
         if (pubKey) {
             delete self.keys[session.id];
@@ -439,11 +434,9 @@ function verifyMessage(self, session, msg) {
             logger.error('could not get public key, session id is %s', session.id);
             return false;
         }
-    } else {
-        pubKey = session.get('pubKey');
     }
 
-    if (!pubKey.n || !pubKey.e) {
+    if (!(pubKey.n && pubKey.e)) {
         logger.error('could not verify message without public key [%s]', self.app.serverId);
         return false;
     }

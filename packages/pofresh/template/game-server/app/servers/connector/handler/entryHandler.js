@@ -1,6 +1,4 @@
-module.exports = function (app) {
-    return new Handler(app);
-};
+module.exports = app => new Handler(app);
 
 class Handler {
     constructor(app) {

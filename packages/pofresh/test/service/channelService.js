@@ -6,16 +6,16 @@ const channelName = 'test_channel';
 const mockBase = process.cwd() + '/test';
 const mockApp = { serverId: 'test-server-1' };
 
-describe('channel manager test', function () {
-    describe('#createChannel', function () {
-        it('should create and return a channel with the specified name', function () {
+describe('channel manager test', () => {
+    describe('#createChannel', () => {
+        it('should create and return a channel with the specified name', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
             channelName.should.equal(channel.name);
         });
 
-        it('should return the same channel if the name has already existed', function () {
+        it('should return the same channel if the name has already existed', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -25,8 +25,8 @@ describe('channel manager test', function () {
         });
     });
 
-    describe('#destroyChannel', function () {
-        it('should delete the channel instance', function () {
+    describe('#destroyChannel', () => {
+        it('should delete the channel instance', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
             should.exist(channel);
@@ -37,8 +37,8 @@ describe('channel manager test', function () {
         });
     });
 
-    describe('#getChannel', function () {
-        it('should return the channel with the specified name if it exists', function () {
+    describe('#getChannel', () => {
+        it('should return the channel with the specified name if it exists', () => {
             const channelService = new ChannelService(mockApp);
             channelService.createChannel(channelName);
             const channel = channelService.getChannel(channelName);
@@ -46,13 +46,13 @@ describe('channel manager test', function () {
             channelName.should.equal(channel.name);
         });
 
-        it('should return undefined if the channel dose not exist', function () {
+        it('should return undefined if the channel dose not exist', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.getChannel(channelName);
             should.not.exist(channel);
         });
 
-        it('should create and return a new channel if create parameter is set', function () {
+        it('should create and return a new channel if create parameter is set', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.getChannel(channelName, true);
             should.exist(channel);
@@ -60,8 +60,8 @@ describe('channel manager test', function () {
         });
     });
 
-    describe('#pushMessageByUids', function () {
-        it('should push message to the right frontend server', function (done) {
+    describe('#pushMessageByUids', () => {
+        it('should push message to the right frontend server', done => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -81,7 +81,7 @@ describe('channel manager test', function () {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = function (sid, rmsg, cb) {
+            const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 const args = rmsg.args;
                 const route = args[0];
@@ -102,25 +102,25 @@ describe('channel manager test', function () {
             app.rpcInvoke = mockRpcInvoke;
             const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(orgRoute, mockMsg, mockUids, function () {
+            channelService.pushMessageByUids(orgRoute, mockMsg, mockUids, () => {
                 invokeCount.should.equal(2);
                 done();
             });
         });
 
-        it('should return an err if uids is empty', function (done) {
+        it('should return an err if uids is empty', done => {
             const mockMsg = { key: 'some remote message' };
             const app = pofresh.createApp({ base: mockBase });
             const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(mockMsg, null, function (err) {
+            channelService.pushMessageByUids(mockMsg, null, err => {
                 should.exist(err);
                 err.message.should.equal('uids should not be empty');
                 done();
             });
         });
 
-        it('should return err if all message fail to push', function (done) {
+        it('should return err if all message fail to push', done => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -139,7 +139,7 @@ describe('channel manager test', function () {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = function (sid, rmsg, cb) {
+            const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 cb(new Error('[TestMockError] mock rpc error'));
             };
@@ -148,7 +148,7 @@ describe('channel manager test', function () {
             app.rpcInvoke = mockRpcInvoke;
             const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(mockMsg, mockUids, function (err) {
+            channelService.pushMessageByUids(mockMsg, mockUids, err => {
                 invokeCount.should.equal(2);
                 should.exist(err);
                 err.message.should.equal('all uids push message fail');
@@ -156,7 +156,7 @@ describe('channel manager test', function () {
             });
         });
 
-        it('should return fail uid list if fail to push messge to some of the uids', function (done) {
+        it('should return fail uid list if fail to push messge to some of the uids', done => {
             const sid1 = 'sid1',
                 sid2 = 'sid2';
             const uid1 = 'uid1',
@@ -175,7 +175,7 @@ describe('channel manager test', function () {
 
             let invokeCount = 0;
 
-            const mockRpcInvoke = function (sid, rmsg, cb) {
+            const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 if (rmsg.args[2].indexOf(uid1) >= 0) {
                     cb(null, [uid1]);
@@ -190,7 +190,7 @@ describe('channel manager test', function () {
             app.rpcInvoke = mockRpcInvoke;
             const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(mockMsg, mockUids, function (err, fails) {
+            channelService.pushMessageByUids(mockMsg, mockUids, (err, fails) => {
                 invokeCount.should.equal(2);
                 should.not.exist(err);
                 should.exist(fails);
@@ -202,8 +202,8 @@ describe('channel manager test', function () {
         });
     });
 
-    describe('#broadcast', function () {
-        it('should push message to all specified frontend servers', function (done) {
+    describe('#broadcast', () => {
+        it('should push message to all specified frontend servers', done => {
             const mockServers = [
                 { id: 'connector-1', serverType: 'connector', other: 'xxx1' },
                 { id: 'connector-2', serverType: 'connector', other: 'xxx2' },
@@ -222,7 +222,7 @@ describe('channel manager test', function () {
             let invokeCount = 0;
             const sids = [];
 
-            const mockRpcInvoke = function (sid, rmsg, cb) {
+            const mockRpcInvoke = (sid, rmsg, cb) => {
                 invokeCount++;
                 const args = rmsg.args;
                 const route = args[0];
@@ -241,7 +241,7 @@ describe('channel manager test', function () {
             app.addServers(mockServers);
             const channelService = new ChannelService(app);
 
-            channelService.broadcast(mockSType, mockRoute, mockMsg, opts, function () {
+            channelService.broadcast(mockSType, mockRoute, mockMsg, opts, () => {
                 invokeCount.should.equal(2);
                 sids.length.should.equal(connectorIds.length);
                 for (let i = 0, l = connectorIds.length; i < l; i++) {

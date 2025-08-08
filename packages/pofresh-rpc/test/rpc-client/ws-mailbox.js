@@ -7,8 +7,16 @@ const Tracer = require('../../lib/util/tracer');
 const WAIT_TIME = 100;
 
 const paths = [
-    { namespace: 'user', serverType: 'area', path: __dirname + '../../mock-remote/area' },
-    { namespace: 'sys', serverType: 'connector', path: __dirname + '../../mock-remote/connector' }
+    {
+        namespace: 'user',
+        serverType: 'area',
+        path: __dirname + '../../mock-remote/area'
+    },
+    {
+        namespace: 'sys',
+        serverType: 'connector',
+        path: __dirname + '../../mock-remote/connector'
+    }
 ];
 
 const port = 3333;
@@ -16,7 +24,7 @@ const port = 3333;
 const server = {
     id: 'area-server-1',
     host: '127.0.0.1',
-    port: port
+    port
 };
 
 const msg = {
@@ -29,15 +37,15 @@ const msg = {
 
 const tracer = new Tracer(console, false);
 
-describe('ws mailbox test', function () {
+describe('ws mailbox test', () => {
     let gateway;
 
-    beforeEach(function (done) {
-    //start remote server
+    beforeEach(done => {
+        //start remote server
         const opts = {
             acceptorFactory: Server.WSAcceptor,
-            paths: paths,
-            port: port,
+            paths,
+            port,
             bufferMsg: true,
             interval: 30
         };
@@ -47,24 +55,24 @@ describe('ws mailbox test', function () {
         done();
     });
 
-    afterEach(function (done) {
-    //stop remote server
+    afterEach(done => {
+        //stop remote server
         gateway.stop();
         done();
     });
 
-    describe('#create', function () {
-        it('should be ok for creating a mailbox and connect to the right remote server', function (done) {
+    describe('#create', () => {
+        it('should be ok for creating a mailbox and connect to the right remote server', done => {
             const mailbox = Mailbox.create(server);
             expect(mailbox);
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
                 mailbox.close();
                 done();
             });
         });
 
-        it('should return an error if connect fail', function (done) {
+        it('should return an error if connect fail', done => {
             const server = {
                 id: 'area-server-1',
                 host: '127.0.0.1',
@@ -73,19 +81,19 @@ describe('ws mailbox test', function () {
 
             const mailbox = Mailbox.create(server);
             expect(mailbox);
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 expect(err);
                 done();
             });
         }).timeout(5000);
     });
 
-    describe('#send', function () {
-        it('should send request to remote server and get the response from callback function', function (done) {
+    describe('#send', () => {
+        it('should send request to remote server and get the response from callback function', done => {
             const mailbox = Mailbox.create(server);
-            mailbox.connect(tracer, function (_err) {
+            mailbox.connect(tracer, _err => {
                 expect(_err).toBeUndefined();
-                mailbox.send(tracer, msg, null, function (_tracer, err, res) {
+                mailbox.send(tracer, msg, null, (_tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(msg.args[0] + 1);
                     mailbox.close();
@@ -94,7 +102,7 @@ describe('ws mailbox test', function () {
             });
         });
 
-        it('should distinguish different services and keep the right request/response relationship', function (done) {
+        it('should distinguish different services and keep the right request/response relationship', done => {
             const value = 1;
             const msg1 = {
                 namespace: 'user',
@@ -120,29 +128,29 @@ describe('ws mailbox test', function () {
             let callbackCount = 0;
 
             const mailbox = Mailbox.create(server);
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(3);
                 if (mailbox) {
                     mailbox.close();
@@ -152,7 +160,7 @@ describe('ws mailbox test', function () {
         });
 
         // eslint-disable-next-line max-len
-        it('should distinguish different services and keep the right request/response relationship when use message cache mode', function (done) {
+        it('should distinguish different services and keep the right request/response relationship when use message cache mode', done => {
             const value = 1;
             const msg1 = {
                 namespace: 'user',
@@ -178,29 +186,29 @@ describe('ws mailbox test', function () {
             let callbackCount = 0;
 
             const mailbox = Mailbox.create(server, { bufferMsg: true });
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(3);
                 if (mailbox) {
                     mailbox.close();
@@ -210,10 +218,10 @@ describe('ws mailbox test', function () {
         });
 
         // eslint-disable-next-line max-len
-        it('should distinguish different services and keep the right request/response relationship if the client uses message cache mode but server not', function (done) {
+        it('should distinguish different services and keep the right request/response relationship if the client uses message cache mode but server not', done => {
             //start a new remote server without message cache mode
             const opts = {
-                paths: paths,
+                paths,
                 port: 3051
             };
 
@@ -245,29 +253,29 @@ describe('ws mailbox test', function () {
             let callbackCount = 0;
 
             const mailbox = Mailbox.create(server, { bufferMsg: true });
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
-                mailbox.send(tracer, msg1, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg1, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 1);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg2, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg2, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 2);
                     callbackCount++;
                 });
 
-                mailbox.send(tracer, msg3, null, function (tracer, err, res) {
+                mailbox.send(tracer, msg3, null, (tracer, err, res) => {
                     expect(res).toBeDefined();
                     expect(res[1]).toBe(value + 3);
                     callbackCount++;
                 });
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(callbackCount).toBe(3);
                 if (mailbox) {
                     mailbox.close();
@@ -278,33 +286,33 @@ describe('ws mailbox test', function () {
         });
     });
 
-    describe('#close', function () {
-        it('should emit a close event when mailbox close', function (done) {
+    describe('#close', () => {
+        it('should emit a close event when mailbox close', done => {
             let closeEventCount = 0;
             const mailbox = Mailbox.create(server);
 
-            mailbox.on('close', function () {
+            mailbox.on('close', () => {
                 closeEventCount++;
             });
 
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
 
                 mailbox.close();
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(closeEventCount).toBe(1);
                 done();
             }, WAIT_TIME);
         });
 
-        it('should return an error when try to send message by a closed mailbox', function (done) {
+        it('should return an error when try to send message by a closed mailbox', done => {
             const mailbox = Mailbox.create(server);
-            mailbox.connect(tracer, function (err) {
+            mailbox.connect(tracer, err => {
                 should.not.exist(err);
                 mailbox.close();
-                mailbox.send(tracer, msg, null, function (tracer, err) {
+                mailbox.send(tracer, msg, null, (tracer, err) => {
                     expect(err);
                     done();
                 });

@@ -18,7 +18,7 @@ class Connector extends EventEmitter {
         this.port = port;
         this.host = host;
         this.opts = opts;
-        this.heartbeats = opts.heartbeats || true;
+        this.heartbeats = true;
         this.closeTimeout = opts.closeTimeout || 60;
         this.heartbeatTimeout = opts.heartbeatTimeout || 60;
         this.heartbeatInterval = opts.heartbeatInterval || 25;
@@ -28,7 +28,6 @@ class Connector extends EventEmitter {
      * Start connector to listen the specified port
      */
     start(cb) {
-        const self = this;
         let opts = {};
         if (this.opts) {
             opts = this.opts;
@@ -41,7 +40,7 @@ class Connector extends EventEmitter {
         const sio = require('socket.io')(httpServer, opts);
 
         const port = this.port;
-        httpServer.listen(port, function () {
+        httpServer.listen(port, () => {
             console.log('sio Server listening at port %d', port);
         });
         sio.set('resource', '/socket.io');
@@ -49,11 +48,11 @@ class Connector extends EventEmitter {
         sio.set('heartbeat timeout', this.heartbeatTimeout);
         sio.set('heartbeat interval', this.heartbeatInterval);
 
-        sio.on('connection', function (socket) {
+        sio.on('connection', socket => {
             const siosocket = new SioSocket(curId++, socket);
-            self.emit('connection', siosocket);
-            siosocket.on('closing', function (reason) {
-                siosocket.send({ route: 'onKick', reason: reason });
+            this.emit('connection', siosocket);
+            siosocket.on('closing', reason => {
+                siosocket.send({ route: 'onKick', reason });
             });
         });
 
@@ -84,9 +83,8 @@ Connector.encode = encode;
 function encode(reqId, route, msg) {
     if (reqId) {
         return composeResponse(reqId, route, msg);
-    } else {
-        return composePush(route, msg);
     }
+    return composePush(route, msg);
 }
 
 /**
@@ -115,8 +113,8 @@ function decode(msg) {
     const body = msg.substr(PKG_HEAD_BYTES + routeLen);
 
     return {
-        id: id,
-        route: route,
+        id,
+        route,
         body: JSON.parse(body)
     };
 }
@@ -129,7 +127,7 @@ function composeResponse(msgId, route, msgBody) {
 }
 
 function composePush(route, msgBody) {
-    return JSON.stringify({ route: route, body: msgBody });
+    return JSON.stringify({ route, body: msgBody });
 }
 
 function parseIntField(str, offset, len) {

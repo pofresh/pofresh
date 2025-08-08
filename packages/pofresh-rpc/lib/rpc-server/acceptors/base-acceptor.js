@@ -128,12 +128,11 @@ class Acceptor extends EventEmitter {
             );
             tracer.info('server', __filename, 'processMsg', this.name + ' receive message and try to process message');
         }
-        const self = this;
-        this.cb(tracer, pkg.msg, function () {
+        this.cb(tracer, pkg.msg, () => {
             const args = Array.prototype.slice.call(arguments, 0);
             const errorArg = args[0]; // first callback argument can be error object, the others are message
             if (errorArg && errorArg instanceof Error) {
-                args[0] = self.cloneError(errorArg);
+                args[0] = this.cloneError(errorArg);
             }
 
             const resp = {
@@ -146,10 +145,10 @@ class Acceptor extends EventEmitter {
                 resp.seqId = tracer.seq;
                 resp.source = tracer.source;
             }
-            if (self.bufferMsg) {
-                self.enqueue(socket, resp);
+            if (this.bufferMsg) {
+                this.enqueue(socket, resp);
             } else {
-                self.send(socket, resp);
+                this.send(socket, resp);
             }
         });
     }

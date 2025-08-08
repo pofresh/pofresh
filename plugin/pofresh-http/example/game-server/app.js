@@ -9,7 +9,7 @@ const app = pofresh.createApp();
 app.set('name', 'example');
 
 // app configuration
-app.configure('development', 'gamehttp', function () {
+app.configure('development', 'gamehttp', () => {
     app.loadConfig('httpConfig', path.join(app.getBase(), 'config/http.json'));
     app.use(httpTool, {
         httpComponent: app.get('httpConfig').gamehttp
@@ -20,13 +20,13 @@ app.configure('development', 'gamehttp', function () {
     // });
 
     httpTool.filter(require('./app/filters/log')());
-    httpTool.afterFilter(function (req, res) {
+    httpTool.afterFilter((req, res) => {
         res.send(res.get('resp'));
     });
 });
 // start app
 app.start();
 
-process.on('uncaughtException', function (err) {
+process.on('uncaughtException', err => {
     console.error(' Caught exception: ' + err.stack);
 });

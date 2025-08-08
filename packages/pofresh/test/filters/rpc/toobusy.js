@@ -7,12 +7,12 @@ const mockData = {
     opts: {}
 };
 
-describe('#toobusyFilter', function () {
-    it('should no callback for toobusy', function (done) {
+describe('#toobusyFilter', () => {
+    it('should no callback for toobusy', done => {
         const toobusyFilter = ToobusyFilter(10, 100);
         function load() {
             let callbackInvoked = true;
-            toobusyFilter.before(mockData.serverId, mockData.msg, mockData.opts, function (err) {
+            toobusyFilter.before(mockData.serverId, mockData.msg, mockData.opts, err => {
                 if (err) callbackInvoked = false;
             });
 

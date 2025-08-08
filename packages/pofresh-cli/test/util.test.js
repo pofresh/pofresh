@@ -29,7 +29,7 @@ describe('util', () => {
         });
 
         it('should handle arguments with quotes', () => {
-            const result = util.argsFilter('add \'time=0 30 10 * * *\' action=test');
+            const result = util.argsFilter("add 'time=0 30 10 * * *' action=test");
             expect(result).toContain('time=0 30 10 * * *');
         });
 

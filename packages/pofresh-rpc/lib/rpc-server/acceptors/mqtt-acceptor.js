@@ -48,7 +48,7 @@ class Acceptor extends BaseAcceptor {
             socket.pingresp();
         });
 
-        socket.on('subscribe', function (_packet) {
+        socket.on('subscribe', _packet => {
             // send a suback with messageId and granted QoS level
             // socket.suback({ granted: [packet.qos], messageId: packet.messageId });
         });
@@ -80,6 +80,4 @@ class Acceptor extends BaseAcceptor {
  * @param opts init params
  * @param cb(tracer, msg, cb) callback function that would be invoked when new message arrives
  */
-module.exports.create = function (opts, cb) {
-    return new Acceptor(opts || {}, cb);
-};
+module.exports.create = (opts, cb) => new Acceptor(opts || {}, cb);

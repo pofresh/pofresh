@@ -33,9 +33,9 @@ class Http {
         if (opts.isCluster) {
             const serverId = app.getServerId();
             const params = serverId.split('-');
-            const idx = parseInt(params[params.length - 1], 10);
+            const idx = Number.parseInt(params[params.length - 1], 10);
             if (/\d+\+\+/.test(this.port)) {
-                this.port = parseInt(this.port.substr(0, this.port.length - 2), 10);
+                this.port = Number.parseInt(this.port.substr(0, this.port.length - 2), 10);
             } else {
                 assert.ok(false, 'http cluster expect http port format like "3000++"');
             }

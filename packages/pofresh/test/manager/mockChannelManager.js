@@ -65,11 +65,9 @@ MockManager.prototype.destroyChannel = function (name, cb) {
     utils.invokeCallback(cb);
 };
 
-const genKey = function (self, name, sid) {
-    return self.prefix + ':' + name + ':' + sid;
-};
+const genKey = (self, name, sid) => self.prefix + ':' + name + ':' + sid;
 
-const deleteFrom = function (uid, group) {
+const deleteFrom = (uid, group) => {
     if (!group) {
         return true;
     }

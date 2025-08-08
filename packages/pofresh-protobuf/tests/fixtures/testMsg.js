@@ -36,7 +36,7 @@ tc.onMove = {
 };
 
 tc.onUpgrade = {
-    id: 32726,
+    id: 32_726,
     entityId: 48,
     name: 'super1',
     kindId: 210,

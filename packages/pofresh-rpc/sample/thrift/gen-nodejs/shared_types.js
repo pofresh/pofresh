@@ -32,22 +32,22 @@ SharedStruct.prototype.read = function (input) {
             break;
         }
         switch (fid) {
-        case 1:
-            if (ftype == Thrift.Type.I32) {
-                this.key = input.readI32();
-            } else {
+            case 1:
+                if (ftype == Thrift.Type.I32) {
+                    this.key = input.readI32();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            case 2:
+                if (ftype == Thrift.Type.STRING) {
+                    this.value = input.readString();
+                } else {
+                    input.skip(ftype);
+                }
+                break;
+            default:
                 input.skip(ftype);
-            }
-            break;
-        case 2:
-            if (ftype == Thrift.Type.STRING) {
-                this.value = input.readString();
-            } else {
-                input.skip(ftype);
-            }
-            break;
-        default:
-            input.skip(ftype);
         }
         input.readFieldEnd();
     }

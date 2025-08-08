@@ -32,38 +32,37 @@ class Connector extends EventEmitter {
     }
 
     start(cb) {
-        const self = this;
         this.tcpServer = net.createServer();
-        this.socket = dgram.createSocket(this.type, function (msg, peer) {
+        this.socket = dgram.createSocket(this.type, (msg, peer) => {
             const key = genKey(peer);
-            if (!self.clients[key]) {
-                const udpsocket = new UdpSocket(curId++, self.socket, peer);
-                self.clients[key] = udpsocket;
+            if (!this.clients[key]) {
+                const udpsocket = new UdpSocket(curId++, this.socket, peer);
+                this.clients[key] = udpsocket;
 
-                udpsocket.on('handshake', self.handshake.handle.bind(self.handshake, udpsocket));
+                udpsocket.on('handshake', this.handshake.handle.bind(this.handshake, udpsocket));
 
-                udpsocket.on('heartbeat', self.heartbeat.handle.bind(self.heartbeat, udpsocket));
+                udpsocket.on('heartbeat', this.heartbeat.handle.bind(this.heartbeat, udpsocket));
 
-                udpsocket.on('disconnect', self.heartbeat.clear.bind(self.heartbeat, udpsocket.id));
+                udpsocket.on('disconnect', this.heartbeat.clear.bind(this.heartbeat, udpsocket.id));
 
-                udpsocket.on('disconnect', function () {
-                    delete self.clients[genKey(udpsocket.peer)];
+                udpsocket.on('disconnect', () => {
+                    delete this.clients[genKey(udpsocket.peer)];
                 });
 
                 udpsocket.on('closing', Kick.handle.bind(null, udpsocket));
 
-                self.emit('connection', udpsocket);
+                this.emit('connection', udpsocket);
             }
         });
 
-        this.socket.on('message', function (data, peer) {
-            const socket = self.clients[genKey(peer)];
+        this.socket.on('message', (data, peer) => {
+            const socket = this.clients[genKey(peer)];
             if (socket) {
                 socket.emit('package', data);
             }
         });
 
-        this.socket.on('error', function (err) {
+        this.socket.on('error', err => {
             logger.error('udp socket encounters with error: %j', err.stack);
             return;
         });

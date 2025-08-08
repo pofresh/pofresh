@@ -19,10 +19,10 @@ utils.invokeCallback = (cb, ...args) => {
 /**
  * Get the count of elements of object
  */
-utils.size = function (obj) {
+utils.size = obj => {
     let count = 0;
     for (const i in obj) {
-        if (obj.hasOwnProperty(i) && typeof obj[i] !== 'function') {
+        if (Object.hasOwn(obj, i) && typeof obj[i] !== 'function') {
             count++;
         }
     }
@@ -93,18 +93,18 @@ utils.unicodeToUtf8 = str => {
  * Ping server to check if network is available
  *
  */
-utils.ping = function (host, cb) {
-    if (!utils.isLocal(host)) {
+utils.ping = (host, cb) => {
+    if (utils.isLocal(host)) {
+        cb(true);
+    } else {
         const cmd = 'ping -w 15 ' + host;
-        exec(cmd, function (err, stdout, stderr) {
+        exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 cb(false);
                 return;
             }
             cb(true);
         });
-    } else {
-        cb(true);
     }
 };
 
@@ -113,7 +113,7 @@ utils.ping = function (host, cb) {
  *
  */
 utils.checkPort = function (server, cb) {
-    if ((!server.port && !server.clientPort) || os.platform() === 'win32') {
+    if (!(server.port || server.clientPort) || os.platform() === 'win32') {
         this.invokeCallback(cb, 'leisure');
         return;
     }
@@ -131,8 +131,8 @@ utils.checkPort = function (server, cb) {
         }
 
         // 验证端口范围为有效数字
-        const portNum = parseInt(portToCheck, 10);
-        if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
+        const portNum = Number.parseInt(portToCheck, 10);
+        if (isNaN(portNum) || portNum < 1 || portNum > 65_535) {
             logger.error('Invalid port number: %s', portToCheck);
             callback('error');
             return;
@@ -216,11 +216,9 @@ utils.checkPort = function (server, cb) {
     });
 };
 
-utils.isLocal = function (host) {
+utils.isLocal = host => {
     const app = require('../pofresh').app;
-    if (!app) {
-        return host === '127.0.0.1' || host === 'localhost' || host === '0.0.0.0' || inLocal(host);
-    } else {
+    if (app) {
         return (
             host === '127.0.0.1' ||
             host === 'localhost' ||
@@ -229,21 +227,22 @@ utils.isLocal = function (host) {
             host === app.master.host
         );
     }
+    return host === '127.0.0.1' || host === 'localhost' || host === '0.0.0.0' || inLocal(host);
 };
 
 /**
  * Load cluster server.
  *
  */
-utils.loadCluster = function (app, server, serverMap) {
+utils.loadCluster = (app, server, serverMap) => {
     const increaseFields = {};
-    const count = parseInt(server[Constants.RESERVED.CLUSTER_COUNT]);
+    const count = Number.parseInt(server[Constants.RESERVED.CLUSTER_COUNT]);
     let seq = app.clusterSeq[server.serverType];
-    if (!seq) {
+    if (seq) {
+        app.clusterSeq[server.serverType] = seq + count;
+    } else {
         seq = 0;
         app.clusterSeq[server.serverType] = count;
-    } else {
-        app.clusterSeq[server.serverType] = seq + count;
     }
 
     for (const key in server) {
@@ -254,7 +253,7 @@ utils.loadCluster = function (app, server, serverMap) {
         }
     }
 
-    const clone = function (src) {
+    const clone = src => {
         const rs = {};
         for (const key in src) {
             rs[key] = src[key];
@@ -265,14 +264,14 @@ utils.loadCluster = function (app, server, serverMap) {
         const cserver = clone(server);
         cserver.id = Constants.RESERVED.CLUSTER_PREFIX + server.serverType + '-' + l;
         for (const k in increaseFields) {
-            const v = parseInt(increaseFields[k]);
+            const v = Number.parseInt(increaseFields[k]);
             cserver[k] = v + i;
         }
         serverMap[cserver.id] = cserver;
     }
 };
 
-utils.extends = (origin, add) => (!add || !utils.isObject(add) ? origin : { ...origin, ...add });
+utils.extends = (origin, add) => (add && utils.isObject(add) ? { ...origin, ...add } : origin);
 
 utils.headHandler = headBuffer => {
     // 使用位运算优化字节读取

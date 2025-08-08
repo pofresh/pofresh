@@ -20,7 +20,7 @@ class SIOServer extends EventEmitter {
 
         this.server.on('connection', socket => {
             // socket.id = curId++;
-            socket.send = function (topic, msg) {
+            socket.send = (topic, msg) => {
                 socket.emit(topic, msg);
             };
             this.emit('connection', socket);

@@ -1,4 +1,4 @@
-import { vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, vi } from 'vitest';
 import schedule from '../lib/schedule.js';
 
 describe('Schedule', () => {
@@ -68,7 +68,7 @@ describe('Schedule', () => {
             vi.setSystemTime(baseTime);
 
             // 创建一个在下一分钟执行的 cron 表达式
-            const nextMinute = new Date(baseTime.getTime() + 60000);
+            const nextMinute = new Date(baseTime.getTime() + 60_000);
             // eslint-disable-next-line max-len
             const cronExpr = `0 ${nextMinute.getMinutes()} ${nextMinute.getHours()} ${nextMinute.getDate()} ${nextMinute.getMonth()} *`;
 
@@ -78,7 +78,7 @@ describe('Schedule', () => {
             expect(mockJob).not.toHaveBeenCalled();
 
             // 快进到下一分钟
-            await vi.advanceTimersByTimeAsync(60000);
+            await vi.advanceTimersByTimeAsync(60_000);
 
             expect(mockJob).toHaveBeenCalledOnce();
         });

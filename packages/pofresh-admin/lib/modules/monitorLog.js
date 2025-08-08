@@ -10,9 +10,7 @@ const utils = require('../util/utils');
 const DEFAULT_INTERVAL = 5 * 60; // in second
 const moduleId = 'monitorLog';
 
-module.exports = function (opts) {
-    return new Module(opts);
-};
+module.exports = opts => new Module(opts);
 
 module.exports.moduleId = moduleId;
 
@@ -46,8 +44,8 @@ class Module {
         }
 
         const serverId = agent.id;
-        fetchLogs(this.root, msg, function (data) {
-            cb(null, { serverId: serverId, body: data });
+        fetchLogs(this.root, msg, data => {
+            cb(null, { serverId, body: data });
         });
     }
 
@@ -60,7 +58,7 @@ class Module {
      * @api public
      */
     clientHandler(agent, msg, cb) {
-        agent.request(msg.serverId, moduleId, msg, function (err, res) {
+        agent.request(msg.serverId, moduleId, msg, (err, res) => {
             if (err) {
                 logger.error('fail to run log for ' + err.stack);
                 return;
@@ -78,7 +76,7 @@ function fetchLogs(root, msg, callback) {
     const filePath = path.join(root, getLogFileName(logfile, serverId));
 
     const endLogs = [];
-    utils.tail(filePath, number).then(function (output) {
+    utils.tail(filePath, number).then(output => {
         for (let i = 0; i < output.length; i++) {
             const item = output[i];
             let log = '';
@@ -108,7 +106,7 @@ function fetchLogs(root, msg, callback) {
             }
         }
 
-        callback({ logfile: logfile, dataArray: endLogs });
+        callback({ logfile, dataArray: endLogs });
     });
 }
 

@@ -16,7 +16,7 @@ function require(path, parent, orig) {
     const resolved = require.resolve(path);
 
     // lookup failed
-    if (null === resolved) {
+    if (resolved === null) {
         orig = orig || path;
         parent = parent || 'root';
         const err = new Error('Failed to require "' + orig + '" from "' + parent + '"');
@@ -66,7 +66,7 @@ require.aliases = {};
  * @api private
  */
 
-require.resolve = function (path) {
+require.resolve = path => {
     if (path.charAt(0) === '/') {
         path = path.slice(1);
     }
@@ -95,10 +95,10 @@ require.resolve = function (path) {
  * @api private
  */
 
-require.normalize = function (curr, path) {
+require.normalize = (curr, path) => {
     const segs = [];
 
-    if ('.' !== path.charAt(0)) {
+    if (path.charAt(0) !== '.') {
         return path;
     }
 
@@ -106,9 +106,9 @@ require.normalize = function (curr, path) {
     path = path.split('/');
 
     for (let i = 0; i < path.length; ++i) {
-        if ('..' === path[i]) {
+        if (path[i] === '..') {
             curr.pop();
-        } else if ('.' !== path[i] && '' !== path[i]) {
+        } else if (path[i] !== '.' && path[i] !== '') {
             segs.push(path[i]);
         }
     }
@@ -124,7 +124,7 @@ require.normalize = function (curr, path) {
  * @api private
  */
 
-require.register = function (path, definition) {
+require.register = (path, definition) => {
     require.modules[path] = definition;
 };
 
@@ -136,7 +136,7 @@ require.register = function (path, definition) {
  * @api private
  */
 
-require.alias = function (from, to) {
+require.alias = (from, to) => {
     if (!has.call(require.modules, from)) {
         throw new Error('Failed to alias "' + from + '", it does not exist');
     }
@@ -151,7 +151,7 @@ require.alias = function (from, to) {
  * @api private
  */
 
-require.relative = function (parent) {
+require.relative = parent => {
     const p = require.normalize(parent, '..');
 
     /**
@@ -181,10 +181,10 @@ require.relative = function (parent) {
      * Resolve relative to the parent.
      */
 
-    localRequire.resolve = function (path) {
+    localRequire.resolve = path => {
         const c = path.charAt(0);
-        if ('/' == c) return path.slice(1);
-        if ('.' == c) return require.normalize(p, path);
+        if (c == '/') return path.slice(1);
+        if (c == '.') return require.normalize(p, path);
 
         // resolve deps by returning
         // the dep in the nearest "deps"
@@ -200,16 +200,14 @@ require.relative = function (parent) {
      * Check if module is defined at `path`.
      */
 
-    localRequire.exists = function (path) {
-        return has.call(require.modules, localRequire.resolve(path));
-    };
+    localRequire.exists = path => has.call(require.modules, localRequire.resolve(path));
 
     return localRequire;
 };
-require.register('component-indexof/index.js', function (exports, require, module) {
+require.register('component-indexof/index.js', (exports, require, module) => {
     const indexOf = [].indexOf;
 
-    module.exports = function (arr, obj) {
+    module.exports = (arr, obj) => {
         if (indexOf) return arr.indexOf(obj);
         for (let i = 0; i < arr.length; ++i) {
             if (arr[i] === obj) return i;
@@ -217,7 +215,7 @@ require.register('component-indexof/index.js', function (exports, require, modul
         return -1;
     };
 });
-require.register('component-emitter/index.js', function (exports, require, module) {
+require.register('component-emitter/index.js', (exports, require, module) => {
     /**
      * Module dependencies.
      */
@@ -311,7 +309,7 @@ require.register('component-emitter/index.js', function (exports, require, modul
                 this._callbacks = this._callbacks || {};
 
                 // all
-                if (0 === arguments.length) {
+                if (arguments.length === 0) {
                     this._callbacks = {};
                     return this;
                 }
@@ -321,7 +319,7 @@ require.register('component-emitter/index.js', function (exports, require, modul
                 if (!callbacks) return this;
 
                 // remove all handlers
-                if (1 == arguments.length) {
+                if (arguments.length == 1) {
                     delete this._callbacks[event];
                     return this;
                 }
@@ -381,7 +379,7 @@ require.register('component-emitter/index.js', function (exports, require, modul
     };
 });
 require.register('pofresh-protocol/lib/protocol.test.js', function (exports, require, module) {
-    (function (exports, ByteArray, global) {
+    ((exports, ByteArray, global) => {
         const Protocol = exports;
 
         const PKG_HEAD_BYTES = 4;
@@ -390,7 +388,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
         const MSG_ID_MAX_BYTES = 5;
         const MSG_ROUTE_LEN_BYTES = 1;
 
-        const MSG_ROUTE_CODE_MAX = 0xffff;
+        const MSG_ROUTE_CODE_MAX = 0xff_ff;
 
         const MSG_COMPRESS_ROUTE_MASK = 0x1;
         const MSG_TYPE_MASK = 0x7;
@@ -416,7 +414,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * msg message body
          * socketio current support string
          */
-        Protocol.strencode = function (str) {
+        Protocol.strencode = str => {
             const byteArray = new ByteArray(str.length * 3);
             let offset = 0;
             for (let i = 0; i < str.length; i++) {
@@ -424,10 +422,10 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
                 let codes = null;
                 if (charCode <= 0x7f) {
                     codes = [charCode];
-                } else if (charCode <= 0x7ff) {
+                } else if (charCode <= 0x7_ff) {
                     codes = [0xc0 | (charCode >> 6), 0x80 | (charCode & 0x3f)];
                 } else {
-                    codes = [0xe0 | (charCode >> 12), 0x80 | ((charCode & 0xfc0) >> 6), 0x80 | (charCode & 0x3f)];
+                    codes = [0xe0 | (charCode >> 12), 0x80 | ((charCode & 0xf_c0) >> 6), 0x80 | (charCode & 0x3f)];
                 }
                 for (let j = 0; j < codes.length; j++) {
                     byteArray[offset] = codes[j];
@@ -444,7 +442,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * msg String data
          * return Message Object
          */
-        Protocol.strdecode = function (buffer) {
+        Protocol.strdecode = buffer => {
             const bytes = new ByteArray(buffer);
             const array = [];
             let offset = 0;
@@ -496,7 +494,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * @param  {ByteArray} body   body content in bytes
          * @return {ByteArray}        new byte array that contains encode result
          */
-        Package.encode = function (type, body) {
+        Package.encode = (type, body) => {
             const length = body ? body.length : 0;
             const buffer = new ByteArray(PKG_HEAD_BYTES + length);
             let index = 0;
@@ -517,14 +515,14 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * @param  {ByteArray} buffer byte array containing package content
          * @return {Object}           {type: package type, buffer: body byte array}
          */
-        Package.decode = function (buffer) {
+        Package.decode = buffer => {
             const bytes = new ByteArray(buffer);
             const type = bytes[0];
             let index = 1;
             const length = ((bytes[index++] << 16) | (bytes[index++] << 8) | bytes[index++]) >>> 0;
             const body = length ? new ByteArray(length) : null;
             copyArray(body, 0, bytes, PKG_HEAD_BYTES, length);
-            return { type: type, body: body };
+            return { type, body };
         };
 
         /**
@@ -537,7 +535,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * @param  {Buffer} msg           message body bytes
          * @return {Buffer}               encode result
          */
-        Message.encode = function (id, type, compressRoute, route, msg) {
+        Message.encode = (id, type, compressRoute, route, msg) => {
             // caculate message max length
             const idBytes = msgHasId(type) ? caculateMsgIdBytes(id) : 0;
             let msgLen = MSG_FLAG_BYTES + idBytes;
@@ -594,7 +592,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
          * @param  {Buffer|Uint8Array} buffer message bytes
          * @return {Object}            message object
          */
-        Message.decode = function (buffer) {
+        Message.decode = buffer => {
             const bytes = new ByteArray(buffer);
             const bytesLen = bytes.length || bytes.byteLength;
             let offset = 0;
@@ -641,16 +639,16 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
             copyArray(body, 0, bytes, offset, bodyLen);
 
             return {
-                id: id,
-                type: type,
-                compressRoute: compressRoute,
-                route: route,
-                body: body
+                id,
+                type,
+                compressRoute,
+                route,
+                body
             };
         };
 
-        const copyArray = function (dest, doffset, src, soffset, length) {
-            if ('function' === typeof src.copy) {
+        const copyArray = (dest, doffset, src, soffset, length) => {
+            if (typeof src.copy === 'function') {
                 // Buffer
                 src.copy(dest, doffset, soffset, soffset + length);
             } else {
@@ -661,15 +659,12 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
             }
         };
 
-        const msgHasId = function (type) {
-            return type === Message.TYPE_REQUEST || type === Message.TYPE_RESPONSE;
-        };
+        const msgHasId = type => type === Message.TYPE_REQUEST || type === Message.TYPE_RESPONSE;
 
-        const msgHasRoute = function (type) {
-            return type === Message.TYPE_REQUEST || type === Message.TYPE_NOTIFY || type === Message.TYPE_PUSH;
-        };
+        const msgHasRoute = type =>
+            type === Message.TYPE_REQUEST || type === Message.TYPE_NOTIFY || type === Message.TYPE_PUSH;
 
-        const caculateMsgIdBytes = function (id) {
+        const caculateMsgIdBytes = id => {
             let len = 0;
             do {
                 len += 1;
@@ -678,7 +673,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
             return len;
         };
 
-        const encodeMsgFlag = function (type, compressRoute, buffer, offset) {
+        const encodeMsgFlag = (type, compressRoute, buffer, offset) => {
             if (
                 type !== Message.TYPE_REQUEST &&
                 type !== Message.TYPE_NOTIFY &&
@@ -693,7 +688,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
             return offset + MSG_FLAG_BYTES;
         };
 
-        const encodeMsgId = function (id, idBytes, buffer, offset) {
+        const encodeMsgId = (id, idBytes, buffer, offset) => {
             let index = offset + idBytes - 1;
             buffer[index--] = id & 0x7f;
             while (index >= offset) {
@@ -703,7 +698,7 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
             return offset + idBytes;
         };
 
-        const encodeMsgRoute = function (compressRoute, route, buffer, offset) {
+        const encodeMsgRoute = (compressRoute, route, buffer, offset) => {
             if (compressRoute) {
                 if (route > MSG_ROUTE_CODE_MAX) {
                     throw new Error('route number is overflow');
@@ -711,28 +706,26 @@ require.register('pofresh-protocol/lib/protocol.test.js', function (exports, req
 
                 buffer[offset++] = (route >> 8) & 0xff;
                 buffer[offset++] = route & 0xff;
+            } else if (route) {
+                buffer[offset++] = route.length & 0xff;
+                copyArray(buffer, offset, route, 0, route.length);
+                offset += route.length;
             } else {
-                if (route) {
-                    buffer[offset++] = route.length & 0xff;
-                    copyArray(buffer, offset, route, 0, route.length);
-                    offset += route.length;
-                } else {
-                    buffer[offset++] = 0;
-                }
+                buffer[offset++] = 0;
             }
 
             return offset;
         };
 
-        const encodeMsgBody = function (msg, buffer, offset) {
+        const encodeMsgBody = (msg, buffer, offset) => {
             copyArray(buffer, offset, msg, 0, msg.length);
             return offset + msg.length;
         };
 
         module.exports = Protocol;
     })(
-        'object' === typeof module ? module.exports : (this.Protocol = {}),
-        'object' === typeof module ? Buffer : Uint8Array,
+        typeof module === 'object' ? module.exports : (this.Protocol = {}),
+        typeof module === 'object' ? Buffer : Uint8Array,
         this
     );
 });
@@ -748,10 +741,10 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
      * Protocol buffer root
      * In browser, it will be window.protbuf
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const Protobuf = exports;
 
-        Protobuf.init = function (opts) {
+        Protobuf.init = opts => {
             //On the serverside, use serverProtos to encode messages send to client
             Protobuf.encoder.init(opts.encoderProtos);
 
@@ -759,22 +752,18 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             Protobuf.decoder.init(opts.decoderProtos);
         };
 
-        Protobuf.encode = function (key, msg) {
-            return Protobuf.encoder.encode(key, msg);
-        };
+        Protobuf.encode = (key, msg) => Protobuf.encoder.encode(key, msg);
 
-        Protobuf.decode = function (key, msg) {
-            return Protobuf.decoder.decode(key, msg);
-        };
+        Protobuf.decode = (key, msg) => Protobuf.decoder.decode(key, msg);
 
         // exports to support for components
         module.exports = Protobuf;
-    })('object' === typeof module ? module.exports : (this.protobuf = {}), this);
+    })(typeof module === 'object' ? module.exports : (this.protobuf = {}), this);
 
     /**
      * constants
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const constants = (exports.constants = {});
 
         constants.TYPES = {
@@ -786,31 +775,28 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             message: 2,
             float: 5
         };
-    })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
+    })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 
     /**
      * util module
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const Util = (exports.util = {});
 
-        Util.isSimpleType = function (type) {
-            return (
-                type === 'uInt32' ||
-                type === 'sInt32' ||
-                type === 'int32' ||
-                type === 'uInt64' ||
-                type === 'sInt64' ||
-                type === 'float' ||
-                type === 'double'
-            );
-        };
-    })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
+        Util.isSimpleType = type =>
+            type === 'uInt32' ||
+            type === 'sInt32' ||
+            type === 'int32' ||
+            type === 'uInt64' ||
+            type === 'sInt64' ||
+            type === 'float' ||
+            type === 'double';
+    })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 
     /**
      * codec module
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const Codec = (exports.codec = {});
 
         const buffer = new ArrayBuffer(8);
@@ -818,8 +804,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         const float64Array = new Float64Array(buffer);
         const uInt8Array = new Uint8Array(buffer);
 
-        Codec.encodeUInt32 = function (n) {
-            n = parseInt(n);
+        Codec.encodeUInt32 = n => {
+            n = Number.parseInt(n);
             if (isNaN(n) || n < 0) {
                 return null;
             }
@@ -839,8 +825,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             return result;
         };
 
-        Codec.encodeSInt32 = function (n) {
-            n = parseInt(n);
+        Codec.encodeSInt32 = n => {
+            n = Number.parseInt(n);
             if (isNaN(n)) {
                 return null;
             }
@@ -849,12 +835,12 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             return Codec.encodeUInt32(n);
         };
 
-        Codec.decodeUInt32 = function (bytes) {
+        Codec.decodeUInt32 = bytes => {
             let n = 0;
 
             for (let i = 0; i < bytes.length; i++) {
-                const m = parseInt(bytes[i]);
-                n = n + (m & 0x7f) * Math.pow(2, 7 * i);
+                const m = Number.parseInt(bytes[i]);
+                n = n + (m & 0x7f) * 2 ** (7 * i);
                 if (m < 128) {
                     return n;
                 }
@@ -872,12 +858,12 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             return n;
         };
 
-        Codec.encodeFloat = function (float) {
+        Codec.encodeFloat = float => {
             float32Array[0] = float;
             return uInt8Array;
         };
 
-        Codec.decodeFloat = function (bytes, offset) {
+        Codec.decodeFloat = (bytes, offset) => {
             if (!bytes || bytes.length < offset + 4) {
                 return null;
             }
@@ -889,12 +875,12 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             return float32Array[0];
         };
 
-        Codec.encodeDouble = function (double) {
+        Codec.encodeDouble = double => {
             float64Array[0] = double;
             return uInt8Array.subarray(0, 8);
         };
 
-        Codec.decodeDouble = function (bytes, offset) {
+        Codec.decodeDouble = (bytes, offset) => {
             if (!bytes || bytes.length < 8 + offset) {
                 return null;
             }
@@ -906,7 +892,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             return float64Array[0];
         };
 
-        Codec.encodeStr = function (bytes, offset, str) {
+        Codec.encodeStr = (bytes, offset, str) => {
             for (let i = 0; i < str.length; i++) {
                 const code = str.charCodeAt(i);
                 const codes = encode2UTF8(code);
@@ -923,7 +909,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         /**
          * Decode string from utf8 bytes
          */
-        Codec.decodeStr = function (bytes, offset, length) {
+        Codec.decodeStr = (bytes, offset, length) => {
             const array = [];
             const end = offset + length;
 
@@ -948,8 +934,8 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
 
             let str = '';
             for (let i = 0; i < array.length; ) {
-                str += String.fromCharCode.apply(null, array.slice(i, i + 10000));
-                i += 10000;
+                str += String.fromCharCode.apply(null, array.slice(i, i + 10_000));
+                i += 10_000;
             }
 
             return str;
@@ -958,7 +944,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         /**
          * Return the byte length of the str use utf8
          */
-        Codec.byteLength = function (str) {
+        Codec.byteLength = str => {
             if (typeof str !== 'string') {
                 return -1;
             }
@@ -979,28 +965,28 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         function encode2UTF8(charCode) {
             if (charCode <= 0x7f) {
                 return [charCode];
-            } else if (charCode <= 0x7ff) {
-                return [0xc0 | (charCode >> 6), 0x80 | (charCode & 0x3f)];
-            } else {
-                return [0xe0 | (charCode >> 12), 0x80 | ((charCode & 0xfc0) >> 6), 0x80 | (charCode & 0x3f)];
             }
+            if (charCode <= 0x7_ff) {
+                return [0xc0 | (charCode >> 6), 0x80 | (charCode & 0x3f)];
+            }
+            return [0xe0 | (charCode >> 12), 0x80 | ((charCode & 0xf_c0) >> 6), 0x80 | (charCode & 0x3f)];
         }
 
         function codeLength(code) {
             if (code <= 0x7f) {
                 return 1;
-            } else if (code <= 0x7ff) {
-                return 2;
-            } else {
-                return 3;
             }
+            if (code <= 0x7_ff) {
+                return 2;
+            }
+            return 3;
         }
-    })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
+    })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 
     /**
      * encoder module
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const protobuf = exports;
         const MsgEncoder = (exports.encoder = {});
 
@@ -1052,27 +1038,25 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
 
                 //All required element must exist
                 switch (proto.option) {
-                case 'required':
-                    if (typeof msg[name] === 'undefined') {
-                        return false;
-                    }
-                case 'optional':
-                    if (typeof msg[name] !== 'undefined') {
-                        if (protos.__messages[proto.type]) {
+                    case 'required':
+                        if (typeof msg[name] === 'undefined') {
+                            return false;
+                        }
+                    case 'optional':
+                        if (typeof msg[name] !== 'undefined' && protos.__messages[proto.type]) {
                             checkMsg(msg[name], protos.__messages[proto.type]);
                         }
-                    }
-                    break;
-                case 'repeated':
-                    //Check nest message in repeated elements
-                    if (!!msg[name] && !!protos.__messages[proto.type]) {
-                        for (let i = 0; i < msg[name].length; i++) {
-                            if (!checkMsg(msg[name][i], protos.__messages[proto.type])) {
-                                return false;
+                        break;
+                    case 'repeated':
+                        //Check nest message in repeated elements
+                        if (!!msg[name] && !!protos.__messages[proto.type]) {
+                            for (let i = 0; i < msg[name].length; i++) {
+                                if (!checkMsg(msg[name][i], protos.__messages[proto.type])) {
+                                    return false;
+                                }
                             }
                         }
-                    }
-                    break;
+                        break;
                 }
             }
 
@@ -1085,16 +1069,16 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
                     const proto = protos[name];
 
                     switch (proto.option) {
-                    case 'required':
-                    case 'optional':
-                        offset = writeBytes(buffer, offset, encodeTag(proto.type, proto.tag));
-                        offset = encodeProp(msg[name], proto.type, offset, buffer, protos);
-                        break;
-                    case 'repeated':
-                        if (msg[name].length > 0) {
-                            offset = encodeArray(msg[name], proto, offset, buffer, protos);
-                        }
-                        break;
+                        case 'required':
+                        case 'optional':
+                            offset = writeBytes(buffer, offset, encodeTag(proto.type, proto.tag));
+                            offset = encodeProp(msg[name], proto.type, offset, buffer, protos);
+                            break;
+                        case 'repeated':
+                            if (msg[name].length > 0) {
+                                offset = encodeArray(msg[name], proto, offset, buffer, protos);
+                            }
+                            break;
                     }
                 }
             }
@@ -1104,46 +1088,47 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
 
         function encodeProp(value, type, offset, buffer, protos) {
             switch (type) {
-            case 'uInt32':
-                offset = writeBytes(buffer, offset, codec.encodeUInt32(value));
-                break;
-            case 'int32':
-            case 'sInt32':
-                offset = writeBytes(buffer, offset, codec.encodeSInt32(value));
-                break;
-            case 'float':
-                writeBytes(buffer, offset, codec.encodeFloat(value));
-                offset += 4;
-                break;
-            case 'double':
-                writeBytes(buffer, offset, codec.encodeDouble(value));
-                offset += 8;
-                break;
-            case 'string':
-                const length = codec.byteLength(value);
+                case 'uInt32':
+                    offset = writeBytes(buffer, offset, codec.encodeUInt32(value));
+                    break;
+                case 'int32':
+                case 'sInt32':
+                    offset = writeBytes(buffer, offset, codec.encodeSInt32(value));
+                    break;
+                case 'float':
+                    writeBytes(buffer, offset, codec.encodeFloat(value));
+                    offset += 4;
+                    break;
+                case 'double':
+                    writeBytes(buffer, offset, codec.encodeDouble(value));
+                    offset += 8;
+                    break;
+                case 'string': {
+                    const length = codec.byteLength(value);
 
-                //Encode length
-                offset = writeBytes(buffer, offset, codec.encodeUInt32(length));
-                //write string
-                codec.encodeStr(buffer, offset, value);
-                offset += length;
-                break;
-            default:
-                if (protos.__messages[type]) {
-                    //Use a tmp buffer to build an internal msg
-                    const tmpBuffer = new ArrayBuffer(codec.byteLength(JSON.stringify(value)));
-                    let length = 0;
-
-                    length = encodeMsg(tmpBuffer, length, protos.__messages[type], value);
                     //Encode length
                     offset = writeBytes(buffer, offset, codec.encodeUInt32(length));
-                    //contact the object
-                    for (let i = 0; i < length; i++) {
-                        buffer[offset] = tmpBuffer[i];
-                        offset++;
-                    }
+                    //write string
+                    codec.encodeStr(buffer, offset, value);
+                    offset += length;
+                    break;
                 }
-                break;
+                default:
+                    if (protos.__messages[type]) {
+                        //Use a tmp buffer to build an internal msg
+                        const tmpBuffer = new ArrayBuffer(codec.byteLength(JSON.stringify(value)));
+                        let length = 0;
+
+                        length = encodeMsg(tmpBuffer, length, protos.__messages[type], value);
+                        //Encode length
+                        offset = writeBytes(buffer, offset, codec.encodeUInt32(length));
+                        //contact the object
+                        for (let i = 0; i < length; i++) {
+                            buffer[offset] = tmpBuffer[i];
+                            offset++;
+                        }
+                    }
+                    break;
             }
 
             return offset;
@@ -1183,12 +1168,12 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
             const value = constant.TYPES[type] || 2;
             return codec.encodeUInt32((tag << 3) | value);
         }
-    })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
+    })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 
     /**
      * decoder module
      */
-    (function (exports, global) {
+    ((exports, global) => {
         const protobuf = exports;
         const MsgDecoder = (exports.decoder = {});
 
@@ -1229,16 +1214,16 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
                 const name = protos.__tags[tag];
 
                 switch (protos[name].option) {
-                case 'optional':
-                case 'required':
-                    msg[name] = decodeProp(protos[name].type, protos);
-                    break;
-                case 'repeated':
-                    if (!msg[name]) {
-                        msg[name] = [];
-                    }
-                    decodeArray(msg[name], protos[name].type, protos);
-                    break;
+                    case 'optional':
+                    case 'required':
+                        msg[name] = decodeProp(protos[name].type, protos);
+                        break;
+                    case 'repeated':
+                        if (!msg[name]) {
+                            msg[name] = [];
+                        }
+                        decodeArray(msg[name], protos[name].type, protos);
+                        break;
                 }
             }
 
@@ -1278,34 +1263,37 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
 
         function decodeProp(type, protos) {
             switch (type) {
-            case 'uInt32':
-                return codec.decodeUInt32(getBytes());
-            case 'int32':
-            case 'sInt32':
-                return codec.decodeSInt32(getBytes());
-            case 'float':
-                const float = codec.decodeFloat(buffer, offset);
-                offset += 4;
-                return float;
-            case 'double':
-                const double = codec.decodeDouble(buffer, offset);
-                offset += 8;
-                return double;
-            case 'string':
-                const length = codec.decodeUInt32(getBytes());
-
-                const str = codec.decodeStr(buffer, offset, length);
-                offset += length;
-
-                return str;
-            default:
-                if (!!protos && !!protos.__messages[type]) {
-                    const length = codec.decodeUInt32(getBytes());
-                    const msg = {};
-                    decodeMsg(msg, protos.__messages[type], offset + length);
-                    return msg;
+                case 'uInt32':
+                    return codec.decodeUInt32(getBytes());
+                case 'int32':
+                case 'sInt32':
+                    return codec.decodeSInt32(getBytes());
+                case 'float': {
+                    const float = codec.decodeFloat(buffer, offset);
+                    offset += 4;
+                    return float;
                 }
-                break;
+                case 'double': {
+                    const double = codec.decodeDouble(buffer, offset);
+                    offset += 8;
+                    return double;
+                }
+                case 'string': {
+                    const length = codec.decodeUInt32(getBytes());
+
+                    const str = codec.decodeStr(buffer, offset, length);
+                    offset += length;
+
+                    return str;
+                }
+                default:
+                    if (!!protos && !!protos.__messages[type]) {
+                        const length = codec.decodeUInt32(getBytes());
+                        const msg = {};
+                        decodeMsg(msg, protos.__messages[type], offset + length);
+                        return msg;
+                    }
+                    break;
             }
         }
 
@@ -1324,7 +1312,7 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         function getBytes(flag) {
             const bytes = [];
             let pos = offset;
-            flag = flag || false;
+            flag = flag;
 
             let b;
 
@@ -1343,10 +1331,10 @@ require.register('pofreshnode-pofresh-protobuf/lib/client/protobuf.js', function
         function peekBytes() {
             return getBytes(true);
         }
-    })('undefined' !== typeof protobuf ? protobuf : module.exports, this);
+    })(typeof protobuf !== 'undefined' ? protobuf : module.exports, this);
 });
-require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js', function (exports, require, module) {
-    (function () {
+require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js', (exports, require, module) => {
+    (() => {
         const JS_WS_CLIENT_TYPE = 'js-websocket';
         const JS_WS_CLIENT_VERSION = '0.0.1';
 
@@ -1360,7 +1348,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         const RES_OLD_CLIENT = 501;
 
         if (typeof Object.create !== 'function') {
-            Object.create = function (o) {
+            Object.create = o => {
                 function F() {}
 
                 F.prototype = o;
@@ -1397,7 +1385,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
 
         let initCallback = null;
 
-        pofresh.init = function (params, cb) {
+        pofresh.init = (params, cb) => {
             initCallback = cb;
             const host = params.host;
             const port = params.port;
@@ -1412,24 +1400,24 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             initWebSocket(url, cb);
         };
 
-        const initWebSocket = function (url, cb) {
+        const initWebSocket = (url, cb) => {
             console.log('connect to ' + url);
-            const onopen = function (event) {
+            const onopen = event => {
                 const obj = Package.encode(Package.TYPE_HANDSHAKE, Protocol.strencode(JSON.stringify(handshakeBuffer)));
                 send(obj);
             };
-            const onmessage = function (event) {
+            const onmessage = event => {
                 processPackage(Package.decode(event.data), cb);
                 // new package arrived, update the heartbeat timeout
                 if (heartbeatTimeout) {
                     nextHeartbeatTimeout = Date.now() + heartbeatTimeout;
                 }
             };
-            const onerror = function (event) {
+            const onerror = event => {
                 pofresh.emit('io-error', event);
                 console.error('socket error: ', event);
             };
-            const onclose = function (event) {
+            const onclose = event => {
                 pofresh.emit('close', event);
                 console.error('socket close: ', event);
             };
@@ -1441,7 +1429,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             socket.onclose = onclose;
         };
 
-        pofresh.disconnect = function () {
+        pofresh.disconnect = () => {
             if (socket) {
                 if (socket.disconnect) socket.disconnect();
                 if (socket.close) socket.close();
@@ -1459,7 +1447,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }
         };
 
-        pofresh.request = function (route, msg, cb) {
+        pofresh.request = (route, msg, cb) => {
             if (arguments.length === 2 && typeof msg === 'function') {
                 cb = msg;
                 msg = {};
@@ -1478,12 +1466,12 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             routeMap[reqId] = route;
         };
 
-        pofresh.notify = function (route, msg) {
+        pofresh.notify = (route, msg) => {
             msg = msg || {};
             sendMessage(0, route, msg);
         };
 
-        const sendMessage = function (reqId, route, msg) {
+        const sendMessage = (reqId, route, msg) => {
             const type = reqId ? Message.TYPE_REQUEST : Message.TYPE_NOTIFY;
 
             //compress message by protobuf
@@ -1505,13 +1493,13 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             send(packet);
         };
 
-        const send = function (packet) {
+        const send = packet => {
             socket.send(packet.buffer);
         };
 
         const handler = {};
 
-        const heartbeat = function (data) {
+        const heartbeat = data => {
             if (!heartbeatInterval) {
                 // no heartbeat
                 return;
@@ -1528,7 +1516,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
                 return;
             }
 
-            heartbeatId = setTimeout(function () {
+            heartbeatId = setTimeout(() => {
                 heartbeatId = null;
                 send(obj);
 
@@ -1537,7 +1525,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }, heartbeatInterval);
         };
 
-        const heartbeatTimeoutCb = function () {
+        const heartbeatTimeoutCb = () => {
             const gap = nextHeartbeatTimeout - Date.now();
             if (gap > gapThreshold) {
                 heartbeatTimeoutId = setTimeout(heartbeatTimeoutCb, gap);
@@ -1548,7 +1536,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }
         };
 
-        const handshake = function (data) {
+        const handshake = data => {
             data = JSON.parse(Protocol.strdecode(data));
             if (data.code === RES_OLD_CLIENT) {
                 pofresh.emit('error', 'client version not fullfill');
@@ -1570,7 +1558,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }
         };
 
-        const onData = function (data) {
+        const onData = data => {
             //probuff decode
             const msg = Message.decode(data);
 
@@ -1587,7 +1575,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             processMessage(pofresh, msg);
         };
 
-        const onKick = function (data) {
+        const onKick = data => {
             pofresh.emit('onKick', data);
         };
 
@@ -1596,11 +1584,11 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         handlers[Package.TYPE_DATA] = onData;
         handlers[Package.TYPE_KICK] = onKick;
 
-        const processPackage = function (msg) {
+        const processPackage = msg => {
             handlers[msg.type](msg.body);
         };
 
-        const processMessage = function (pofresh, msg) {
+        const processMessage = (pofresh, msg) => {
             if (!msg.id) {
                 // server push message
                 pofresh.emit(msg.route, msg.body);
@@ -1619,13 +1607,13 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             return;
         };
 
-        const processMessageBatch = function (pofresh, msgs) {
+        const processMessageBatch = (pofresh, msgs) => {
             for (let i = 0, l = msgs.length; i < l; i++) {
                 processMessage(pofresh, msgs[i]);
             }
         };
 
-        const deCompose = function (msg) {
+        const deCompose = msg => {
             const protos = pofresh.data.protos ? pofresh.data.protos.server : {};
             const abbrs = pofresh.data.abbrs;
             let route = msg.route;
@@ -1640,14 +1628,13 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
             }
             if (protos[route]) {
                 return protobuf.decode(route, msg.body);
-            } else {
-                return JSON.parse(Protocol.strdecode(msg.body));
             }
+            return JSON.parse(Protocol.strdecode(msg.body));
 
             return msg;
         };
 
-        const handshakeInit = function (data) {
+        const handshakeInit = data => {
             if (data.sys && data.sys.heartbeat) {
                 heartbeatInterval = data.sys.heartbeat * 1000; // heartbeat interval
                 heartbeatTimeout = heartbeatInterval * 2; // max heartbeat timeout
@@ -1664,8 +1651,8 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         };
 
         //Initilize data used in pofresh client
-        const initData = function (data) {
-            if (!data || !data.sys) {
+        const initData = data => {
+            if (!(data && data.sys)) {
                 return;
             }
             pofresh.data = pofresh.data || {};
@@ -1689,7 +1676,10 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
                     client: protos.client || {}
                 };
                 if (protobuf) {
-                    protobuf.init({ encoderProtos: protos.client, decoderProtos: protos.server });
+                    protobuf.init({
+                        encoderProtos: protos.client,
+                        decoderProtos: protos.server
+                    });
                 }
             }
         };
@@ -1697,7 +1687,7 @@ require.register('pofreshnode-pofresh-jsclient-websocket/lib/pofresh-client.js',
         module.exports = pofresh;
     })();
 });
-require.register('boot/index.js', function (exports, require, module) {
+require.register('boot/index.js', (exports, require, module) => {
     const Emitter = require('emitter');
     window.EventEmitter = Emitter;
 

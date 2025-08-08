@@ -172,9 +172,7 @@ Application.disable = function (setting) {
  *
  * @memberOf Application
  */
-Application.require = function (ph) {
-    return require(path.join(Application.getBase(), ph));
-};
+Application.require = ph => require(path.join(Application.getBase(), ph));
 
 /**
  * Configure logger with {$base}/config/log4js.json
@@ -190,9 +188,9 @@ Application.configureLogger = function (logger) {
         const originPath = path.join(base, Constants.FILEPATH.LOG);
         const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
         if (fs.existsSync(originPath)) {
-            logger.configure(originPath, { serverId: this.serverId, base: base });
+            logger.configure(originPath, { serverId: this.serverId, base });
         } else if (fs.existsSync(presentPath)) {
-            logger.configure(presentPath, { serverId: this.serverId, base: base });
+            logger.configure(presentPath, { serverId: this.serverId, base });
         } else {
             logger.error('logger file path configuration is error.');
         }
@@ -438,24 +436,22 @@ Application.start = function (cb) {
         utils.invokeCallback(cb, new Error('application has already start.'));
         return;
     }
-
-    const self = this;
-    appUtil.startByType(this, function () {
-        appUtil.loadDefaultComponents(self);
-        const startUp = function () {
-            appUtil.optComponents(self.loaded, Constants.RESERVED.START, function (err) {
-                self.state = STATE_START;
+    appUtil.startByType(this, () => {
+        appUtil.loadDefaultComponents(this);
+        const startUp = () => {
+            appUtil.optComponents(this.loaded, Constants.RESERVED.START, err => {
+                this.state = STATE_START;
                 if (err) {
                     utils.invokeCallback(cb, err);
                 } else {
-                    logger.info('%j enter after start...', self.getServerId());
-                    self.afterStart(cb);
+                    logger.info('%j enter after start...', this.getServerId());
+                    this.afterStart(cb);
                 }
             });
         };
-        const beforeFun = self.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
+        const beforeFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
         if (beforeFun) {
-            beforeFun.call(null, self, startUp);
+            beforeFun.call(null, this, startUp);
         } else {
             startUp();
         }
@@ -505,19 +501,18 @@ Application.stop = function (force) {
         return;
     }
     this.state = STATE_STOPED;
-    const self = this;
 
-    this.stopTimer = setTimeout(function () {
+    this.stopTimer = setTimeout(() => {
         process.exit(0);
     }, Constants.TIME.TIME_WAIT_STOP);
 
-    const cancelShutDownTimer = function () {
-        if (self.stopTimer) {
-            clearTimeout(self.stopTimer);
+    const cancelShutDownTimer = () => {
+        if (this.stopTimer) {
+            clearTimeout(this.stopTimer);
         }
     };
-    const shutDown = function () {
-        appUtil.stopComps(self.loaded, 0, force, function () {
+    const shutDown = () => {
+        appUtil.stopComps(this.loaded, 0, force, () => {
             cancelShutDownTimer();
             if (force) {
                 process.exit(0);
@@ -570,10 +565,11 @@ Application.configure = function (env, type, fn) {
         type = args[1];
     }
 
-    if (env === Constants.RESERVED.ALL || contains(this.settings.env, env)) {
-        if (type === Constants.RESERVED.ALL || contains(this.settings.serverType, type)) {
-            fn.call(this);
-        }
+    if (
+        (env === Constants.RESERVED.ALL || contains(this.settings.env, env)) &&
+        (type === Constants.RESERVED.ALL || contains(this.settings.serverType, type))
+    ) {
+        fn.call(this);
     }
     return this;
 };
@@ -606,9 +602,9 @@ Application.registerAdmin = function (moduleId, module, opts) {
     }
 
     modules[moduleId] = {
-        moduleId: moduleId,
-        module: module,
-        opts: opts
+        moduleId,
+        module,
+        opts
     };
 };
 
@@ -640,17 +636,15 @@ Application.use = function (plugin, opts) {
         const name = path.basename(filename, '.js');
         const param = opts[name] || {};
         const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
-        if (!fs.existsSync(absolutePath)) {
-            logger.error('component %s not exist at %s', name, absolutePath);
-        } else {
+        if (fs.existsSync(absolutePath)) {
             this.load(require(absolutePath), param);
+        } else {
+            logger.error('component %s not exist at %s', name, absolutePath);
         }
     });
 
     // load events
-    if (!plugin.events) {
-        return;
-    } else {
+    if (plugin.events) {
         if (!fs.existsSync(plugin.events)) {
             logger.error('fail to find events, find path: %s', plugin.events);
             return;
@@ -661,12 +655,14 @@ Application.use = function (plugin, opts) {
                 return;
             }
             const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
-            if (!fs.existsSync(absolutePath)) {
-                logger.error('events %s not exist at %s', filename, absolutePath);
-            } else {
+            if (fs.existsSync(absolutePath)) {
                 bindEvents(require(absolutePath), this);
+            } else {
+                logger.error('events %s not exist at %s', filename, absolutePath);
             }
         });
+    } else {
+        return;
     }
 };
 
@@ -680,7 +676,7 @@ Application.use = function (plugin, opts) {
  * @param {Number} retry retry times to execute handlers if conditions are successfully executed
  * @memberOf Application
  */
-Application.transaction = function (name, conditions, handlers, retry) {
+Application.transaction = (name, conditions, handlers, retry) => {
     appManager.transaction(name, conditions, handlers, retry);
 };
 
@@ -832,7 +828,7 @@ Application.isMaster = function () {
  * @memberOf Application
  */
 Application.addServers = function (servers) {
-    if (!servers || !servers.length) {
+    if (!(servers && servers.length)) {
         return;
     }
 
@@ -864,7 +860,7 @@ Application.addServers = function (servers) {
  * @memberOf Application
  */
 Application.removeServers = function (ids) {
-    if (!ids || !ids.length) {
+    if (!(ids && ids.length)) {
         return;
     }
 
@@ -921,7 +917,7 @@ Application.replaceServers = function (servers) {
  * @memberOf Application
  */
 Application.addCrons = function (crons) {
-    if (!crons || !crons.length) {
+    if (!(crons && crons.length)) {
         logger.warn('crons is not defined.');
         return;
     }
@@ -935,7 +931,7 @@ Application.addCrons = function (crons) {
  * @memberOf Application
  */
 Application.removeCrons = function (crons) {
-    if (!crons || !crons.length) {
+    if (!(crons && crons.length)) {
         logger.warn('ids is not defined.');
         return;
     }

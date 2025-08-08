@@ -10,18 +10,18 @@ module.exports = function (code, tracer, serverId, msg, opts, cb) {
     const mode = opts.failMode;
     let method;
     switch (mode) {
-    case constants.FAIL_MODE.FAILOVER:
-        method = failover;
-        break;
-    case constants.FAIL_MODE.FAILBACK:
-        method = failback;
-        break;
-    case constants.FAIL_MODE.FAILSAFE:
-        method = failsafe;
-        break;
-    default:
-        method = failfast;
-        break;
+        case constants.FAIL_MODE.FAILOVER:
+            method = failover;
+            break;
+        case constants.FAIL_MODE.FAILBACK:
+            method = failback;
+            break;
+        case constants.FAIL_MODE.FAILSAFE:
+            method = failsafe;
+            break;
+        default:
+            method = failfast;
+            break;
     }
     method.call(this, code, tracer, serverId, msg, opts, cb);
 };
@@ -41,10 +41,10 @@ module.exports = function (code, tracer, serverId, msg, opts, cb) {
 function failover(code, tracer, serverId, msg, opts, cb) {
     let servers;
     const serverType = msg.serverType;
-    if (!tracer || !tracer.servers) {
-        servers = this.serversMap[serverType];
-    } else {
+    if (tracer && tracer.servers) {
         servers = tracer.servers;
+    } else {
+        servers = this.serversMap[serverType];
     }
 
     const index = servers.indexOf(serverId);
@@ -74,44 +74,43 @@ function failover(code, tracer, serverId, msg, opts, cb) {
  * @api private
  */
 function failsafe(code, tracer, serverId, msg, opts, cb) {
-    const self = this;
     const retryTimes = opts.retryTimes || constants.DEFAULT_PARAM.FAILSAFE_RETRIES;
     const retryConnectTime = opts.retryConnectTime || constants.DEFAULT_PARAM.FAILSAFE_CONNECT_TIME;
 
-    if (!tracer.retryTimes) {
-        tracer.retryTimes = 1;
-    } else {
+    if (tracer.retryTimes) {
         tracer.retryTimes += 1;
+    } else {
+        tracer.retryTimes = 1;
     }
     switch (code) {
-    case constants.RPC_ERROR.SERVER_NOT_STARTED:
-    case constants.RPC_ERROR.NO_TRAGET_SERVER:
-        cb(new Error('rpc client is not started or cannot find remote server.'));
-        break;
-    case constants.RPC_ERROR.FAIL_CONNECT_SERVER:
-        if (tracer.retryTimes <= retryTimes) {
-            setTimeout(function () {
-                self.connect(tracer, serverId, cb);
-            }, retryConnectTime * tracer.retryTimes);
-        } else {
-            cb(new Error('rpc client failed to connect to remote server: ' + serverId));
-        }
-        break;
-    case constants.RPC_ERROR.FAIL_FIND_MAILBOX:
-    case constants.RPC_ERROR.FAIL_SEND_MESSAGE:
-        if (tracer.retryTimes <= retryTimes) {
-            setTimeout(function () {
-                self.dispatch.call(self, tracer, serverId, msg, opts, cb);
-            }, retryConnectTime * tracer.retryTimes);
-        } else {
-            cb(new Error('rpc client failed to send message to remote server: ' + serverId));
-        }
-        break;
-    case constants.RPC_ERROR.FILTER_ERROR:
-        cb(new Error('rpc client filter encounters error.'));
-        break;
-    default:
-        cb(new Error('rpc client unknown error.'));
+        case constants.RPC_ERROR.SERVER_NOT_STARTED:
+        case constants.RPC_ERROR.NO_TRAGET_SERVER:
+            cb(new Error('rpc client is not started or cannot find remote server.'));
+            break;
+        case constants.RPC_ERROR.FAIL_CONNECT_SERVER:
+            if (tracer.retryTimes <= retryTimes) {
+                setTimeout(() => {
+                    this.connect(tracer, serverId, cb);
+                }, retryConnectTime * tracer.retryTimes);
+            } else {
+                cb(new Error('rpc client failed to connect to remote server: ' + serverId));
+            }
+            break;
+        case constants.RPC_ERROR.FAIL_FIND_MAILBOX:
+        case constants.RPC_ERROR.FAIL_SEND_MESSAGE:
+            if (tracer.retryTimes <= retryTimes) {
+                setTimeout(() => {
+                    this.dispatch.call(this, tracer, serverId, msg, opts, cb);
+                }, retryConnectTime * tracer.retryTimes);
+            } else {
+                cb(new Error('rpc client failed to send message to remote server: ' + serverId));
+            }
+            break;
+        case constants.RPC_ERROR.FILTER_ERROR:
+            cb(new Error('rpc client filter encounters error.'));
+            break;
+        default:
+            cb(new Error('rpc client unknown error.'));
     }
 }
 

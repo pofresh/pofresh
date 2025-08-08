@@ -101,6 +101,4 @@ class PriorityQueue {
     }
 }
 
-module.exports.createPriorityQueue = function (comparator) {
-    return new PriorityQueue(comparator);
-};
+module.exports.createPriorityQueue = comparator => new PriorityQueue(comparator);

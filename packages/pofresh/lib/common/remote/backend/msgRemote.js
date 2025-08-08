@@ -4,9 +4,7 @@ const logger = require('pofresh-logger').getLogger('forward-log', __filename);
  * Remote service for backend servers.
  * Receive and handle request message forwarded from frontend server.
  */
-module.exports = function (app) {
-    return new Remote(app);
-};
+module.exports = app => new Remote(app);
 
 class Remote {
     constructor(app) {
@@ -43,7 +41,7 @@ class Remote {
 
         logger.debug('backend server [%s] handle message: %j', this.app.serverId, msg);
 
-        server.handle(msg, backendSession, function (err, resp, opts) {
+        server.handle(msg, backendSession, (err, resp, opts) => {
             utils.invokeCallback(cb, err, resp, opts);
         });
     }
@@ -72,22 +70,22 @@ class Remote {
         // logger.debug('backend server [%s] handle message: %j', this.app.serverId, msg);
 
         const dmsg = {
-            route: route,
-            body: body,
-            compressGzip: compressGzip
+            route,
+            body,
+            compressGzip
         };
 
         const socket = {
-            aesPassword: aesPassword
+            aesPassword
         };
 
         const connector = this.app.components.__connector__.connector;
-        connector.runDecode(dmsg, socket, function (err, msg) {
+        connector.runDecode(dmsg, socket, (err, msg) => {
             if (err) {
                 return cb(err);
             }
 
-            server.handle(msg, backendSession, function (err, resp, opts) {
+            server.handle(msg, backendSession, (err, resp, opts) => {
                 utils.invokeCallback(cb, err, resp, opts);
             });
         });

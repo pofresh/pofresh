@@ -1,4 +1,3 @@
-
 describe('show command', () => {
     let showCommand;
 

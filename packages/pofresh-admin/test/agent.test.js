@@ -1,16 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 const flow = require('flow');
 const Master = require('../lib/master/masterAgent');
 const Monitor = require('../lib/monitor/monitorAgent');
-
 
 const WAIT_TIME = 200;
 
 const masterHost = '127.0.0.1';
 const masterPort = 3333;
 
-describe('agent', function () {
-    const authServer = function (msg, env, cb) {
+describe('agent', () => {
+    const authServer = (msg, env, cb) => {
         cb('ok');
     };
 
@@ -18,8 +18,7 @@ describe('agent', function () {
         authServer
     };
 
-    it('should forward the message from master to the right monitor and get the response ' +
-        'by reuqest', async function () {
+    it('should forward the message from master to the right monitor and get the response by reuqest', async () => {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -36,7 +35,7 @@ describe('agent', function () {
 
         const monitorConsole1 = {
             authServer,
-            execute: function (receivedModuleId, method, msg, _cb) {
+            execute(receivedModuleId, method, msg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
                 _cb(null, msg);
@@ -45,7 +44,7 @@ describe('agent', function () {
 
         const monitorConsole2 = {
             authServer,
-            execute: function (receivedModuleId, method, msg, _cb) {
+            execute(receivedModuleId, method, msg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
                 _cb(null, msg);
@@ -77,16 +76,16 @@ describe('agent', function () {
                 expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
-                master.request(monitorId1, moduleId1, msg1, function (err, resp) {
+                master.request(monitorId1, moduleId1, msg1, (err, resp) => {
                     resp1Count++;
                     expect(err).toBeFalsy();
                     expect(resp).toBeDefined();
                     expect(resp).toEqual(msg1);
                 });
 
-                master.request(monitorId2, moduleId2, msg2, function (err, resp) {
+                master.request(monitorId2, moduleId2, msg2, (err, resp) => {
                     resp2Count++;
                     expect(err).toBeFalsy();
                     expect(resp).toBeDefined();
@@ -96,7 +95,7 @@ describe('agent', function () {
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(req1Count).toBe(1);
                 expect(req2Count).toBe(1);
                 expect(resp1Count).toBe(1);
@@ -109,8 +108,7 @@ describe('agent', function () {
         });
     });
 
-    it('should return error to master if monitor cb with a error ' +
-        'by reuqest', async function () {
+    it('should return error to master if monitor cb with a error by reuqest', async () => {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -144,9 +142,9 @@ describe('agent', function () {
             function () {
                 monitor.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
-                master.request(monitorId, moduleId, msg, function (err, resp) {
+                master.request(monitorId, moduleId, msg, (err, resp) => {
                     respCount++;
                     expect(err).toBeDefined();
                     expect(err.message).toBe(errMsg);
@@ -156,7 +154,7 @@ describe('agent', function () {
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(reqCount).toBe(1);
                 expect(respCount).toBe(1);
                 monitor.close();
@@ -166,8 +164,7 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message from master to the right monitor ' +
-        'by notifyById', async function () {
+    it('should forward the message from master to the right monitor by notifyById', async () => {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -220,7 +217,7 @@ describe('agent', function () {
                 expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
                 master.notifyById(monitorId1, moduleId1, msg1);
                 master.notifyById(monitorId2, moduleId2, msg2);
@@ -228,7 +225,7 @@ describe('agent', function () {
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(req1Count).toBe(1);
                 expect(req2Count).toBe(1);
 
@@ -241,8 +238,7 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message to the right type monitors ' +
-        'by notifyByType', async function () {
+    it('should forward the message to the right type monitors by notifyByType', async () => {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'connector-server-2';
         const monitorId3 = 'area-server-1';
@@ -260,8 +256,8 @@ describe('agent', function () {
         let reqType2Count = 0;
 
         const monitorConsole1 = {
-            authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, _cb) {
+            authServer,
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req1Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -270,8 +266,8 @@ describe('agent', function () {
         };
 
         const monitorConsole2 = {
-            authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, _cb) {
+            authServer,
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req2Count++;
                 reqType1Count++;
                 expect(receivedModuleId).toBe(moduleId1);
@@ -280,8 +276,8 @@ describe('agent', function () {
         };
 
         const monitorConsole3 = {
-            authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, _cb) {
+            authServer,
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req3Count++;
                 reqType2Count++;
                 expect(receivedModuleId).toBe(moduleId2);
@@ -319,7 +315,7 @@ describe('agent', function () {
                 expect(err).toBeFalsy();
                 monitor3.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
                 master.notifyByType(monitorType1, moduleId1, msg1);
                 master.notifyByType(monitorType2, moduleId2, msg2);
@@ -327,7 +323,7 @@ describe('agent', function () {
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(req1Count).toBe(1);
                 expect(req2Count).toBe(1);
                 expect(req3Count).toBe(1);
@@ -344,8 +340,7 @@ describe('agent', function () {
         });
     });
 
-    it('should forward the message to all monitors ' +
-        'by notifyAll', async function () {
+    it('should forward the message to all monitors by notifyAll', async () => {
         const monitorId1 = 'connector-server-1';
         const monitorId2 = 'area-server-1';
         const monitorType1 = 'connector';
@@ -357,8 +352,8 @@ describe('agent', function () {
         let req2Count = 0;
 
         const monitorConsole1 = {
-            authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, _cb) {
+            authServer,
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req1Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -366,8 +361,8 @@ describe('agent', function () {
         };
 
         const monitorConsole2 = {
-            authServer: authServer,
-            execute: function (receivedModuleId, method, receivedMsg, _cb) {
+            authServer,
+            execute(receivedModuleId, method, receivedMsg, _cb) {
                 req2Count++;
                 expect(receivedModuleId).toBe(orgModuleId);
                 expect(receivedMsg).toEqual(orgMsg);
@@ -395,14 +390,14 @@ describe('agent', function () {
                 expect(err).toBeFalsy();
                 monitor2.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
                 master.notifyAll(orgModuleId, orgMsg);
             }
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(req1Count).toBe(1);
                 expect(req2Count).toBe(1);
 
@@ -415,8 +410,7 @@ describe('agent', function () {
         });
     });
 
-    it('should push the message from monitor to master ' +
-        'by notify', async function () {
+    it('should push the message from monitor to master by notify', async () => {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const orgModuleId = 'testModuleId';
@@ -425,8 +419,8 @@ describe('agent', function () {
         let reqCount = 0;
 
         const masterConsole = {
-            authServer: authServer,
-            execute: function (moduleId, method, msg, _cb) {
+            authServer,
+            execute(moduleId, method, msg, _cb) {
                 reqCount++;
                 expect(orgModuleId).toBe(moduleId);
                 expect(msg).toEqual(orgMsg);
@@ -434,7 +428,7 @@ describe('agent', function () {
         };
 
         const monitorConsole = {
-            authServer: authServer
+            authServer
         };
 
         const master = new Master(masterConsole);
@@ -449,14 +443,14 @@ describe('agent', function () {
             function () {
                 monitor.connect(masterPort, masterHost, this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
                 monitor.notify(orgModuleId, orgMsg);
             }
         );
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(reqCount).toBe(1);
 
                 monitor.close();

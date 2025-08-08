@@ -55,7 +55,8 @@ function decodeTimeStr(timeStr, type) {
 
     if (timeStr === '*') {
         return -1;
-    } else if (timeStr.search(',') > 0) {
+    }
+    if (timeStr.search(',') > 0) {
         const timeArr = timeStr.split(',');
         for (let i = 0; i < timeArr.length; i++) {
             const time = timeArr[i];
@@ -63,29 +64,28 @@ function decodeTimeStr(timeStr, type) {
                 decodeRangeTime(result, time);
             } else if (time.match(/^\d+\/\d+/)) {
                 decodePeriodTime(result, time, type);
-            } else if (!isNaN(time)) {
+            } else if (isNaN(time)) return null;
+            else {
                 const num = Number(time);
                 result[num] = num;
-            } else return null;
+            }
         }
     } else if (timeStr.match(/^\d+-\d+$/)) {
         decodeRangeTime(result, timeStr);
     } else if (timeStr.match(/^\d+\/\d+/)) {
         decodePeriodTime(result, timeStr, type);
-    } else if (!isNaN(timeStr)) {
+    } else if (isNaN(timeStr)) {
+        return null;
+    } else {
         const num = Number(timeStr);
         result[num] = num;
-    } else {
-        return null;
     }
 
     for (const key in result) {
         arr.push(result[key]);
     }
 
-    arr.sort(function (a, b) {
-        return a - b;
-    });
+    arr.sort((a, b) => a - b);
 
     return arr;
 }
@@ -101,8 +101,9 @@ function nextCronTime(value, cronTime) {
 
     if (typeof cronTime === 'number') {
         if (cronTime === -1) return value;
-        else return cronTime;
-    } else if (typeof cronTime === 'object' && cronTime instanceof Array) {
+        return cronTime;
+    }
+    if (typeof cronTime === 'object' && cronTime instanceof Array) {
         if (value <= cronTime[0] || value > cronTime[cronTime.length - 1]) return cronTime[0];
 
         for (let i = 0; i < cronTime.length; i++) if (value <= cronTime[i]) return cronTime[i];
@@ -121,7 +122,8 @@ function nextCronTime(value, cronTime) {
 function timeMatch(value, cronTime) {
     if (typeof cronTime === 'number') {
         return cronTime === -1 || value === cronTime;
-    } else if (typeof cronTime === 'object' && cronTime instanceof Array) {
+    }
+    if (typeof cronTime === 'object' && cronTime instanceof Array) {
         if (value < cronTime[0] || value > cronTime[cronTime.length - 1]) return false;
 
         for (let i = 0; i < cronTime.length; i++) if (value === cronTime[i]) return true;

@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+
 const flow = require('flow');
 const ConsoleService = require('..');
 const logger = require('pofresh-logger');
@@ -8,8 +9,8 @@ const WAIT_TIME = 100;
 const masterHost = '127.0.0.1';
 const masterPort = 3333;
 
-describe('console service', function () {
-    beforeAll(function () {
+describe('console service', () => {
+    beforeAll(() => {
         logger.configure({
             appenders: {
                 console: {
@@ -28,166 +29,172 @@ describe('console service', function () {
         });
     });
 
-    it('should forward message from master to the monitorHandler method of the module ' +
-        'of the right monitor, and get the response by masterAgent.request', async function () {
-        const monitorConfig1 = {
-            id: 'connector-server-1',
-            type: 'connector',
-            moduleId: 'testModuleId1'
-        };
+    it(
+        'should forward message from master to the monitorHandler method of the module ' +
+            'of the right monitor, and get the response by masterAgent.request',
+        async () => {
+            const monitorConfig1 = {
+                id: 'connector-server-1',
+                type: 'connector',
+                moduleId: 'testModuleId1'
+            };
 
-        const monitorConfig2 = {
-            id: 'area-server-1',
-            type: 'area',
-            moduleId: 'testModuleId2'
-        };
+            const monitorConfig2 = {
+                id: 'area-server-1',
+                type: 'area',
+                moduleId: 'testModuleId2'
+            };
 
-        const msg1 = { msg: 'message to monitor1' };
-        const msg2 = { msg: 'message to monitor2' };
+            const msg1 = { msg: 'message to monitor1' };
+            const msg2 = { msg: 'message to monitor2' };
 
-        let req1Count = 0;
-        let req2Count = 0;
-        let resp1Count = 0;
-        let resp2Count = 0;
+            let req1Count = 0;
+            let req2Count = 0;
+            let resp1Count = 0;
+            let resp2Count = 0;
 
-        const masterConsole = ConsoleService.createMasterConsole({
-            port: masterPort
-        });
+            const masterConsole = ConsoleService.createMasterConsole({
+                port: masterPort
+            });
 
-        const monitorConsole1 = ConsoleService.createMonitorConsole({
-            host: masterHost,
-            port: masterPort,
-            id: monitorConfig1.id,
-            type: monitorConfig1.type,
-            info: { host: '127.0.0.1' }
-        });
+            const monitorConsole1 = ConsoleService.createMonitorConsole({
+                host: masterHost,
+                port: masterPort,
+                id: monitorConfig1.id,
+                type: monitorConfig1.type,
+                info: { host: '127.0.0.1' }
+            });
 
-        monitorConsole1.register(monitorConfig1.moduleId, {
-            monitorHandler(agent, msg, cb) {
-                req1Count++;
-                expect(msg).toBeDefined();
-                expect(msg).toEqual(msg1);
-                cb(null, msg);
-            }
-        });
+            monitorConsole1.register(monitorConfig1.moduleId, {
+                monitorHandler(agent, msg, cb) {
+                    req1Count++;
+                    expect(msg).toBeDefined();
+                    expect(msg).toEqual(msg1);
+                    cb(null, msg);
+                }
+            });
 
-        const monitorConsole2 = ConsoleService.createMonitorConsole({
-            host: masterHost,
-            port: masterPort,
-            id: monitorConfig2.id,
-            type: monitorConfig2.type,
-            info: { host: '127.0.0.1' }
-        });
+            const monitorConsole2 = ConsoleService.createMonitorConsole({
+                host: masterHost,
+                port: masterPort,
+                id: monitorConfig2.id,
+                type: monitorConfig2.type,
+                info: { host: '127.0.0.1' }
+            });
 
-        monitorConsole2.register(monitorConfig2.moduleId, {
-            monitorHandler: function (_agent, msg, _cb) {
-                req2Count++;
-                expect(msg).toBeDefined();
-                expect(msg).toEqual(msg2);
-                _cb(null, msg);
-            }
-        });
+            monitorConsole2.register(monitorConfig2.moduleId, {
+                monitorHandler(_agent, msg, _cb) {
+                    req2Count++;
+                    expect(msg).toBeDefined();
+                    expect(msg).toEqual(msg2);
+                    _cb(null, msg);
+                }
+            });
 
-        flow.exec(
-            function () {
-                masterConsole.start(this);
-            },
-            function (err) {
-                expect(err).toBeFalsy();
-                monitorConsole1.start(this);
-            },
-            function (err) {
-                expect(err).toBeFalsy();
-                monitorConsole2.start(this);
-            },
-            function (err) {
-                expect(err).toBeFalsy();
-                masterConsole.agent.request(monitorConsole1.id, monitorConfig1.moduleId, msg1, function (err, resp) {
-                    resp1Count++;
+            flow.exec(
+                function () {
+                    masterConsole.start(this);
+                },
+                function (err) {
                     expect(err).toBeFalsy();
-                    expect(resp).toBeDefined();
-                    expect(resp).toEqual(msg1);
-                });
-
-                masterConsole.agent.request(monitorConsole2.id, monitorConfig2.moduleId, msg2, function (err, resp) {
-                    resp2Count++;
+                    monitorConsole1.start(this);
+                },
+                function (err) {
                     expect(err).toBeFalsy();
-                    expect(resp).toBeDefined();
-                    expect(resp).toEqual(msg2);
-                });
-            }
-        ); // end of flow.exec
+                    monitorConsole2.start(this);
+                },
+                err => {
+                    expect(err).toBeFalsy();
+                    masterConsole.agent.request(monitorConsole1.id, monitorConfig1.moduleId, msg1, (err, resp) => {
+                        resp1Count++;
+                        expect(err).toBeFalsy();
+                        expect(resp).toBeDefined();
+                        expect(resp).toEqual(msg1);
+                    });
 
-        await new Promise(resolve => {
-            setTimeout(function () {
-                expect(req1Count).toBe(1);
-                expect(req2Count).toBe(1);
-                expect(resp1Count).toBe(1);
-                expect(resp2Count).toBe(1);
+                    masterConsole.agent.request(monitorConsole2.id, monitorConfig2.moduleId, msg2, (err, resp) => {
+                        resp2Count++;
+                        expect(err).toBeFalsy();
+                        expect(resp).toBeDefined();
+                        expect(resp).toEqual(msg2);
+                    });
+                }
+            ); // end of flow.exec
 
-                monitorConsole1.stop();
-                monitorConsole2.stop();
-                masterConsole.stop();
-                resolve();
-            }, WAIT_TIME);
-        });
-    });
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    expect(req1Count).toBe(1);
+                    expect(req2Count).toBe(1);
+                    expect(resp1Count).toBe(1);
+                    expect(resp2Count).toBe(1);
 
-    it('should forward message from monitor to the masterHandler of the right module ' +
-        'of the master by monitor.notify', async function () {
-        const monitorId = 'connector-server-1';
-        const monitorType = 'connector';
-        const moduleId = 'testModuleId';
-        const orgMsg = { msg: 'message to master' };
+                    monitorConsole1.stop();
+                    monitorConsole2.stop();
+                    masterConsole.stop();
+                    resolve();
+                }, WAIT_TIME);
+            });
+        }
+    );
 
-        let reqCount = 0;
+    it(
+        'should forward message from monitor to the masterHandler of the right module ' +
+            'of the master by monitor.notify',
+        async () => {
+            const monitorId = 'connector-server-1';
+            const monitorType = 'connector';
+            const moduleId = 'testModuleId';
+            const orgMsg = { msg: 'message to master' };
 
-        const masterConsole = ConsoleService.createMasterConsole({
-            port: masterPort
-        });
+            let reqCount = 0;
 
-        masterConsole.register(moduleId, {
-            masterHandler: function (_agent, msg, _cb) {
-                reqCount++;
-                expect(msg).toBeDefined();
-                expect(msg).toEqual(orgMsg);
-            }
-        });
+            const masterConsole = ConsoleService.createMasterConsole({
+                port: masterPort
+            });
 
-        const monitorConsole = ConsoleService.createMonitorConsole({
-            host: masterHost,
-            port: masterPort,
-            id: monitorId,
-            type: monitorType,
-            info: { host: '127.0.0.1' }
-        });
+            masterConsole.register(moduleId, {
+                masterHandler(_agent, msg, _cb) {
+                    reqCount++;
+                    expect(msg).toBeDefined();
+                    expect(msg).toEqual(orgMsg);
+                }
+            });
 
-        flow.exec(
-            function () {
-                masterConsole.start(this);
-            },
-            function (err) {
-                expect(err).toBeFalsy();
-                monitorConsole.start(this);
-            },
-            function (err) {
-                expect(err).toBeFalsy();
-                monitorConsole.agent.notify(moduleId, orgMsg);
-            }
-        ); // end of flow.exec
+            const monitorConsole = ConsoleService.createMonitorConsole({
+                host: masterHost,
+                port: masterPort,
+                id: monitorId,
+                type: monitorType,
+                info: { host: '127.0.0.1' }
+            });
 
-        await new Promise(resolve => {
-            setTimeout(function () {
-                expect(reqCount).toBe(1);
+            flow.exec(
+                function () {
+                    masterConsole.start(this);
+                },
+                function (err) {
+                    expect(err).toBeFalsy();
+                    monitorConsole.start(this);
+                },
+                err => {
+                    expect(err).toBeFalsy();
+                    monitorConsole.agent.notify(moduleId, orgMsg);
+                }
+            ); // end of flow.exec
 
-                monitorConsole.stop();
-                masterConsole.stop();
-                resolve();
-            }, WAIT_TIME);
-        });
-    });
+            await new Promise(resolve => {
+                setTimeout(() => {
+                    expect(reqCount).toBe(1);
 
-    it('should fail if the module is disable', async function () {
+                    monitorConsole.stop();
+                    masterConsole.stop();
+                    resolve();
+                }, WAIT_TIME);
+            });
+        }
+    );
+
+    it('should fail if the module is disable', async () => {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -198,7 +205,7 @@ describe('console service', function () {
         });
 
         masterConsole.register(moduleId, {
-            masterHandler: function (_agent, _msg, _cb) {
+            masterHandler(_agent, _msg, _cb) {
                 // should not come here
                 expect(true).toBe(false);
             }
@@ -213,7 +220,7 @@ describe('console service', function () {
         });
 
         monitorConsole.register(moduleId, {
-            monitorHandler: function (_agent, _msg, _cb) {
+            monitorHandler(_agent, _msg, _cb) {
                 // should not come here
                 expect(true).toBe(false);
             }
@@ -228,7 +235,7 @@ describe('console service', function () {
                 masterConsole.disable(moduleId);
                 monitorConsole.start(this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
                 monitorConsole.disable(moduleId);
                 monitorConsole.agent.notify(moduleId, orgMsg);
@@ -237,7 +244,7 @@ describe('console service', function () {
         ); // end of flow.exec
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 monitorConsole.stop();
                 masterConsole.stop();
                 resolve();
@@ -245,7 +252,7 @@ describe('console service', function () {
         });
     });
 
-    it('should fail if the monitor not exists', async function () {
+    it('should fail if the monitor not exists', async () => {
         const monitorId = 'connector-server-1';
         const moduleId = 'testModuleId';
         const orgMsg = { msg: 'message to someone' };
@@ -258,9 +265,9 @@ describe('console service', function () {
             function () {
                 masterConsole.start(this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
-                masterConsole.agent.request(monitorId, moduleId, orgMsg, function (err, resp) {
+                masterConsole.agent.request(monitorId, moduleId, orgMsg, (err, resp) => {
                     expect(err).toBeDefined();
                     expect(resp).toBeUndefined();
                 });
@@ -268,14 +275,14 @@ describe('console service', function () {
         ); // end of flow.exec
 
         await new Promise(resolve => {
-            setTimeout(function () {
+            setTimeout(() => {
                 masterConsole.stop();
                 resolve();
             }, WAIT_TIME);
         });
     });
 
-    it('should invoke masterHandler periodically in pull mode', async function () {
+    it('should invoke masterHandler periodically in pull mode', async () => {
         const moduleId = 'testModuleId';
         const intervalSec = 1;
         let invokeCount = 0;
@@ -288,7 +295,7 @@ describe('console service', function () {
         masterConsole.register(moduleId, {
             type: 'pull',
             interval: intervalSec,
-            masterHandler: function (_agent, _msg, _cb) {
+            masterHandler(_agent, _msg, _cb) {
                 invokeCount++;
             }
         });
@@ -297,7 +304,7 @@ describe('console service', function () {
 
         await new Promise(resolve => {
             setTimeout(
-                function () {
+                () => {
                     expect(invokeCount).toBe(turn);
                     masterConsole.stop();
                     resolve();
@@ -307,7 +314,7 @@ describe('console service', function () {
         });
     });
 
-    it('should invoke monitorHandler periodically in push mode', async function () {
+    it('should invoke monitorHandler periodically in push mode', async () => {
         const monitorId = 'connector-server-1';
         const monitorType = 'connector';
         const moduleId = 'testModuleId';
@@ -330,7 +337,7 @@ describe('console service', function () {
         monitorConsole.register(moduleId, {
             type: 'push',
             interval: intervalSec,
-            monitorHandler: function (_agent, _msg, _cb) {
+            monitorHandler(_agent, _msg, _cb) {
                 invokeCount++;
             }
         });
@@ -343,14 +350,14 @@ describe('console service', function () {
                 expect(err).toBeFalsy();
                 monitorConsole.start(this);
             },
-            function (err) {
+            err => {
                 expect(err).toBeFalsy();
             }
         );
 
         await new Promise(resolve => {
             setTimeout(
-                function () {
+                () => {
                     expect(invokeCount).toBe(turn);
                     monitorConsole.stop();
                     masterConsole.stop();

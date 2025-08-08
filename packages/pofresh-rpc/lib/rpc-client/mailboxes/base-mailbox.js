@@ -70,8 +70,8 @@ class MailBox extends EventEmitter {
         this.setCbTimeout(id, tracer, cb);
 
         let pkg = {
-            id: id,
-            msg: msg
+            id,
+            msg
         };
         if (tracer && tracer.isEnabled) {
             pkg = {
@@ -79,8 +79,8 @@ class MailBox extends EventEmitter {
                 seqId: tracer.seq,
                 source: tracer.source,
                 remote: tracer.remote,
-                id: id,
-                msg: msg
+                id,
+                msg
             };
         }
         if (this.bufferMsg) {

@@ -26,32 +26,31 @@ class Connector extends EventEmitter {
      * Start connector to listen the specified port
      */
     start(cb) {
-        const self = this;
         this.mqttServer = mqtt.createServer();
-        this.mqttServer.on('client', function (client) {
-            client.on('error', function (err) {
+        this.mqttServer.on('client', client => {
+            client.on('error', err => {
                 client.stream.destroy();
             });
 
-            client.on('close', function () {
+            client.on('close', () => {
                 client.stream.destroy();
             });
 
-            client.on('disconnect', function (packet) {
+            client.on('disconnect', packet => {
                 client.stream.destroy();
             });
 
-            if (self.opts.disconnectOnTimeout) {
-                const timeout = self.opts.timeout * 1000 || constants.TIME.DEFAULT_MQTT_HEARTBEAT_TIMEOUT;
-                client.stream.setTimeout(timeout, function () {
+            if (this.opts.disconnectOnTimeout) {
+                const timeout = this.opts.timeout * 1000 || constants.TIME.DEFAULT_MQTT_HEARTBEAT_TIMEOUT;
+                client.stream.setTimeout(timeout, () => {
                     client.emit('close');
                 });
             }
 
-            client.on('connect', function (packet) {
+            client.on('connect', packet => {
                 client.connack({ returnCode: 0 });
-                const mqttsocket = new MQTTSocket(curId++, client, self.adaptor);
-                self.emit('connection', mqttsocket);
+                const mqttsocket = new MQTTSocket(curId++, client, this.adaptor);
+                this.emit('connection', mqttsocket);
             });
         });
 
@@ -68,9 +67,8 @@ class Connector extends EventEmitter {
     encode(reqId, route, msgBody) {
         if (reqId) {
             return composeResponse(reqId, route, msgBody);
-        } else {
-            return composePush(route, msgBody);
         }
+        return composePush(route, msgBody);
     }
 
     close() {

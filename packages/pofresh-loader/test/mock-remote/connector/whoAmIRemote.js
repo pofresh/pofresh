@@ -2,10 +2,8 @@
  * Mock remote service
  */
 
-module.exports = function (app) {
-    return {
-        doService(cb) {
-            cb(null, app.id);
-        }
-    };
-};
+module.exports = app => ({
+    doService(cb) {
+        cb(null, app.id);
+    }
+});

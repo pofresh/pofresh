@@ -1,5 +1,3 @@
-module.exports = function () {
-    return {
-        doService(_cb) {}
-    };
-};
+module.exports = () => ({
+    doService(_cb) {}
+});

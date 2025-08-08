@@ -61,7 +61,7 @@ class SessionService {
     bind(sid, uid, cb) {
         const session = this.sessions[sid];
         if (!session) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 cb(new Error('session does not exist, sid: ' + sid));
             });
             return;
@@ -75,7 +75,7 @@ class SessionService {
             }
 
             // already bound with other uid
-            process.nextTick(function () {
+            process.nextTick(() => {
                 cb(new Error('session has already bind with ' + session.uid));
             });
             return;
@@ -84,7 +84,7 @@ class SessionService {
         let sessions = this.uidMap[uid];
 
         if (!!this.singleSession && !!sessions) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 cb(new Error('singleSession is enabled, and session has already bind with uid: ' + uid));
             });
             return;
@@ -120,14 +120,14 @@ class SessionService {
         const session = this.sessions[sid];
 
         if (!session) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 cb(new Error('session does not exist, sid: ' + sid));
             });
             return;
         }
 
         if (!session.uid || session.uid !== uid) {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 cb(new Error('session has not bind with ' + session.uid));
             });
             return;
@@ -282,20 +282,19 @@ class SessionService {
         if (sessions) {
             // notify client
             const sids = [];
-            const self = this;
-            sessions.forEach(function (session) {
+            sessions.forEach(session => {
                 sids.push(session.id);
             });
 
-            sids.forEach(function (sid) {
-                self.sessions[sid].closed(reason);
+            sids.forEach(sid => {
+                this.sessions[sid].closed(reason);
             });
 
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -320,11 +319,11 @@ class SessionService {
         if (session) {
             // notify client
             session.closed(reason);
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         } else {
-            process.nextTick(function () {
+            process.nextTick(() => {
                 utils.invokeCallback(cb);
             });
         }
@@ -343,9 +342,8 @@ class SessionService {
         if (session) {
             const socket = session.__socket__;
             return socket.remoteAddress;
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -666,20 +664,18 @@ class FrontendSession extends EventEmitter {
     }
 
     bind(uid, cb) {
-        const self = this;
-        this.__sessionService__.bind(this.id, uid, function (err) {
+        this.__sessionService__.bind(this.id, uid, err => {
             if (!err) {
-                self.uid = uid;
+                this.uid = uid;
             }
             utils.invokeCallback(cb, err);
         });
     }
 
     unbind(uid, cb) {
-        const self = this;
-        this.__sessionService__.unbind(this.id, uid, function (err) {
+        this.__sessionService__.unbind(this.id, uid, err => {
             if (!err) {
-                self.uid = null;
+                this.uid = null;
             }
             utils.invokeCallback(cb, err);
         });

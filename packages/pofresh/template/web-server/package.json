@@ -1,9 +1,9 @@
 {
-  "name": "$",
-  "version": "0.0.1",
-  "private": false,
-  "dependencies": {
-    "express": "4.16.0",
-    "serve-static": "1.13.2"
-  }
+    "name": "$",
+    "version": "0.0.1",
+    "private": false,
+    "dependencies": {
+        "express": "4.16.0",
+        "serve-static": "1.13.2"
+    }
 }

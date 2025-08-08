@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { client as Client } from '../../index.js';
 
 describe('mailstation', () => {
@@ -11,7 +11,12 @@ describe('mailstation', () => {
 
     it('should add server successfully', () => {
         const client = Client.create();
-        const server = { id: 'test-server-1', serverType: 'test', host: '127.0.0.1', port: 3333 };
+        const server = {
+            id: 'test-server-1',
+            serverType: 'test',
+            host: '127.0.0.1',
+            port: 3333
+        };
 
         client.addServer(server);
         expect(client._station).toBeDefined();
@@ -20,8 +25,18 @@ describe('mailstation', () => {
     it('should add servers successfully', () => {
         const client = Client.create();
         const servers = [
-            { id: 'test-server-1', serverType: 'test', host: '127.0.0.1', port: 3333 },
-            { id: 'test-server-2', serverType: 'test', host: '127.0.0.1', port: 3334 }
+            {
+                id: 'test-server-1',
+                serverType: 'test',
+                host: '127.0.0.1',
+                port: 3333
+            },
+            {
+                id: 'test-server-2',
+                serverType: 'test',
+                host: '127.0.0.1',
+                port: 3334
+            }
         ];
 
         client.addServers(servers);

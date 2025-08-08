@@ -4,9 +4,7 @@
  */
 const utils = require('../../../util/utils');
 
-module.exports = function (app) {
-    return new Remote(app);
-};
+module.exports = app => new Remote(app);
 
 class Remote {
     constructor(app) {
