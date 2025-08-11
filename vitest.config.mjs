@@ -15,7 +15,6 @@ export default defineConfig({
       moduleDirectories: ['node_modules', 'packages'],
     },
     commonjs: true,
-    setupFiles: ['./test-setup.js'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
