@@ -23,6 +23,9 @@ const appManager = require('./common/manager/appManager');
  */
 const Application = {};
 
+// Top-level regex constants
+const JS_FILE_REGEX = /\.js$/;
+
 /**
  * Application states
  */
@@ -36,8 +39,7 @@ const STATE_STOPED = 4; // app has stoped
  *
  *   - setup default configuration
  */
-Application.init = function (opts) {
-    opts = opts || {};
+Application.init = function (opts = {}) {
     this.loaded = []; // loaded component list
     this.components = {}; // name -> component map
     this.settings = {}; // collection keep set/get
@@ -99,9 +101,9 @@ Application.getBase = function () {
  * @return {Server|Mixed} for chaining, or the setting value
  * @memberOf Application
  */
-Application.set = function (setting, val, attach) {
-    if (arguments.length === 1) {
-        return this.settings[setting];
+Application.set = function (setting, val, attach = false) {
+    if (setting === undefined) {
+        return this;
     }
     this.settings[setting] = val;
     if (attach) {
@@ -621,13 +623,12 @@ Application.registerAdmin = function (moduleId, module, opts) {
  * @param  {[type]} opts    (optional) construct parameters for the factory function
  * @memberOf Application
  */
-Application.use = function (plugin, opts) {
+Application.use = function (plugin, opts= {}) {
     if (!plugin.components) {
         logger.error('invalid components, no components exist');
         return;
     }
 
-    opts = opts || {};
     const dir = path.dirname(plugin.components);
 
     if (!fs.existsSync(plugin.components)) {
@@ -635,9 +636,9 @@ Application.use = function (plugin, opts) {
         return;
     }
 
-    fs.readdirSync(plugin.components).forEach(filename => {
-        if (!/\.js$/.test(filename)) {
-            return;
+    for (const filename of fs.readdirSync(plugin.components)) {
+        if (!JS_FILE_REGEX.test(filename)) {
+            continue;
         }
         const name = path.basename(filename, '.js');
         const param = opts[name] || {};
@@ -647,7 +648,7 @@ Application.use = function (plugin, opts) {
         } else {
             logger.error('component %s not exist at %s', name, absolutePath);
         }
-    });
+    }
 
     // load events
     if (plugin.events) {
@@ -656,9 +657,9 @@ Application.use = function (plugin, opts) {
             return;
         }
 
-        fs.readdirSync(plugin.events).forEach(filename => {
-            if (!/\.js$/.test(filename)) {
-                return;
+        for (const filename of fs.readdirSync(plugin.events)) {
+            if (!JS_FILE_REGEX.test(filename)) {
+                continue;
             }
             const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
             if (fs.existsSync(absolutePath)) {
@@ -666,7 +667,7 @@ Application.use = function (plugin, opts) {
             } else {
                 logger.error('events %s not exist at %s', filename, absolutePath);
             }
-        });
+        }
     } else {
         return;
     }
@@ -840,7 +841,7 @@ Application.addServers = function (servers) {
 
     let _item, _slist;
     // 使用现代数组方法优化循环
-    servers.forEach(server => {
+    for (const server of servers) {
         // update global server map
         this.servers[server.id] = server;
 
@@ -855,7 +856,7 @@ Application.addServers = function (servers) {
         if (!this.serverTypes.includes(server.serverType)) {
             this.serverTypes.push(server.serverType);
         }
-    });
+    }
     this.event.emit(events.ADD_SERVERS, servers);
 };
 
@@ -871,10 +872,10 @@ Application.removeServers = function (ids) {
     }
 
     // 使用现代数组方法优化循环
-    ids.forEach(id => {
+    for (const id of ids) {
         const item = this.servers[id];
         if (!item) {
-            return;
+            continue;
         }
 
         // clean global server map
@@ -882,7 +883,7 @@ Application.removeServers = function (ids) {
 
         // clean global server type map
         removeServer(this.serverTypeMaps[item.serverType], id);
-    });
+    }
     this.event.emit(events.REMOVE_SERVERS, ids);
 };
 
@@ -902,6 +903,9 @@ Application.replaceServers = function (servers) {
     this.serverTypes = [];
     const serverArray = [];
     for (const id in servers) {
+        if (!Object.hasOwn(servers, id)) {
+            continue;
+        }
         const server = servers[id];
         const serverType = server[Constants.RESERVED.SERVER_TYPE];
         let slist = this.serverTypeMaps[serverType];
