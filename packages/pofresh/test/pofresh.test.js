@@ -1,6 +1,4 @@
 import path from 'path';
-import { describe, expect, it } from 'vitest';
-
 import pofresh from '../index.js';
 
 const mockBase = path.join(process.cwd(), 'test');

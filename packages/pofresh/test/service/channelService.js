@@ -63,105 +63,105 @@ describe('channel manager test', () => {
     describe('#pushMessageByUids', () => {
         it('should push message to the right frontend server', () => {
             return new Promise(resolve => {
-            const sid1 = 'sid1',
-                sid2 = 'sid2';
-            const uid1 = 'uid1',
-                uid2 = 'uid2',
-                uid3 = 'uid3';
-            const orgRoute = 'test.route.string';
-            const mockUids = [
-                { sid: sid1, uid: uid1 },
-                { sid: sid2, uid: uid2 },
-                { sid: sid2, uid: uid3 }
-            ];
-            const mockMsg = { key: 'some remote message' };
-            const uidMap = {};
-            for (const mockUid of mockUids) {
-                if (Object.hasOwn(mockUid, 'uid')) {
-                    uidMap[mockUid.uid] = mockUid;
-                }
-            }
-
-            let invokeCount = 0;
-
-            const mockRpcInvoke = (sid, rmsg, cb) => {
-                invokeCount++;
-                const args = rmsg.args;
-                const _route = args[0];
-                const msg = args[1];
-                const uids = args[2];
-                expect(mockMsg).toEqual(msg);
-
-                for (const uid of uids) {
-                    const r2 = uidMap[uid];
-                    expect(r2.sid).toBe(sid);
+                const sid1 = 'sid1',
+                    sid2 = 'sid2';
+                const uid1 = 'uid1',
+                    uid2 = 'uid2',
+                    uid3 = 'uid3';
+                const orgRoute = 'test.route.string';
+                const mockUids = [
+                    { sid: sid1, uid: uid1 },
+                    { sid: sid2, uid: uid2 },
+                    { sid: sid2, uid: uid3 }
+                ];
+                const mockMsg = { key: 'some remote message' };
+                const uidMap = {};
+                for (const mockUid of mockUids) {
+                    if (Object.hasOwn(mockUid, 'uid')) {
+                        uidMap[mockUid.uid] = mockUid;
+                    }
                 }
 
-                cb();
-            };
+                let invokeCount = 0;
 
-            const app = pofresh.createApp({ base: mockBase });
-            app.rpcInvoke = mockRpcInvoke;
-            const channelService = new ChannelService(app);
+                const mockRpcInvoke = (sid, rmsg, cb) => {
+                    invokeCount++;
+                    const args = rmsg.args;
+                    const _route = args[0];
+                    const msg = args[1];
+                    const uids = args[2];
+                    expect(mockMsg).toEqual(msg);
 
-            channelService.pushMessageByUids(orgRoute, mockMsg, mockUids, () => {
-                expect(invokeCount).toBe(2);
-                resolve();
-            });
+                    for (const uid of uids) {
+                        const r2 = uidMap[uid];
+                        expect(r2.sid).toBe(sid);
+                    }
+
+                    cb();
+                };
+
+                const app = pofresh.createApp({ base: mockBase });
+                app.rpcInvoke = mockRpcInvoke;
+                const channelService = new ChannelService(app);
+
+                channelService.pushMessageByUids(orgRoute, mockMsg, mockUids, () => {
+                    expect(invokeCount).toBe(2);
+                    resolve();
+                });
             });
         });
 
         it('should return an err if uids is empty', () => {
             return new Promise(resolve => {
-            const mockMsg = { key: 'some remote message' };
-            const app = pofresh.createApp({ base: mockBase });
-            const channelService = new ChannelService(app);
+                const mockMsg = { key: 'some remote message' };
+                const app = pofresh.createApp({ base: mockBase });
+                const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(mockMsg, null, err => {
-                expect(err).toBeDefined();
-                expect(err.message).toBe('uids should not be empty');
-                resolve();
-            });
+                channelService.pushMessageByUids(mockMsg, null, err => {
+                    expect(err).toBeDefined();
+                    expect(err.message).toBe('uids should not be empty');
+                    resolve();
+                });
             });
         });
 
         it('should return err if all message fail to push', () => {
             return new Promise(resolve => {
-            const sid1 = 'sid1',
-                sid2 = 'sid2';
-            const uid1 = 'uid1',
-                uid2 = 'uid2',
-                uid3 = 'uid3';
-            const mockUids = [
-                { sid: sid1, uid: uid1 },
-                { sid: sid2, uid: uid2 },
-                { sid: sid2, uid: uid3 }
-            ];
-            const mockMsg = { key: 'some remote message' };
-            const uidMap = {};
-            for (const i in mockUids) {
-                uidMap[mockUids[i].uid] = mockUids[i];
-            }
+                const sid1 = 'sid1',
+                    sid2 = 'sid2';
+                const uid1 = 'uid1',
+                    uid2 = 'uid2',
+                    uid3 = 'uid3';
+                const mockUids = [
+                    { sid: sid1, uid: uid1 },
+                    { sid: sid2, uid: uid2 },
+                    { sid: sid2, uid: uid3 }
+                ];
+                const mockMsg = { key: 'some remote message' };
+                const uidMap = {};
+                for (const i in mockUids) {
+                    uidMap[mockUids[i].uid] = mockUids[i];
+                }
 
-            let invokeCount = 0;
+                let invokeCount = 0;
 
-            const mockRpcInvoke = (_sid, _rmsg, cb) => {
-                invokeCount++;
-                cb(new Error('[TestMockError] mock rpc error'));
-            };
+                const mockRpcInvoke = (_sid, _rmsg, cb) => {
+                    invokeCount++;
+                    cb(new Error('[TestMockError] mock rpc error'));
+                };
 
-            const app = pofresh.createApp({ base: mockBase });
-            app.rpcInvoke = mockRpcInvoke;
-            const channelService = new ChannelService(app);
+                const app = pofresh.createApp({ base: mockBase });
+                app.rpcInvoke = mockRpcInvoke;
+                const channelService = new ChannelService(app);
 
-            channelService.pushMessageByUids(mockMsg, mockUids, err => {
-                expect(invokeCount).toBe(2);
-                expect(err).toBeDefined();
-                expect(err.message).toBe('all uids push message fail');
+                channelService.pushMessageByUids(mockMsg, mockUids, err => {
+                    expect(invokeCount).toBe(2);
+                    expect(err).toBeDefined();
+                    expect(err.message).toBe('all uids push message fail');
+                });
+                resolve();
             });
-            resolve();
         });
-    });
 
         it('should return fail uid list if fail to push messge to some of the uids', () => {
             const sid1 = 'sid1',
@@ -211,51 +211,52 @@ describe('channel manager test', () => {
     describe('#broadcast', () => {
         it('should push message to all specified frontend servers', () => {
             return new Promise(resolve => {
-            const mockServers = [
-                { id: 'connector-1', serverType: 'connector', other: 'xxx1' },
-                { id: 'connector-2', serverType: 'connector', other: 'xxx2' },
-                { id: 'area-1', serverType: 'area', other: 'yyy1' },
-                { id: 'gate-1', serverType: 'gate', other: 'zzz1' },
-                { id: 'gate-2', serverType: 'gate', other: 'xxx1' },
-                { id: 'gate-3', serverType: 'gate', other: 'yyy1' }
-            ];
-            const connectorIds = ['connector-1', 'connector-2'];
-            const mockSType = 'connector';
-            const mockRoute = 'test.route.string';
-            const mockBinded = true;
-            const opts = { binded: mockBinded };
-            const mockMsg = { key: 'some remote message' };
+                const mockServers = [
+                    { id: 'connector-1', serverType: 'connector', other: 'xxx1' },
+                    { id: 'connector-2', serverType: 'connector', other: 'xxx2' },
+                    { id: 'area-1', serverType: 'area', other: 'yyy1' },
+                    { id: 'gate-1', serverType: 'gate', other: 'zzz1' },
+                    { id: 'gate-2', serverType: 'gate', other: 'xxx1' },
+                    { id: 'gate-3', serverType: 'gate', other: 'yyy1' }
+                ];
+                const connectorIds = ['connector-1', 'connector-2'];
+                const mockSType = 'connector';
+                const mockRoute = 'test.route.string';
+                const mockBinded = true;
+                const opts = { binded: mockBinded };
+                const mockMsg = { key: 'some remote message' };
 
-            let invokeCount = 0;
-            const sids = [];
+                let invokeCount = 0;
+                const sids = [];
 
-            const mockRpcInvoke = (sid, rmsg, cb) => {
-                invokeCount++;
-                const args = rmsg.args;
-                const route = args[0];
-                const msg = args[1];
-                const opts = args[2];
-                expect(mockMsg).toEqual(msg);
-                expect(mockRoute).toBe(route);
-                expect(opts).toBeDefined();
-                expect(mockBinded).toBe(opts.userOptions.binded);
-                sids.push(sid);
-                cb();
-            };
+                const mockRpcInvoke = (sid, rmsg, cb) => {
+                    invokeCount++;
+                    const args = rmsg.args;
+                    const route = args[0];
+                    const msg = args[1];
+                    const opts = args[2];
+                    expect(mockMsg).toEqual(msg);
+                    expect(mockRoute).toBe(route);
+                    expect(opts).toBeDefined();
+                    expect(mockBinded).toBe(opts.userOptions.binded);
+                    sids.push(sid);
+                    cb();
+                };
 
-            const app = pofresh.createApp({ base: mockBase });
-            app.rpcInvoke = mockRpcInvoke;
-            app.addServers(mockServers);
-            const channelService = new ChannelService(app);
+                const app = pofresh.createApp({ base: mockBase });
+                app.rpcInvoke = mockRpcInvoke;
+                app.addServers(mockServers);
+                const channelService = new ChannelService(app);
 
-            channelService.broadcast(mockSType, mockRoute, mockMsg, opts, () => {
-                expect(invokeCount).toBe(2);
-                expect(sids.length).toBe(connectorIds.length);
-                for (let i = 0, l = connectorIds.length; i < l; i++) {
-                    expect(sids).toContain(connectorIds[i]);
-                }
-                resolve();
+                channelService.broadcast(mockSType, mockRoute, mockMsg, opts, () => {
+                    expect(invokeCount).toBe(2);
+                    expect(sids.length).toBe(connectorIds.length);
+                    for (let i = 0, l = connectorIds.length; i < l; i++) {
+                        expect(sids).toContain(connectorIds[i]);
+                    }
+                    resolve();
+                });
             });
         });
-    });
+    })
 });

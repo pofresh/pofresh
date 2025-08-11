@@ -72,18 +72,9 @@ pofresh.pushSchedulers.__defineGetter__('buffer', load.bind(null, './pushSchedul
 pofresh.createApp = opts => {
     const app = application;
     app.init(opts);
-    module.exports.app = app;
+    pofresh.app = app;
     return app;
 };
-
-/**
- * Get application
- */
-Object.defineProperty(pofresh, 'app', {
-    get: () => {
-        return this.app;
-    }
-});
 
 /**
  * Auto-load bundled components with getters.
