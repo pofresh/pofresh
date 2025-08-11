@@ -105,6 +105,11 @@ Application.set = function (setting, val, attach = false) {
     if (setting === undefined) {
         return this;
     }
+
+    if(val === undefined) {
+        return this.settings[setting];
+    }
+
     this.settings[setting] = val;
     if (attach) {
         this[setting] = val;
