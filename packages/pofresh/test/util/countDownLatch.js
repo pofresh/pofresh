@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import CountDownLatch from '../../lib/util/countDownLatch.js';
 
 const _cbCreator = (() => {

@@ -24,16 +24,16 @@ class StatusService {
         }
 
         if (typeof this.manager.start === 'function') {
-            this.manager.start(err => {
-                if (!err) {
+            this.manager.start(startErr => {
+                if (!startErr) {
                     this.state = ST_STARTED;
                 }
                 if (this.cleanOnStartUp) {
-                    this.manager.clean(err => {
-                        utils.invokeCallback(cb, err);
+                    this.manager.clean(cleanErr => {
+                        utils.invokeCallback(cb, cleanErr);
                     });
                 } else {
-                    utils.invokeCallback(cb, err);
+                    utils.invokeCallback(cb, startErr);
                 }
             });
         } else {

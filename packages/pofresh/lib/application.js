@@ -106,7 +106,7 @@ Application.set = function (setting, val, attach = false) {
         return this;
     }
 
-    if(val === undefined) {
+    if (val === undefined) {
         return this.settings[setting];
     }
 
@@ -194,10 +194,10 @@ Application.configureLogger = function (jsLogger) {
         const env = this.get(Constants.RESERVED.ENV);
         const originPath = path.join(base, Constants.FILEPATH.LOG);
         const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
-        
+
         // 获取一个日志实例用于错误报告
-        const logger = jsLogger.getLogger('pofresh.application', __filename);
-        
+        const _errorLogger = jsLogger.getLogger('pofresh.application', __filename);
+
         if (fs.existsSync(originPath)) {
             jsLogger.configure(originPath, { serverId: this.serverId, base });
         } else if (fs.existsSync(presentPath)) {

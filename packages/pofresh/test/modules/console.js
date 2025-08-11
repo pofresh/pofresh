@@ -1,5 +1,4 @@
-import { describe, it, before, after } from 'vitest';
-import { expect } from 'vitest';
+import { after, before, describe, expect, it } from 'vitest';
 import consoleModule from '../../lib/modules/console.js';
 
 describe('console module test', () => {

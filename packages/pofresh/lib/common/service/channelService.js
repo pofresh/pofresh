@@ -475,8 +475,8 @@ function restoreChannel(self, cb) {
             const load = (key, name) =>
                 (() => {
                     loadAllFromStore(self, key, (_err, items) => {
-                        for (let j = 0; j < items.length; j++) {
-                            const array = items[j].split(':');
+                        for (const item of items) {
+                            const array = item.split(':');
                             const sid = array[0];
                             const uid = array[1];
                             const channel = self.channels[name];
@@ -488,10 +488,10 @@ function restoreChannel(self, cb) {
                     });
                 })();
 
-            for (let i = 0; i < list.length; i++) {
-                const name = list[i].slice(genKey(self).length + 1);
+            for (const item of list) {
+                const name = item.slice(genKey(self).length + 1);
                 self.channels[name] = new Channel(name, self);
-                load(list[i], name);
+                load(item, name);
             }
             utils.invokeCallback(cb);
         });

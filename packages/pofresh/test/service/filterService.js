@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import FilterService from '../../lib/common/service/filterService.js';
 
 const WAIT_TIME = 50;

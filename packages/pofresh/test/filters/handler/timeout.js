@@ -1,7 +1,7 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
-import timeoutFilter from '../../../lib/filters/handler/timeout.js';
+import { describe, expect, it } from 'vitest';
 import FilterService from '../../../lib/common/service/filterService.js';
+import timeoutFilter from '../../../lib/filters/handler/timeout.js';
+
 const mockSession = {
     key: '123'
 };

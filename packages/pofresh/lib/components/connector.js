@@ -395,7 +395,9 @@ function handleMessage(self, session, msg) {
         // for compatiablity
         opts.isResponse = true;
 
-        self.send(msg.id, msg.route, resp, [session.id], opts, () => {});
+        self.send(msg.id, msg.route, resp, [session.id], opts, () => {
+            // callback is intentionally empty
+        });
     });
 }
 

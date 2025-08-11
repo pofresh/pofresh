@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import taskManager from '../../lib/common/manager/taskManager.js';
 
 // set timeout for test

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import pofresh from '../../lib/index.js';
 import ChannelService from '../../lib/common/service/channelService.js';
+import pofresh from '../../lib/index.js';
 
 const channelName = 'test_channel';
 const mockBase = `${process.cwd()}/test`;
@@ -258,5 +258,5 @@ describe('channel manager test', () => {
                 });
             });
         });
-    })
+    });
 });

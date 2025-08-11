@@ -72,8 +72,8 @@ class Component {
         return this.version;
     }
 
-    setProtos(type, path) {
-        if (!fs.existsSync(path)) {
+    setProtos(type, filePath) {
+        if (!fs.existsSync(filePath)) {
             return;
         }
 
@@ -96,11 +96,11 @@ class Component {
         this.watchers[type] = watcher;
     }
 
-    onUpdate(type, path, event) {
+    onUpdate(type, filePath, event) {
         if (event !== 'change') {
             return;
         }
-        fs.readFile(path, 'utf8', (_err, data) => {
+        fs.readFile(filePath, 'utf8', (_err, data) => {
             try {
                 const protos = protobuf.parse(JSON.parse(data));
                 if (type === Constants.RESERVED.SERVER) {

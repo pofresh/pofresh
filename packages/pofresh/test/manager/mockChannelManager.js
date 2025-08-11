@@ -1,4 +1,5 @@
 const DEFAULT_PREFIX = 'pofresh:CHANNEL';
+
 import utils from '../../lib/util/utils.js';
 
 const MockManager = function (app, opts) {

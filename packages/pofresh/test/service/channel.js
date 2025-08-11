@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import pofresh from '../../index.js';
 import ChannelService from '../../lib/common/service/channelService.js';
 

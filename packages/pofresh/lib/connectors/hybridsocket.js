@@ -81,8 +81,8 @@ class Socket extends EventEmitter {
      */
     sendBatch(msgs) {
         const rs = [];
-        for (let i = 0; i < msgs.length; i++) {
-            const src = Package.encode(Package.TYPE_DATA, msgs[i]);
+        for (const msg of msgs) {
+            const src = Package.encode(Package.TYPE_DATA, msg);
             rs.push(src);
         }
         this.sendRaw(Buffer.concat(rs));

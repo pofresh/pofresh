@@ -34,7 +34,7 @@ module.exports.publish = opts => {
     }
 
     /* Generate header */
-    packet.header = (protocol.codes.publish << protocol.CMD_SHIFT) | dup | (qos << protocol.QOS_SHIFT) | retain;
+    packet.header = (protocol.codes.publish << protocol.CMD_SHIFT) | dup | (qos << protocol.QOS_SHIFT) | retain; // eslint-disable-line no-bitwise
 
     /* Topic name */
     packet.payload = packet.payload.concat(gen_string(topic));
@@ -64,10 +64,10 @@ function gen_length(length) {
     let digit = 0;
 
     do {
-        digit = (length % 128) | 0;
-        length = (length / 128) | 0;
+        digit = (length % 128) | 0; // eslint-disable-line no-bitwise
+        length = (length / 128) | 0; // eslint-disable-line no-bitwise
         if (length > 0) {
-            digit |= 0x80;
+            digit |= 0x80; // eslint-disable-line no-bitwise
         }
         len.push(digit);
     } while (length > 0);
@@ -95,25 +95,25 @@ function gen_string(str, without_length) {
             string.push(code);
             ++length;
         } else if (code < 2048) {
-            string.push(192 + (code >> 6));
+            string.push(192 + (code >> 6)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + (code & 63));
+            string.push(128 + (code & 63)); // eslint-disable-line no-bitwise
             ++length;
         } else if (code < 65_536) {
-            string.push(224 + (code >> 12));
+            string.push(224 + (code >> 12)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + ((code >> 6) & 63));
+            string.push(128 + ((code >> 6) & 63)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + (code & 63));
+            string.push(128 + (code & 63)); // eslint-disable-line no-bitwise
             ++length;
         } else if (code < 2_097_152) {
-            string.push(240 + (code >> 18));
+            string.push(240 + (code >> 18)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + ((code >> 12) & 63));
+            string.push(128 + ((code >> 12) & 63)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + ((code >> 6) & 63));
+            string.push(128 + ((code >> 6) & 63)); // eslint-disable-line no-bitwise
             ++length;
-            string.push(128 + (code & 63));
+            string.push(128 + (code & 63)); // eslint-disable-line no-bitwise
             ++length;
         } else {
             throw new Error(`Can't encode character with code ${code}`);

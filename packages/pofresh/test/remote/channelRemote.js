@@ -1,9 +1,8 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import pofresh from '../../index.js';
 import remote from '../../lib/common/remote/frontend/channelRemote.js';
-import SessionService from '../../lib/common/service/sessionService.js';
 import ChannelService from '../../lib/common/service/channelService.js';
+import SessionService from '../../lib/common/service/sessionService.js';
 
 const mockBase = `${process.cwd()}/test`;
 

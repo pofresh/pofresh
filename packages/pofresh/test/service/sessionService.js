@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import SessionService from '../../lib/common/service/sessionService.js';
 
 describe('session service test', () => {

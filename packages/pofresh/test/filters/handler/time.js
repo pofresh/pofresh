@@ -1,7 +1,6 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
-import serialFilter from '../../../lib/filters/handler/time.js';
+import { describe, expect, it } from 'vitest';
 import FilterService from '../../../lib/common/service/filterService.js';
+import serialFilter from '../../../lib/filters/handler/time.js';
 
 const mockSession = {
     key: '123'

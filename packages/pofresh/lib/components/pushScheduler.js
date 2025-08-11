@@ -99,13 +99,13 @@ function getScheduler(pushSchedulerComp, app, opts) {
 
     if (Array.isArray(scheduler)) {
         const res = {};
-        scheduler.forEach(sch => {
+        for (const sch of scheduler) {
             if (typeof sch.scheduler === 'function') {
                 res[sch.id] = new sch.scheduler(app, sch.options);
             } else {
                 res[sch.id] = sch.scheduler;
             }
-        });
+        }
         pushSchedulerComp.isSelectable = true;
         pushSchedulerComp.selector = opts.selector;
         return res;

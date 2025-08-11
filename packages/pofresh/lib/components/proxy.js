@@ -168,12 +168,12 @@ function genRpcClient(app, opts) {
  * @param  {Array} sinfos server info list
  */
 function genProxies(client, app, sinfos) {
-    sinfos.forEach(info => {
+    for (const info of sinfos) {
         if (hasProxy(client, info)) {
             return;
         }
         client.addProxies(getProxyRecords(app, info));
-    });
+    }
 }
 
 /**

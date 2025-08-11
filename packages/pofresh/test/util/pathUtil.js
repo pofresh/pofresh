@@ -1,8 +1,7 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import fs from 'fs';
+import { describe, expect, it } from 'vitest';
 import pathUtil from '../../lib/util/pathUtil.js';
 import utils from '../../lib/util/utils.js';
-import fs from 'fs';
 
 const mockBase = `${process.cwd()}/test/mock-base`;
 
@@ -49,14 +48,16 @@ describe('path util test', () => {
     });
 
     describe('#remotePathRecord', () => {
-        const namespace = 'user';
-        const serverType = 'connector';
-        const path = '/some/path/to/remote';
-        const r = pathUtil.remotePathRecord(namespace, serverType, path);
-        expect(r).toBeDefined();
-        expect(namespace).toBe(r.namespace);
-        expect(serverType).toBe(r.serverType);
-        expect(path).toBe(r.path);
+        it('should create remote path record correctly', () => {
+            const namespace = 'user';
+            const serverType = 'connector';
+            const path = '/some/path/to/remote';
+            const r = pathUtil.remotePathRecord(namespace, serverType, path);
+            expect(r).toBeDefined();
+            expect(namespace).toBe(r.namespace);
+            expect(serverType).toBe(r.serverType);
+            expect(path).toBe(r.path);
+        });
     });
 
     describe('#getHandlerPath', () => {
@@ -81,16 +82,20 @@ describe('path util test', () => {
     });
 
     describe('#getScriptPath', () => {
-        const p = pathUtil.getScriptPath(mockBase);
-        const expectSuffix = '/scripts';
-        expect(p).toBeDefined();
-        expect(utils.endsWith(p, expectSuffix)).toBe(true);
+        it('should return script path correctly', () => {
+            const p = pathUtil.getScriptPath(mockBase);
+            const expectSuffix = '/scripts';
+            expect(p).toBeDefined();
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
+        });
     });
 
     describe('#getLogPath', () => {
-        const p = pathUtil.getLogPath(mockBase);
-        const expectSuffix = '/logs';
-        expect(p).toBeDefined();
-        expect(utils.endsWith(p, expectSuffix)).toBe(true);
+        it('should return log path correctly', () => {
+            const p = pathUtil.getLogPath(mockBase);
+            const expectSuffix = '/logs';
+            expect(p).toBeDefined();
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
+        });
     });
 });

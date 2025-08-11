@@ -1,5 +1,4 @@
-import { describe, it } from 'vitest';
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import RpcLogFilter from '../../../lib/filters/rpc/rpcLog.js';
 
 const mockData = {

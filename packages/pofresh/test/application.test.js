@@ -145,7 +145,14 @@ describe('application test', () => {
 
     describe('#filter', () => {
         it('should add before filter and could fetch it later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -163,7 +170,14 @@ describe('application test', () => {
         });
 
         it('should add after filter and could fetch it later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -181,7 +195,14 @@ describe('application test', () => {
         });
 
         it('should add filter and could fetch it from before and after filter later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -208,7 +229,14 @@ describe('application test', () => {
 
     describe('#globalFilter', () => {
         it('should add before global filter and could fetch it later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -226,7 +254,14 @@ describe('application test', () => {
         });
 
         it('should add after global filter and could fetch it later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -244,7 +279,14 @@ describe('application test', () => {
         });
 
         it('should add filter and could fetch it from before and after filter later', () => {
-            const filters = [() => {}, () => {}];
+            const filters = [
+                () => {
+                    /* dummy filter */
+                },
+                () => {
+                    /* dummy filter */
+                }
+            ];
 
             app.init({ base: mockBase });
 
@@ -341,8 +383,12 @@ describe('application test', () => {
         it('should add route record and could fetch it later', () => {
             const type1 = 'area',
                 type2 = 'connector';
-            const func1 = () => {};
-            const func2 = () => {};
+            const func1 = () => {
+                /* dummy function */
+            };
+            const func2 = () => {
+                /* dummy function */
+            };
 
             app.init({ base: mockBase });
 
