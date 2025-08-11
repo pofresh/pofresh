@@ -1,5 +1,6 @@
-const should = require('should');
-const consoleModule = require('../../lib/modules/console');
+import { describe, it, before, after } from 'vitest';
+import { expect } from 'vitest';
+import consoleModule from '../../lib/modules/console.js';
 
 describe('console module test', () => {
     describe('#monitorHandler', () => {
@@ -33,7 +34,7 @@ describe('console module test', () => {
             };
             const msg1 = { signal: 'stop' };
             module.monitorHandler(agent1, msg1);
-            flag.should.eql(true);
+            expect(flag).toEqual(true);
 
             const msg2 = { signal: 'list' };
             const agent2 = {
@@ -41,21 +42,21 @@ describe('console module test', () => {
                 id: 'chat-server-1'
             };
             module.monitorHandler(agent2, msg2, obj => {
-                obj.serverId.should.eql('chat-server-1');
-                obj.body.serverType.should.eql('chat');
+                expect(obj.serverId).toEqual('chat-server-1');
+                expect(obj.body.serverType).toEqual('chat');
             });
 
             const msg3 = { signal: 'addCron' };
             module.monitorHandler(agent2, msg3, null);
-            rs.length.should.eql(1);
+            expect(rs.length).toEqual(1);
 
             const msg4 = { signal: 'removeCron' };
             module.monitorHandler(agent2, msg4, null);
-            rs.length.should.eql(1);
+            expect(rs.length).toEqual(1);
 
             const msg5 = { signal: 'blacklist', blacklist: ['127.0.0.1'] };
             module.monitorHandler(agent1, msg5, null);
-            opts.app.components.__connector__.blacklist.length.should.eql(1);
+            expect(opts.app.components.__connector__.blacklist.length).toEqual(1);
         });
     });
 
@@ -133,8 +134,8 @@ describe('console module test', () => {
                     }
                 };
                 module.clientHandler(agent1, msg, (err, result) => {
-                    should.not.exist(err);
-                    should.exist(result.code);
+                    expect(err).toBeUndefined();
+                    expect(result.code).toBeDefined();
                 });
 
                 const agent2 = {
@@ -149,9 +150,9 @@ describe('console module test', () => {
                     }
                 };
                 module.clientHandler(agent2, msg, (err, result) => {
-                    should.not.exist(err);
-                    should.exist(result.code);
-                    result.code.should.eql('remained');
+                    expect(err).toBeUndefined();
+                    expect(result.code).toBeDefined();
+                    expect(result.code).toEqual('remained');
                     resolve();
                 });
             });
@@ -170,11 +171,11 @@ describe('console module test', () => {
                     }
                 };
                 module.clientHandler(agent, msg1, (_err, result) => {
-                    result.status.should.eql('part');
+                    expect(result.status).toEqual('part');
                 });
 
                 module.clientHandler(agent, msg2, (_err, result) => {
-                    result.status.should.eql('all');
+                    expect(result.status).toEqual('all');
                     resolve();
                 });
             });
@@ -194,7 +195,7 @@ describe('console module test', () => {
                 }
             };
             module.clientHandler(agent, msg, (_err, result) => {
-                should.exist(result.msg);
+                expect(result.msg).toBeDefined();
             });
         });
 
@@ -209,11 +210,11 @@ describe('console module test', () => {
             };
             const agent = {};
             module.clientHandler(agent, msg1, (err, result) => {
-                should.not.exist(err);
-                result.length.should.eql(0);
+                expect(err).toBeUndefined();
+                expect(result.length).toEqual(0);
             });
             module.clientHandler(agent, msg2, (_err, result) => {
-                result.status.should.eql('ok');
+                expect(result.status).toEqual('ok');
             });
         });
 
@@ -226,10 +227,10 @@ describe('console module test', () => {
                 }
             };
             module.clientHandler(agent, msg1, (_err, result) => {
-                result.status.should.eql('ok');
+                expect(result.status).toEqual('ok');
             });
             module.clientHandler(agent, msg2, (err, _result) => {
-                should.exist(err);
+                expect(err).toBeDefined();
             });
         });
 
@@ -242,10 +243,10 @@ describe('console module test', () => {
                 }
             };
             module.clientHandler(agent, msg1, (err, _result) => {
-                should.exist(err);
+                expect(err).toBeDefined();
             });
             module.clientHandler(agent, msg2, (err, _result) => {
-                should.exist(err);
+                expect(err).toBeDefined();
             });
         });
     });

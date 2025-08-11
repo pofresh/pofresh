@@ -1,8 +1,8 @@
-const path = require('path');
-const { afterAll, afterEach, describe, expect, it } = require('vitest');
+import path from 'path';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 
-const app = require('../lib/application.js');
-const pofresh = require('../lib/pofresh.js');
+import app from '../lib/application.js';
+import pofresh from '../lib/pofresh.js';
 
 const WAIT_TIME = 1000;
 const mockBase = path.join(process.cwd(), 'test');

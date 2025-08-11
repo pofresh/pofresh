@@ -1,5 +1,6 @@
-const should = require('should');
-const SessionService = require('../../lib/common/service/sessionService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import SessionService from '../../lib/common/service/sessionService.js';
 
 describe('session service test', () => {
     describe('#bind', () => {
@@ -13,24 +14,24 @@ describe('session service test', () => {
 
             const session = service.create(sid, fid, socket);
 
-            should.exist(session);
+            expect(session).toBeDefined();
 
-            session.should.eql(service.get(sid));
+            expect(session).toEqual(service.get(sid));
 
             session.on('bind', euid => {
                 eventCount++;
-                uid.should.equal(euid);
+                expect(uid).toBe(euid);
             });
 
             service.bind(sid, uid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 const sessions = service.getByUid(uid);
-                should.exist(sessions);
-                sessions.length.should.equal(1);
-                session.should.eql(sessions[0]);
-                eventCount.should.equal(1);
+                expect(sessions).toBeDefined();
+                expect(sessions.length).toBe(1);
+                expect(session).toEqual(sessions[0]);
+                expect(eventCount).toBe(1);
                 service.bind(sid, uid, err => {
-                    should.not.exist(err);
+                    expect(err).toBeUndefined();
                     done();
                 });
             });
@@ -48,7 +49,7 @@ describe('session service test', () => {
             service.bind(sid, uid, null);
 
             service.bind(sid, test_uid, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -58,7 +59,7 @@ describe('session service test', () => {
                 uid = 'changchang';
 
             service.bind(sid, uid, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -71,7 +72,7 @@ describe('session service test', () => {
             const uid = 'py';
 
             service.unbind(sid, uid, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -85,7 +86,7 @@ describe('session service test', () => {
             const _session = service.create(sid, fid, socket);
 
             service.unbind(sid, uid, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -100,9 +101,9 @@ describe('session service test', () => {
             service.bind(sid, uid, null);
 
             service.unbind(sid, uid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 const sessions = service.getByUid(uid);
-                should.not.exist(sessions);
+                expect(sessions).toBeUndefined();
                 done();
             });
         });
@@ -120,8 +121,8 @@ describe('session service test', () => {
 
             service.bind(sid, uid, _err => {
                 service.remove(sid);
-                should.not.exist(service.get(sid));
-                should.not.exist(service.getByUid(uid));
+                expect(service.get(sid)).toBeUndefined();
+                expect(service.getByUid(uid)).toBeUndefined();
                 done();
             });
         });
@@ -139,8 +140,8 @@ describe('session service test', () => {
             const session = service.create(sid, fid, socket);
 
             service.import(sid, key, value, err => {
-                should.not.exist(err);
-                value.should.eql(session.get(key));
+                expect(err).toBeUndefined();
+                expect(value).toEqual(session.get(key));
                 done();
             });
         });
@@ -152,7 +153,7 @@ describe('session service test', () => {
                 value = 'value-1';
 
             service.import(sid, key, value, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -174,9 +175,9 @@ describe('session service test', () => {
             const session = service.create(sid, fid, socket);
 
             service.importAll(sid, settings, err => {
-                should.not.exist(err);
-                value.should.eql(session.get(key));
-                value2.should.eql(session.get(key2));
+                expect(err).toBeUndefined();
+                expect(value).toEqual(session.get(key));
+                expect(value2).toEqual(session.get(key2));
                 done();
             });
         });
@@ -188,7 +189,7 @@ describe('session service test', () => {
                 value = 'value-1';
 
             service.import(sid, key, value, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -206,7 +207,7 @@ describe('session service test', () => {
             settings[key2] = value2;
 
             service.importAll(sid, settings, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });
@@ -240,11 +241,11 @@ describe('session service test', () => {
             service.bind(sid1, uid, _err => {
                 service.bind(sid2, uid, _err => {
                     service.kick(uid, err => {
-                        should.not.exist(err);
-                        should.not.exist(service.get(sid1));
-                        should.not.exist(service.get(sid2));
-                        should.not.exist(service.getByUid(uid));
-                        eventCount.should.equal(2);
+                        expect(err).toBeUndefined();
+                        expect(service.get(sid1)).toBeUndefined();
+                        expect(service.get(sid2)).toBeUndefined();
+                        expect(service.getByUid(uid)).toBeUndefined();
+                        expect(eventCount).toBe(2);
                         done();
                     });
                 });
@@ -278,11 +279,11 @@ describe('session service test', () => {
             service.bind(sid1, uid, _err => {
                 service.bind(sid2, uid, _err => {
                     service.kickBySessionId(sid1, err => {
-                        should.not.exist(err);
-                        should.not.exist(service.get(sid1));
-                        should.exist(service.get(sid2));
-                        should.exist(service.getByUid(uid));
-                        eventCount.should.equal(1);
+                        expect(err).toBeUndefined();
+                        expect(service.get(sid1)).toBeUndefined();
+                        expect(service.get(sid2)).toBeDefined();
+                        expect(service.getByUid(uid)).toBeDefined();
+                        expect(eventCount).toBe(1);
                         done();
                     });
                 });
@@ -294,7 +295,7 @@ describe('session service test', () => {
             const uid = 'changchang';
 
             service.kick(uid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 done();
             });
         });
@@ -315,9 +316,9 @@ describe('session service test', () => {
             });
 
             service.kickBySessionId(sid, err => {
-                should.not.exist(err);
-                should.not.exist(service.get(sid));
-                eventCount.should.equal(1);
+                expect(err).toBeUndefined();
+                expect(service.get(sid)).toBeUndefined();
+                expect(eventCount).toBe(1);
                 done();
             });
         });
@@ -327,7 +328,7 @@ describe('session service test', () => {
             const sid = 1;
 
             service.kickBySessionId(sid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 done();
             });
         });
@@ -344,8 +345,8 @@ describe('session service test', () => {
             const outter_session = service.create(sid, fid, socket);
 
             service.forEachSession(session => {
-                should.exist(session);
-                outter_session.id.should.eql(session.id);
+                expect(session).toBeDefined();
+                expect(outter_session.id).toEqual(session.id);
                 done();
             });
         });
@@ -363,9 +364,9 @@ describe('session service test', () => {
             service.bind(sid, uid, null);
 
             service.forEachBindedSession(session => {
-                should.exist(session);
-                outter_session.id.should.eql(session.id);
-                outter_session.uid.should.eql(session.uid);
+                expect(session).toBeDefined();
+                expect(outter_session.id).toEqual(session.id);
+                expect(outter_session.uid).toEqual(session.uid);
                 done();
             });
         });
@@ -385,20 +386,20 @@ describe('frontend session test', () => {
             const session = service.create(sid, fid, socket);
             const fsession = session.toFrontendSession();
 
-            should.exist(fsession);
+            expect(fsession).toBeDefined();
 
             fsession.on('bind', euid => {
                 eventCount++;
-                uid.should.equal(euid);
+                expect(uid).toBe(euid);
             });
 
             fsession.bind(uid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 const sessions = service.getByUid(uid);
-                should.exist(sessions);
-                sessions.length.should.equal(1);
-                session.should.eql(sessions[0]);
-                eventCount.should.equal(1);
+                expect(sessions).toBeDefined();
+                expect(sessions.length).toBe(1);
+                expect(session).toEqual(sessions[0]);
+                expect(eventCount).toBe(1);
                 done();
             });
         });
@@ -417,9 +418,9 @@ describe('frontend session test', () => {
 
             fsession.bind(uid, null);
             fsession.unbind(uid, err => {
-                should.not.exist(err);
+                expect(err).toBeUndefined();
                 const sessions = service.getByUid(uid);
-                should.not.exist(sessions);
+                expect(sessions).toBeUndefined();
                 done();
             });
         });
@@ -439,8 +440,8 @@ describe('frontend session test', () => {
 
             fsession.set(key, value);
 
-            should.not.exist(session.get(key));
-            value.should.eql(fsession.get(key));
+            expect(session.get(key)).toBeUndefined();
+            expect(value).toEqual(fsession.get(key));
         });
     });
 
@@ -462,9 +463,9 @@ describe('frontend session test', () => {
             fsession.set(key2, value2);
 
             fsession.push(key, err => {
-                should.not.exist(err);
-                value.should.eql(session.get(key));
-                should.not.exist(session.get(key2));
+                expect(err).toBeUndefined();
+                expect(value).toEqual(session.get(key));
+                expect(session.get(key2)).toBeUndefined();
                 done();
             });
         });
@@ -486,9 +487,9 @@ describe('frontend session test', () => {
             fsession.set(key2, value2);
 
             fsession.pushAll(err => {
-                should.not.exist(err);
-                value.should.eql(session.get(key));
-                value2.should.eql(session.get(key2));
+                expect(err).toBeUndefined();
+                expect(value).toEqual(session.get(key));
+                expect(value2).toEqual(session.get(key2));
                 done();
             });
         });
@@ -505,8 +506,8 @@ describe('frontend session test', () => {
             const session = service.create(sid, fid, socket);
             const fsession = session.toFrontendSession();
             const esession = fsession.export();
-            esession.id.should.eql(fsession.id);
-            esession.frontendId.should.eql(fsession.frontendId);
+            expect(esession.id).toEqual(fsession.id);
+            expect(esession.frontendId).toEqual(fsession.frontendId);
             done();
         });
     });

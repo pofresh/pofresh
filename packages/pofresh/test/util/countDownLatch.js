@@ -1,5 +1,6 @@
-const CountDownLatch = require('../../lib/util/countDownLatch');
-const _should = require('should');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import CountDownLatch from '../../lib/util/countDownLatch.js';
 
 const _cbCreator = (() => {
     let count = 0;
@@ -24,7 +25,7 @@ describe('countdown latch test', () => {
             let n = 3,
                 doneCount = 0;
             const cdl = CountDownLatch.createCountDownLatch(n, () => {
-                doneCount.should.equal(n);
+                expect(doneCount).toBe(n);
                 done();
             });
 
@@ -39,19 +40,19 @@ describe('countdown latch test', () => {
                 CountDownLatch.createCountDownLatch(-1, () => {
                     // Mock callback for negative count test
                 });
-            }).should.throw();
+            }).toThrow();
 
             (() => {
                 CountDownLatch.createCountDownLatch(0, () => {
                     // Mock callback for zero count test
                 });
-            }).should.throw();
+            }).toThrow();
         });
 
         it('should throw exception if pass illegal cb to the create method', () => {
             (() => {
                 CountDownLatch.createCountDownLatch(1, null);
-            }).should.throw();
+            }).toThrow();
         });
 
         it('should throw exception if try to invoke done metho of a latch that has fired cb', () => {
@@ -66,13 +67,13 @@ describe('countdown latch test', () => {
 
             (() => {
                 cdl.done();
-            }).should.throw();
+            }).toThrow();
         });
 
         it('should invoke the callback if timeout', () => {
             const n = 3;
             const cdl = CountDownLatch.createCountDownLatch(n, { timeout: 3000 }, isTimeout => {
-                isTimeout.should.equal(true);
+                expect(isTimeout).toBe(true);
             });
 
             for (let i = 0; i < n - 1; i++) {

@@ -1,5 +1,6 @@
-const should = require('should');
-const RpcLogFilter = require('../../../lib/filters/rpc/rpcLog');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import RpcLogFilter from '../../../lib/filters/rpc/rpcLog.js';
 
 const mockData = {
     serverId: 'connector-server-1',
@@ -12,7 +13,7 @@ describe('#rpcLogFilter', () => {
         const rpcLogFilter = RpcLogFilter();
         rpcLogFilter.before(mockData.serverId, mockData.msg, mockData.opts, (_serverId, _msg, _opts) => {
             rpcLogFilter.after(mockData.serverId, mockData.msg, mockData.opts, () => {
-                should.exist(mockData.opts.__start_time__);
+                expect(mockData.opts.__start_time__).toBeDefined();
                 done();
             });
         });

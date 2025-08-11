@@ -1,6 +1,7 @@
-const should = require('should');
-const timeoutFilter = require('../../../lib/filters/handler/timeout');
-const FilterService = require('../../../lib/common/service/filterService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import timeoutFilter from '../../../lib/filters/handler/timeout.js';
+import FilterService from '../../../lib/common/service/filterService.js';
 const mockSession = {
     key: '123'
 };
@@ -13,9 +14,9 @@ describe('#serialFilter', () => {
         service.before(filter);
 
         service.beforeFilter({}, mockSession, () => {
-            should.exist(mockSession);
+            expect(mockSession).toBeDefined();
 
-            should.exist(mockSession.__timeout__);
+            expect(mockSession.__timeout__).toBeDefined();
             done();
         });
     });
@@ -27,16 +28,16 @@ describe('#serialFilter', () => {
         service.before(filter);
 
         service.beforeFilter(null, mockSession, () => {
-            should.exist(mockSession);
-            should.exist(mockSession.__timeout__);
+            expect(mockSession).toBeDefined();
+            expect(mockSession.__timeout__).toBeDefined();
             _session = mockSession;
         });
 
         service.after(filter);
 
         service.afterFilter(null, null, mockSession, null, () => {
-            should.exist(mockSession);
-            should.strictEqual(mockSession, _session);
+            expect(mockSession).toBeDefined();
+            expect(mockSession).toBe(_session);
         });
 
         setTimeout(done, WAIT_TIME);

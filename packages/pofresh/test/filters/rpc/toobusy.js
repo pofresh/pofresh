@@ -1,5 +1,5 @@
-const _should = require('should');
-const ToobusyFilter = require('../../../lib/filters/rpc/toobusy');
+import { describe, it } from 'vitest';
+import ToobusyFilter from '../../../lib/filters/rpc/toobusy.js';
 
 const mockData = {
     serverId: 'connector-server-1',

@@ -1,5 +1,6 @@
-const should = require('should');
-const FilterService = require('../../lib/common/service/filterService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import FilterService from '../../lib/common/service/filterService.js';
 
 const WAIT_TIME = 50;
 
@@ -47,11 +48,11 @@ describe('filter service test', () => {
             service.before(mockFilter1);
             service.before(mockFilter2);
             service.beforeFilter(null, session, () => {
-                should.exist(session);
-                session.beforeCount1.should.equal(1);
-                session.beforeCount2.should.equal(1);
-                session.afterCount1.should.equal(0);
-                session.afterCount2.should.equal(0);
+                expect(session).toBeDefined();
+                expect(session.beforeCount1).toBe(1);
+                expect(session.beforeCount2).toBe(1);
+                expect(session.afterCount1).toBe(0);
+                expect(session.afterCount2).toBe(0);
                 done();
             });
         });
@@ -62,11 +63,11 @@ describe('filter service test', () => {
             service.after(mockFilter1);
             service.after(mockFilter2);
             service.afterFilter(null, null, session, null, () => {
-                should.exist(session);
-                session.beforeCount1.should.equal(0);
-                session.beforeCount2.should.equal(0);
-                session.afterCount1.should.equal(1);
-                session.afterCount2.should.equal(1);
+                expect(session).toBeDefined();
+                expect(session.beforeCount1).toBe(0);
+                expect(session.beforeCount2).toBe(0);
+                expect(session.afterCount1).toBe(1);
+                expect(session.afterCount2).toBe(1);
                 done();
             });
         });
@@ -93,10 +94,10 @@ describe('filter service test', () => {
             });
 
             setTimeout(() => {
-                session.beforeCount.should.equal(1);
-                session.afterCount.should.equal(1);
-                beforeCount.should.equal(1);
-                afterCount.should.equal(1);
+                expect(session.beforeCount).toBe(1);
+                expect(session.afterCount).toBe(1);
+                expect(beforeCount).toBe(1);
+                expect(afterCount).toBe(1);
 
                 done();
             }, WAIT_TIME);
@@ -118,12 +119,12 @@ describe('filter service test', () => {
             });
 
             setTimeout(() => {
-                session.beforeCount1.should.equal(0);
-                session.beforeCount2.should.equal(0);
-                session.afterCount1.should.equal(0);
-                session.afterCount2.should.equal(0);
-                beforeCount.should.equal(0);
-                afterCount.should.equal(0);
+                expect(session.beforeCount1).toBe(0);
+                expect(session.beforeCount2).toBe(0);
+                expect(session.afterCount1).toBe(0);
+                expect(session.afterCount2).toBe(0);
+                expect(beforeCount).toBe(0);
+                expect(afterCount).toBe(0);
 
                 done();
             }, WAIT_TIME);
@@ -144,15 +145,15 @@ describe('filter service test', () => {
             service.before(respFilter);
             service.before(mockFilter2);
             service.beforeFilter(null, session, (err, resp) => {
-                should.exist(err);
-                err.should.equal(error);
-                should.exist(resp);
-                resp.should.equal(response);
+                expect(err).toBeDefined();
+                expect(err).toBe(error);
+                expect(resp).toBeDefined();
+                expect(resp).toBe(response);
 
-                session.beforeCount1.should.equal(1);
-                session.beforeCount2.should.equal(0);
-                session.afterCount1.should.equal(0);
-                session.afterCount2.should.equal(0);
+                expect(session.beforeCount1).toBe(1);
+                expect(session.beforeCount2).toBe(0);
+                expect(session.afterCount1).toBe(0);
+                expect(session.afterCount2).toBe(0);
 
                 done();
             });

@@ -1,5 +1,6 @@
-const should = require('should');
-const taskManager = require('../../lib/common/manager/taskManager');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import taskManager from '../../lib/common/manager/taskManager.js';
 
 // set timeout for test
 taskManager.timeout = 100;
@@ -14,14 +15,14 @@ describe('#taskManager', () => {
             task.done();
         };
         const onTimeout = () => {
-            should.fail('should not timeout.');
+            expect.fail('should not timeout.');
         };
         let taskCount = 0;
 
         taskManager.addTask(key, fn, onTimeout);
 
         setTimeout(() => {
-            taskCount.should.equal(1);
+            expect(taskCount).toBe(1);
             done();
         }, WAIT_TIME);
     });
@@ -40,8 +41,8 @@ describe('#taskManager', () => {
         taskManager.addTask(key, fn, onTimeout);
 
         setTimeout(() => {
-            taskCount.should.equal(1);
-            timeoutCount.should.equal(1);
+            expect(taskCount).toBe(1);
+            expect(timeoutCount).toBe(1);
             done();
         }, WAIT_TIME);
     });
@@ -63,8 +64,8 @@ describe('#taskManager', () => {
             taskManager.closeQueue(key, true);
 
             setTimeout(() => {
-                taskCount.should.equal(1);
-                timeoutCount.should.equal(0);
+                expect(taskCount).toBe(1);
+                expect(timeoutCount).toBe(0);
                 done();
             }, WAIT_TIME);
         });

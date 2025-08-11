@@ -1,5 +1,5 @@
 const DEFAULT_PREFIX = 'pofresh:CHANNEL';
-const utils = require('../../lib/util/utils');
+import utils from '../../lib/util/utils.js';
 
 const MockManager = function (app, opts) {
     this.app = app;
@@ -7,7 +7,7 @@ const MockManager = function (app, opts) {
     this.prefix = opts.prefix || DEFAULT_PREFIX;
 };
 
-module.exports = MockManager;
+export default MockManager;
 
 MockManager.prototype.start = function (cb) {
     this.usersMap = {};

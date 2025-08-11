@@ -1,6 +1,7 @@
-const should = require('should');
-const toobusyFilter = require('../../../lib/filters/handler/toobusy');
-const FilterService = require('../../../lib/common/service/filterService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import toobusyFilter from '../../../lib/filters/handler/toobusy.js';
+import FilterService from '../../../lib/common/service/filterService.js';
 const mockSession = {
     key: '123'
 };
@@ -12,8 +13,8 @@ describe('#toobusyFilter', () => {
         service.before(filter);
 
         service.beforeFilter(null, mockSession, err => {
-            should.not.exist(err);
-            should.exist(mockSession);
+            expect(err).toBeUndefined();
+            expect(mockSession).toBeDefined();
             done();
         });
     });
@@ -27,7 +28,7 @@ describe('#toobusyFilter', () => {
 
         function load() {
             service.beforeFilter(null, mockSession, (err, _resp) => {
-                should.exist(mockSession);
+                expect(mockSession).toBeDefined();
                 if (err) {
                     exit = true;
                 }

@@ -1,7 +1,8 @@
-const pathUtil = require('../../lib/util/pathUtil');
-const utils = require('../../lib/util/utils');
-const should = require('should');
-const fs = require('fs');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import pathUtil from '../../lib/util/pathUtil.js';
+import utils from '../../lib/util/utils.js';
+import fs from 'fs';
 
 const mockBase = `${process.cwd()}/test/mock-base`;
 
@@ -11,18 +12,18 @@ describe('path util test', () => {
             const role = 'frontend';
             const expectSuffix = '/common/remote/frontend';
             const p = pathUtil.getSysRemotePath(role);
-            should.exist(p);
-            fs.existsSync(p).should.be.true;
-            utils.endsWith(p, expectSuffix).should.be.true;
+            expect(p).toBeDefined();
+            expect(fs.existsSync(p)).toBe(true);
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
         });
 
         it('should return the system remote service path for backend server', () => {
             const role = 'backend';
             const expectSuffix = '/common/remote/backend';
             const p = pathUtil.getSysRemotePath(role);
-            should.exist(p);
-            fs.existsSync(p).should.be.true;
-            utils.endsWith(p, expectSuffix).should.be.true;
+            expect(p).toBeDefined();
+            expect(fs.existsSync(p)).toBe(true);
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
         });
     });
 
@@ -31,19 +32,19 @@ describe('path util test', () => {
             const serverType = 'connector';
             const expectSuffix = '/app/servers/connector/remote';
             const p = pathUtil.getUserRemotePath(mockBase, serverType);
-            should.exist(p);
-            fs.existsSync(p).should.be.true;
-            utils.endsWith(p, expectSuffix).should.be.true;
+            expect(p).toBeDefined();
+            expect(fs.existsSync(p)).toBe(true);
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
         });
 
         it('should return null if the directory not exist', () => {
             let serverType = 'area';
             let p = pathUtil.getUserRemotePath(mockBase, serverType);
-            should.not.exist(p);
+            expect(p).toBeUndefined();
 
             serverType = 'some-dir-not-exist';
             p = pathUtil.getUserRemotePath(mockBase, serverType);
-            should.not.exist(p);
+            expect(p).toBeUndefined();
         });
     });
 
@@ -52,10 +53,10 @@ describe('path util test', () => {
         const serverType = 'connector';
         const path = '/some/path/to/remote';
         const r = pathUtil.remotePathRecord(namespace, serverType, path);
-        should.exist(r);
-        namespace.should.equal(r.namespace);
-        serverType.should.equal(r.serverType);
-        path.should.equal(r.path);
+        expect(r).toBeDefined();
+        expect(namespace).toBe(r.namespace);
+        expect(serverType).toBe(r.serverType);
+        expect(path).toBe(r.path);
     });
 
     describe('#getHandlerPath', () => {
@@ -63,33 +64,33 @@ describe('path util test', () => {
             const serverType = 'connector';
             const expectSuffix = '/app/servers/connector/handler';
             const p = pathUtil.getHandlerPath(mockBase, serverType);
-            should.exist(p);
-            fs.existsSync(p).should.be.true;
-            utils.endsWith(p, expectSuffix).should.be.true;
+            expect(p).toBeDefined();
+            expect(fs.existsSync(p)).toBe(true);
+            expect(utils.endsWith(p, expectSuffix)).toBe(true);
         });
 
         it('should return null if the directory not exist', () => {
             let serverType = 'area';
             let p = pathUtil.getHandlerPath(mockBase, serverType);
-            should.not.exist(p);
+            expect(p).toBeUndefined();
 
             serverType = 'some-dir-not-exist';
             p = pathUtil.getHandlerPath(mockBase, serverType);
-            should.not.exist(p);
+            expect(p).toBeUndefined();
         });
     });
 
     describe('#getScriptPath', () => {
         const p = pathUtil.getScriptPath(mockBase);
         const expectSuffix = '/scripts';
-        should.exist(p);
-        utils.endsWith(p, expectSuffix).should.be.true;
+        expect(p).toBeDefined();
+        expect(utils.endsWith(p, expectSuffix)).toBe(true);
     });
 
     describe('#getLogPath', () => {
         const p = pathUtil.getLogPath(mockBase);
         const expectSuffix = '/logs';
-        should.exist(p);
-        utils.endsWith(p, expectSuffix).should.be.true;
+        expect(p).toBeDefined();
+        expect(utils.endsWith(p, expectSuffix)).toBe(true);
     });
 });

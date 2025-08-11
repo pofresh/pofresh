@@ -1,5 +1,6 @@
-const should = require('should');
-const ConnectionService = require('../../lib/common/service/connectionService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import ConnectionService from '../../lib/common/service/connectionService.js';
 
 const mockApp = {
     settings: {
@@ -19,81 +20,81 @@ describe('connection service test', () => {
     describe('#addLoginedUser', () => {
         it('should add logined user and could fetch it later', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
-            service.loginedCount.should.equal(0);
+            expect(service).toBeDefined();
+            expect(service.loginedCount).toBe(0);
 
             const uid = 'uid1';
             const info = { msg: 'some other message' };
             service.addLoginedUser(uid, info);
 
-            service.loginedCount.should.equal(1);
+            expect(service.loginedCount).toBe(1);
             const record = service.logined[uid];
-            should.exist(record);
-            record.should.eql(info);
+            expect(record).toBeDefined();
+            expect(record).toEqual(info);
         });
     });
 
     describe('#increaseConnectionCount', () => {
         it('should increate connection count and could fetch it later', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
-            service.connCount.should.equal(0);
+            expect(service).toBeDefined();
+            expect(service.connCount).toBe(0);
 
             service.increaseConnectionCount();
-            service.connCount.should.equal(1);
+            expect(service.connCount).toBe(1);
         });
     });
 
     describe('#removeLoginedUser', () => {
         it('should remove logined user info with the uid', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
-            service.loginedCount.should.equal(0);
+            expect(service).toBeDefined();
+            expect(service.loginedCount).toBe(0);
 
             const uid = 'uid1';
             const info = { msg: 'some other message' };
             service.addLoginedUser(uid, info);
 
-            service.loginedCount.should.equal(1);
+            expect(service.loginedCount).toBe(1);
             let record = service.logined[uid];
-            should.exist(record);
+            expect(record).toBeDefined();
 
             const uid2 = 'uid2';
             service.removeLoginedUser(uid2);
-            service.loginedCount.should.equal(1);
+            expect(service.loginedCount).toBe(1);
             record = service.logined[uid];
-            should.exist(record);
+            expect(record).toBeDefined();
 
             service.removeLoginedUser(uid);
-            service.loginedCount.should.equal(0);
+            expect(service.loginedCount).toBe(0);
             record = service.logined[uid];
-            should.not.exist(record);
+            expect(record).toBeUndefined();
         });
     });
 
     describe('#decreaseConnectionCount', () => {
         it('should decrease connection count only if uid is empty', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
+            expect(service).toBeDefined();
 
             service.increaseConnectionCount();
-            service.connCount.should.equal(1);
+            expect(service.connCount).toBe(1);
             service.decreaseConnectionCount();
-            service.connCount.should.equal(0);
+            expect(service.connCount).toBe(0);
         });
 
         it('should keep zero if connection count become zero', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
+            expect(service).toBeDefined();
 
-            service.connCount.should.equal(0);
+            expect(service.connCount).toBe(0);
             service.decreaseConnectionCount();
-            service.connCount.should.equal(0);
+            expect(service.connCount).toBe(0);
         });
 
         it('should remove the logined info if uid is specified', () => {
             const service = new ConnectionService(mockApp);
-            should.exist(service);
+            expect(service).toBeDefined();
 
             service.increaseConnectionCount();
 
@@ -101,13 +102,13 @@ describe('connection service test', () => {
             const info = { msg: 'some other message' };
             service.addLoginedUser(uid, info);
 
-            service.connCount.should.equal(1);
-            service.logined[uid].should.eql(info);
+            expect(service.connCount).toBe(1);
+            expect(service.logined[uid]).toEqual(info);
 
             service.decreaseConnectionCount(uid);
 
-            service.connCount.should.equal(0);
-            should.not.exist(service.logined[uid]);
+            expect(service.connCount).toBe(0);
+            expect(service.logined[uid]).toBeUndefined();
         });
     });
 
@@ -127,15 +128,15 @@ describe('connection service test', () => {
 
         const sinfo = service.getStatisticsInfo();
 
-        sinfo.should.have.property('serverId', 'connector-server-1');
-        sinfo.should.have.property('totalConnCount', 3);
-        sinfo.should.have.property('loginedCount', 2);
+        expect(sinfo).toHaveProperty('serverId', 'connector-server-1');
+        expect(sinfo).toHaveProperty('totalConnCount', 3);
+        expect(sinfo).toHaveProperty('loginedCount', 2);
 
         const infos = sinfo.loginedList;
-        should.exist(infos);
-        infos.length.should.equal(2);
-        infos.should.containEql(info1);
-        infos.should.containEql(info2);
+        expect(infos).toBeDefined();
+        expect(infos.length).toBe(2);
+        expect(infos).toContainEqual(info1);
+        expect(infos).toContainEqual(info2);
 
         done();
     });

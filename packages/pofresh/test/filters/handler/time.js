@@ -1,6 +1,7 @@
-const should = require('should');
-const serialFilter = require('../../../lib/filters/handler/time');
-const FilterService = require('../../../lib/common/service/filterService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import serialFilter from '../../../lib/filters/handler/time.js';
+import FilterService from '../../../lib/common/service/filterService.js';
 
 const mockSession = {
     key: '123'
@@ -14,8 +15,8 @@ describe('#serialFilter', () => {
         service.before(filter);
 
         service.beforeFilter(null, mockSession, () => {
-            should.exist(mockSession);
-            should.exist(mockSession.__startTime__);
+            expect(mockSession).toBeDefined();
+            expect(mockSession.__startTime__).toBeDefined();
             done();
         });
     });
@@ -27,16 +28,16 @@ describe('#serialFilter', () => {
         service.before(filter);
 
         service.beforeFilter(null, mockSession, () => {
-            should.exist(mockSession);
-            should.exist(mockSession.__startTime__);
+            expect(mockSession).toBeDefined();
+            expect(mockSession.__startTime__).toBeDefined();
             _session = mockSession;
         });
 
         service.after(filter);
 
         service.afterFilter(null, { route: 'hello' }, mockSession, null, () => {
-            should.exist(mockSession);
-            should.strictEqual(mockSession, _session);
+            expect(mockSession).toBeDefined();
+            expect(mockSession).toBe(_session);
         });
 
         setTimeout(done, WAIT_TIME);

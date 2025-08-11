@@ -1,5 +1,6 @@
-const should = require('should');
-const HandlerService = require('../../lib/common/service/handlerService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import HandlerService from '../../lib/common/service/handlerService.js';
 
 const mockApp = {
     serverType: 'connector',
@@ -32,7 +33,7 @@ describe('handler service test', () => {
                 testHandler: {
                     testMethod(msg, _session, next) {
                         invoke1Count++;
-                        msg.should.eql(mockMsg);
+                        expect(msg).toEqual(mockMsg);
                         next();
                     }
                 },
@@ -50,8 +51,8 @@ describe('handler service test', () => {
             service.handlerMap = { connector: mockHandlers };
 
             service.handle(mockRouteRecord, mockMsg, mockSession, () => {
-                invoke1Count.should.equal(1);
-                invoke2Count.should.equal(0);
+                expect(invoke1Count).toBe(1);
+                expect(invoke2Count).toBe(0);
                 done();
             });
         });
@@ -63,7 +64,7 @@ describe('handler service test', () => {
             service.handlerMap = { connector: mockHandlers };
 
             service.handle(mockRouteRecord, mockMsg, mockSession, err => {
-                should.exist(err);
+                expect(err).toBeDefined();
                 done();
             });
         });

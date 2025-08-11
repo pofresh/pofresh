@@ -24,6 +24,7 @@
         "pofresh-logger": "workspace:*"
     },
     "devDependencies": {
-        "flow": ">=0.0.1"
+        "flow": ">=0.0.1",
+        "v8-profiler-next": "^1.8.12"
     }
 }

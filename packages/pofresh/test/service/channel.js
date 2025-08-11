@@ -1,6 +1,7 @@
-const should = require('should');
-const pofresh = require('../../');
-const ChannelService = require('../../lib/common/service/channelService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import pofresh from '../../index.js';
+import ChannelService from '../../lib/common/service/channelService.js';
 
 const mockBase = `${process.cwd()}/test`;
 const channelName = 'test_channel';
@@ -11,37 +12,37 @@ describe('channel test', () => {
         it('should add a member into channel and could fetch it later', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             const uid = 'uid1',
                 sid = 'sid1';
-            channel.add(uid, sid).should.be.true;
+            expect(channel.add(uid, sid)).toBe(true);
 
             const member = channel.getMember(uid);
-            should.exist(member);
-            uid.should.equal(member.uid);
-            sid.should.equal(member.sid);
+            expect(member).toBeDefined();
+            expect(uid).toBe(member.uid);
+            expect(sid).toBe(member.sid);
         });
 
         it('should fail if the sid not specified', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             const uid = 'uid1';
-            channel.add(uid, null).should.be.false;
+            expect(channel.add(uid, null)).toBe(false);
         });
 
         it('should fail after the channel has been destroied', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             channel.destroy();
 
             const uid = 'uid1',
                 sid = 'sid1';
-            channel.add(uid, sid).should.be.false;
+            expect(channel.add(uid, sid)).toBe(false);
         });
     });
 
@@ -49,31 +50,31 @@ describe('channel test', () => {
         it('should remove the member from channel when leave', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             const uid = 'uid1',
                 sid = 'sid1';
-            channel.add(uid, sid).should.be.true;
+            expect(channel.add(uid, sid)).toBe(true);
 
             let member = channel.getMember(uid);
-            should.exist(member);
+            expect(member).toBeDefined();
 
             channel.leave(uid, sid);
             member = channel.getMember(uid);
-            should.not.exist(member);
+            expect(member).toBeUndefined();
         });
 
         it('should fail if uid or sid not specified', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             const uid = 'uid1',
                 sid = 'sid1';
-            channel.add(uid, sid).should.be.true;
+            expect(channel.add(uid, sid)).toBe(true);
 
-            channel.leave(uid, null).should.be.false;
-            channel.leave(null, sid).should.be.false;
+            expect(channel.leave(uid, null)).toBe(false);
+            expect(channel.leave(null, sid)).toBe(false);
         });
     });
 
@@ -95,11 +96,11 @@ describe('channel test', () => {
             }
 
             const members = channel.getMembers();
-            should.exist(members);
-            members.length.should.equal(uinfos.length);
+            expect(members).toBeDefined();
+            expect(members.length).toBe(uinfos.length);
             for (i = 0, l = uinfos.length; i < l; i++) {
                 item = uinfos[i];
-                members.should.containEql(item.uid);
+                expect(members).toContainEqual(item.uid);
             }
         });
     });
@@ -133,11 +134,11 @@ describe('channel test', () => {
                     const _route = args[0];
                     const msg = args[1];
                     const uids = args[2];
-                    mockMsg.should.eql(msg);
+                    expect(mockMsg).toEqual(msg);
 
                     for (const uid of uids) {
                         const r2 = uidMap[uid];
-                        r2.sid.should.equal(sid);
+                        expect(r2.sid).toBe(sid);
                     }
 
                     cb();
@@ -153,7 +154,7 @@ describe('channel test', () => {
                 }
 
                 channel.pushMessage(mockMsg, () => {
-                    invokeCount.should.equal(2);
+                    expect(invokeCount).toBe(2);
                     resolve();
                 });
             });
@@ -161,13 +162,13 @@ describe('channel test', () => {
         it('should fail if channel has destroied', () => {
             const channelService = new ChannelService(mockApp);
             const channel = channelService.createChannel(channelName);
-            should.exist(channel);
+            expect(channel).toBeDefined();
 
             channel.destroy();
 
             channel.pushMessage({}, err => {
-                should.exist(err);
-                err.message.should.equal('channel is not running now');
+                expect(err).toBeDefined();
+                expect(err.message).toBe('channel is not running now');
             });
         });
     });

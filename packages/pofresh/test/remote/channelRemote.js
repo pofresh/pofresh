@@ -1,8 +1,9 @@
-const should = require('should');
-const pofresh = require('../../');
-const remote = require('../../lib/common/remote/frontend/channelRemote');
-const SessionService = require('../../lib/common/service/sessionService');
-const ChannelService = require('../../lib/common/service/channelService');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import pofresh from '../../index.js';
+import remote from '../../lib/common/remote/frontend/channelRemote.js';
+import SessionService from '../../lib/common/service/sessionService.js';
+import ChannelService from '../../lib/common/service/channelService.js';
 
 const mockBase = `${process.cwd()}/test`;
 
@@ -22,7 +23,7 @@ describe('channel remote test', () => {
 
                 const sessionService = new SessionService();
                 sessionService.sendMessageByUid = (uid, msg) => {
-                    mockMsg.should.eql(msg);
+                    expect(mockMsg).toEqual(msg);
                     invokeCount++;
                     invokeUids.push(uid);
                 };
@@ -44,7 +45,7 @@ describe('channel remote test', () => {
                 app.components.__connector__.connector = {};
                 app.components.__pushScheduler__ = {
                     schedule(_reqId, _route, msg, recvs, _opts, cb) {
-                        mockMsg.should.eql(msg);
+                        expect(mockMsg).toEqual(msg);
                         invokeCount += recvs.length;
                         let sess;
                         for (const recv of recvs) {
@@ -59,10 +60,10 @@ describe('channel remote test', () => {
                 app.set('sessionService', sessionService);
                 const channelRemote = remote(app);
                 channelRemote.pushMessage(mockRoute, mockMsg, uids, { isPush: true }, () => {
-                    invokeCount.should.equal(uids.length);
-                    invokeUids.length.should.equal(uids.length);
+                    expect(invokeCount).toBe(uids.length);
+                    expect(invokeUids.length).toBe(uids.length);
                     for (const uid of uids) {
-                        invokeUids.should.containEql(uid);
+                        expect(invokeUids).toContainEqual(uid);
                     }
                     resolve();
                 });
@@ -101,9 +102,9 @@ describe('channel remote test', () => {
                 app.components.__pushScheduler__ = {
                     schedule(_reqId, _route, msg, _recvs, opts, cb) {
                         invokeCount++;
-                        mockMsg.should.eql(msg);
-                        should.exist(opts);
-                        should.equal(opts.type, 'broadcast');
+                        expect(mockMsg).toEqual(msg);
+                        expect(opts).toBeDefined();
+                        expect(opts.type).toBe('broadcast');
                         cb();
                     }
                 };
@@ -111,7 +112,7 @@ describe('channel remote test', () => {
                 app.set('channelService', channelService);
                 const channelRemote = remote(app);
                 channelRemote.broadcast(mockRoute, mockMsg, { type: 'broadcast' }, () => {
-                    invokeCount.should.equal(1);
+                    expect(invokeCount).toBe(1);
                     resolve();
                 });
             });
@@ -150,10 +151,10 @@ describe('channel remote test', () => {
                 app.components.__pushScheduler__ = {
                     schedule(_reqId, _route, msg, _recvs, opts, cb) {
                         invokeCount++;
-                        mockMsg.should.eql(msg);
-                        should.exist(opts);
-                        should.equal(opts.type, 'broadcast');
-                        true.should.equal(opts.userOptions.binded);
+                        expect(mockMsg).toEqual(msg);
+                        expect(opts).toBeDefined();
+                        expect(opts.type).toBe('broadcast');
+                        expect(true).toBe(opts.userOptions.binded);
                         cb();
                     }
                 };
@@ -165,7 +166,7 @@ describe('channel remote test', () => {
                     mockMsg,
                     { type: 'broadcast', userOptions: { binded: true } },
                     () => {
-                        invokeCount.should.equal(1);
+                        expect(invokeCount).toBe(1);
                         resolve();
                     }
                 );

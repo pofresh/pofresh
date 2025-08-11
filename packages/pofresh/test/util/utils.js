@@ -1,4 +1,6 @@
-const utils = require('../../lib/util/utils');
+import { describe, it } from 'vitest';
+import { expect } from 'vitest';
+import utils from '../../lib/util/utils.js';
 
 describe('utils test', () => {
     describe('#invokeCallback', () => {
@@ -7,8 +9,8 @@ describe('utils test', () => {
                 p2 = 'str';
 
             const func = (arg1, arg2) => {
-                p1.should.equal(arg1);
-                p2.should.equal(arg2);
+                expect(p1).toBe(arg1);
+                expect(p2).toBe(arg2);
             };
 
             utils.invokeCallback(func, p1, p2);
@@ -19,7 +21,7 @@ describe('utils test', () => {
                 p2 = 'str';
             (() => {
                 utils.invokeCallback(null, p1, p2);
-            }).should.not.throw();
+            }).not.toThrow();
         });
     });
 
@@ -33,7 +35,7 @@ describe('utils test', () => {
                 }
             };
 
-            utils.size(obj).should.equal(2);
+            expect(utils.size(obj)).toBe(2);
         });
     });
 
@@ -42,21 +44,21 @@ describe('utils test', () => {
             const src = 'prefix with a string';
             const prefix = 'prefix';
 
-            utils.startsWith(src, prefix).should.be.true;
+            expect(utils.startsWith(src, prefix)).toBe(true);
         });
 
         it('should return false if the string not start with the prefix', () => {
             const src = 'prefix with a string';
             let prefix = 'prefix222';
 
-            utils.startsWith(src, prefix).should.be.false;
+            expect(utils.startsWith(src, prefix)).toBe(false);
 
             prefix = 'with';
-            utils.startsWith(src, prefix).should.be.false;
+            expect(utils.startsWith(src, prefix)).toBe(false);
         });
 
         it('should return false if the src not a string', () => {
-            utils.startsWith(1, 'str').should.be.false;
+            expect(utils.startsWith(1, 'str')).toBe(false);
         });
     });
 
@@ -65,45 +67,45 @@ describe('utils test', () => {
             const src = 'string with a suffix';
             const suffix = 'suffix';
 
-            utils.endsWith(src, suffix).should.be.true;
+            expect(utils.endsWith(src, suffix)).toBe(true);
         });
 
         it('should return false if the string not end with the prefix', () => {
             const src = 'string with a suffix';
             let suffix = 'suffix222';
 
-            utils.endsWith(src, suffix).should.be.false;
+            expect(utils.endsWith(src, suffix)).toBe(false);
 
             suffix = 'with';
-            utils.endsWith(src, suffix).should.be.false;
+            expect(utils.endsWith(src, suffix)).toBe(false);
         });
 
         it('should return false if the src not a string', () => {
-            utils.endsWith(1, 'str').should.be.false;
+            expect(utils.endsWith(1, 'str')).toBe(false);
         });
     });
 
     describe('#hasChineseChar', () => {
         it('should return false if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
-            utils.hasChineseChar(src).should.be.false;
+            expect(utils.hasChineseChar(src)).toBe(false);
         });
 
         it('should return true if the string has Chinese characters', () => {
             const src = 'string with Chinese characters 你好';
-            utils.hasChineseChar(src).should.be.true;
+            expect(utils.hasChineseChar(src)).toBe(true);
         });
     });
 
     describe('#unicodeToUtf8', () => {
         it('should return the origin string if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
-            utils.unicodeToUtf8(src).should.equal(src);
+            expect(utils.unicodeToUtf8(src)).toBe(src);
         });
 
         it('should not return the origin string if the string has Chinese characters', () => {
             const src = 'string with Chinese characters 你好';
-            utils.unicodeToUtf8(src).should.not.equal(src);
+            expect(utils.unicodeToUtf8(src)).not.toBe(src);
         });
     });
 
@@ -112,9 +114,9 @@ describe('utils test', () => {
             const ip = '127.0.0.1';
             const host = 'localhost';
             const other = '192.168.1.1';
-            utils.isLocal(ip).should.be.true;
-            utils.isLocal(host).should.be.true;
-            utils.isLocal(other).should.be.false;
+            expect(utils.isLocal(ip)).toBe(true);
+            expect(utils.isLocal(host)).toBe(true);
+            expect(utils.isLocal(other)).toBe(false);
         });
     });
 
@@ -130,7 +132,7 @@ describe('utils test', () => {
             const serverMap = {};
             const app = { clusterSeq: {} };
             utils.loadCluster(app, clusterServer, serverMap);
-            utils.size(serverMap).should.equal(2);
+            expect(utils.size(serverMap)).toBe(2);
         });
     });
 
@@ -139,7 +141,7 @@ describe('utils test', () => {
             const array1 = [1, 2, 3, 4, 5];
             const array2 = [1, 2, 3];
             const array = utils.arrayDiff(array1, array2);
-            array.should.eql([4, 5]);
+            expect(array).toEqual([4, 5]);
         });
     });
 
@@ -152,7 +154,7 @@ describe('utils test', () => {
                 aaa: 555
             };
             const result = utils.extends(opts, add);
-            result.should.eql({
+            expect(result).toEqual({
                 test: 123,
                 aaa: 555
             });
@@ -162,10 +164,10 @@ describe('utils test', () => {
     describe('#ping', () => {
         it('should ping server', () => {
             utils.ping('127.0.0.1', flag => {
-                flag.should.be.true;
+                expect(flag).toBe(true);
             });
             utils.ping('111.111.111.111', flag => {
-                flag.should.be.false;
+                expect(flag).toBe(false);
             });
         });
     });
