@@ -23,7 +23,6 @@ module.exports = (app, opts) => {
     opts = opts || {};
     // proxy default config
     // just for compatibility here.
-    opts.bufferMsg = opts.bufferMsg;
     opts.interval = opts.interval || 30;
     opts.router = genRouteFun();
     opts.context = app;

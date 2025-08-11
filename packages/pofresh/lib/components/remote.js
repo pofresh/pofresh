@@ -17,7 +17,6 @@ const RemoteServer = require('pofresh-rpc').server;
 module.exports = (app, opts) => {
     opts = opts || {};
     //just for compatibility here.
-    opts.bufferMsg = opts.bufferMsg;
     opts.interval = opts.interval || 30;
     if (app.enabled('rpcDebugLog')) {
         opts.rpcDebugLog = true;

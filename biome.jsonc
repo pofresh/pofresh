@@ -17,6 +17,7 @@
     "enabled": true,
     "rules": {
       "style": {
+        "noParameterAssign": "off",
         "useNodejsImportProtocol": "off",
         "useFilenamingConvention": {
           "level": "error",
@@ -26,6 +27,12 @@
             "strictCase": false
           }
         }
+      },
+      "suspicious": {
+        "useGuardForIn": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
       }
     },
     "domains": {

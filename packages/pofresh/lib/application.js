@@ -179,22 +179,22 @@ Application.require = ph => require(path.join(Application.getBase(), ph));
 /**
  * Configure logger with {$base}/config/log4js.json
  *
- * @param {Object} logger pofresh-logger instance without configuration
+ * @param {Object} jsLogger pofresh-logger instance without configuration
  *
  * @memberOf Application
  */
-Application.configureLogger = function (logger) {
+Application.configureLogger = function (jsLogger) {
     if (process.env.pofresh_LOGGER !== 'off') {
         const base = this.getBase();
         const env = this.get(Constants.RESERVED.ENV);
         const originPath = path.join(base, Constants.FILEPATH.LOG);
         const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
         if (fs.existsSync(originPath)) {
-            logger.configure(originPath, { serverId: this.serverId, base });
+            jsLogger.configure(originPath, { serverId: this.serverId, base });
         } else if (fs.existsSync(presentPath)) {
-            logger.configure(presentPath, { serverId: this.serverId, base });
+            jsLogger.configure(presentPath, { serverId: this.serverId, base });
         } else {
-            logger.error('logger file path configuration is error.');
+            jsLogger.error('logger file path configuration is error.');
         }
     }
 };
@@ -550,14 +550,11 @@ Application.stop = function (force) {
  *    // executed for development env and connector server type
  *  });
  *
- * @param {String} env application environment
- * @param {Function} fn callback function
- * @param {String} type server type
  * @return {Application} for chaining
  * @memberOf Application
+ * @param args
  */
-Application.configure = function (_env, _type, _fn) {
-    const args = [].slice.call(arguments);
+Application.configure = function (...args) {
     const callback = args.pop();
     let currentEnv = Constants.RESERVED.ALL;
     let currentType = Constants.RESERVED.ALL;
@@ -623,7 +620,7 @@ Application.registerAdmin = function (moduleId, module, opts) {
  * @param  {[type]} opts    (optional) construct parameters for the factory function
  * @memberOf Application
  */
-Application.use = function (plugin, opts= {}) {
+Application.use = function (plugin, opts = {}) {
     if (!plugin.components) {
         logger.error('invalid components, no components exist');
         return;
