@@ -8,7 +8,7 @@ const mockData = {
 };
 
 describe('#toobusyFilter', () => {
-    it('should no callback for toobusy', done => {
+    it('should no callback for toobusy', async () => {
         const toobusyFilter = ToobusyFilter(10, 100);
         function load() {
             let callbackInvoked = true;
@@ -19,7 +19,7 @@ describe('#toobusyFilter', () => {
             });
 
             if (!callbackInvoked) {
-                return done();
+                return;
             }
             const start = new Date();
             while (Date.now() - start < 250) {
@@ -31,5 +31,5 @@ describe('#toobusyFilter', () => {
         }
 
         load();
-    }).timeout(5000);
+    }, 5000);
 });

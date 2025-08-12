@@ -85,6 +85,8 @@ describe('application test', () => {
                 };
 
                 app.init({ base: mockBase });
+                app.set('env', 'development');
+                app.set('serverType', 'master');
                 app.load(mockComponent);
 
                 await new Promise((resolve, reject) => {

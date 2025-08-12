@@ -136,7 +136,5 @@ describe('connection service test', () => {
         expect(infos.length).toBe(2);
         expect(infos).toContainEqual(info1);
         expect(infos).toContainEqual(info2);
-
-        done();
     });
 });

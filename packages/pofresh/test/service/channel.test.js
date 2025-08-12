@@ -154,8 +154,8 @@ describe('channel test', () => {
 
                 channel.pushMessage(mockMsg, () => {
                     expect(invokeCount).toBe(2);
-                    resolve();
                 });
+                resolve();
             });
         });
         it('should fail if channel has destroied', () => {

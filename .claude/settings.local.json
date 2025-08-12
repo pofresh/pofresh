@@ -10,7 +10,10 @@
       "Bash(pnpm:*)",
       "Bash(npm:*)",
       "Bash(npx @biomejs/biome check:*)",
-      "Bash(npx @biomejs/biome format:*)"
+      "Bash(npx @biomejs/biome format:*)",
+      "Bash(node:*)",
+      "Bash(find:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": []
   }

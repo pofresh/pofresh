@@ -7,7 +7,7 @@ const mockSession = {
 };
 
 describe('#toobusyFilter', () => {
-    it('should do before filter ok', done => {
+    it('should do before filter ok', async () => {
         const service = new FilterService();
         const filter = toobusyFilter();
         service.before(filter);
@@ -15,11 +15,10 @@ describe('#toobusyFilter', () => {
         service.beforeFilter(null, mockSession, err => {
             expect(err).toBeUndefined();
             expect(mockSession).toBeDefined();
-            done();
         });
     });
 
-    it('should do before filter error because of too busy', done => {
+    it('should do before filter error because of too busy', async () => {
         const service = new FilterService();
         const filter = toobusyFilter(10, 100);
         service.before(filter);
@@ -35,11 +34,11 @@ describe('#toobusyFilter', () => {
             });
 
             if (exit) {
-                return done();
+                return;
             }
             const start = new Date();
             while (Date.now() - start < 250) {
-                for (let i = 0; i < 1e5; ) {
+                for (let i = 0; i < 1e5;) {
                     i++;
                 }
             }
@@ -47,5 +46,5 @@ describe('#toobusyFilter', () => {
         }
 
         load();
-    }).timeout(5000);
+    }, 5000);
 });

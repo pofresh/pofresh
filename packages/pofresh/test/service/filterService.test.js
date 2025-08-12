@@ -41,33 +41,39 @@ const MockSession = function () {
 
 describe('filter service test', () => {
     describe('#filter', () => {
-        it('should register before filter by calling before method and fire filter chain by calling beforeFilter', done => {
+        it('should register before filter by calling before method and fire filter chain by calling beforeFilter', async () => {
             const session = new MockSession();
             const service = new FilterService();
             service.before(mockFilter1);
             service.before(mockFilter2);
-            service.beforeFilter(null, session, () => {
-                expect(session).toBeDefined();
-                expect(session.beforeCount1).toBe(1);
-                expect(session.beforeCount2).toBe(1);
-                expect(session.afterCount1).toBe(0);
-                expect(session.afterCount2).toBe(0);
-                done();
+            
+            await new Promise(resolve => {
+                service.beforeFilter(null, session, () => {
+                    expect(session).toBeDefined();
+                    expect(session.beforeCount1).toBe(1);
+                    expect(session.beforeCount2).toBe(1);
+                    expect(session.afterCount1).toBe(0);
+                    expect(session.afterCount2).toBe(0);
+                    resolve();
+                });
             });
         });
 
-        it('should register after filter by calling after method and fire filter chain by calling afterFilter', done => {
+        it('should register after filter by calling after method and fire filter chain by calling afterFilter', async () => {
             const session = new MockSession();
             const service = new FilterService();
             service.after(mockFilter1);
             service.after(mockFilter2);
-            service.afterFilter(null, null, session, null, () => {
-                expect(session).toBeDefined();
-                expect(session.beforeCount1).toBe(0);
-                expect(session.beforeCount2).toBe(0);
-                expect(session.afterCount1).toBe(1);
-                expect(session.afterCount2).toBe(1);
-                done();
+            
+            await new Promise(resolve => {
+                service.afterFilter(null, null, session, null, () => {
+                    expect(session).toBeDefined();
+                    expect(session.beforeCount1).toBe(0);
+                    expect(session.beforeCount2).toBe(0);
+                    expect(session.afterCount1).toBe(1);
+                    expect(session.afterCount2).toBe(1);
+                    resolve();
+                });
             });
         });
 
@@ -129,7 +135,7 @@ describe('filter service test', () => {
             }, WAIT_TIME);
         });
 
-        it('should pass the err and resp parameters to callback and ignore the filters behind if them specified in before filter', done => {
+        it('should pass the err and resp parameters to callback and ignore the filters behind if them specified in before filter', async () => {
             const session = new MockSession();
             const service = new FilterService();
             const error = 'some error message';
@@ -143,18 +149,21 @@ describe('filter service test', () => {
             service.before(mockFilter1);
             service.before(respFilter);
             service.before(mockFilter2);
-            service.beforeFilter(null, session, (err, resp) => {
-                expect(err).toBeDefined();
-                expect(err).toBe(error);
-                expect(resp).toBeDefined();
-                expect(resp).toBe(response);
+            
+            await new Promise(resolve => {
+                service.beforeFilter(null, session, (err, resp) => {
+                    expect(err).toBeDefined();
+                    expect(err).toBe(error);
+                    expect(resp).toBeDefined();
+                    expect(resp).toBe(response);
 
-                expect(session.beforeCount1).toBe(1);
-                expect(session.beforeCount2).toBe(0);
-                expect(session.afterCount1).toBe(0);
-                expect(session.afterCount2).toBe(0);
+                    expect(session.beforeCount1).toBe(1);
+                    expect(session.beforeCount2).toBe(0);
+                    expect(session.afterCount1).toBe(0);
+                    expect(session.afterCount2).toBe(0);
 
-                done();
+                    resolve();
+                });
             });
         });
     });

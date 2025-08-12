@@ -1,4 +1,4 @@
-import { after, before, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import consoleModule from '../../lib/modules/console.js';
 
 describe('console module test', () => {
@@ -27,7 +27,7 @@ describe('console module test', () => {
                     }
                 }
             };
-            const module = new consoleModule(opts);
+            const module = consoleModule(opts);
             const agent1 = {
                 type: 'area'
             };
@@ -64,12 +64,12 @@ describe('console module test', () => {
         let _setTimeout;
         let _exitCount = 0;
 
-        before(() => {
+        beforeAll(() => {
             _exit = process.exit;
             _setTimeout = setTimeout;
         });
 
-        after(() => {
+        afterAll(() => {
             process.exit = _exit;
             setTimeout = _setTimeout;
         });
@@ -106,7 +106,7 @@ describe('console module test', () => {
                 }
             }
         };
-        const module = new consoleModule(opts);
+        const module = consoleModule(opts);
         it('should execute kill command', () => {
             return new Promise(resolve => {
                 const msg = { signal: 'kill' };
@@ -133,7 +133,7 @@ describe('console module test', () => {
                     }
                 };
                 module.clientHandler(agent1, msg, (err, result) => {
-                    expect(err).toBeUndefined();
+                    expect(err).toBeNull();
                     expect(result.code).toBeDefined();
                 });
 
@@ -149,13 +149,13 @@ describe('console module test', () => {
                     }
                 };
                 module.clientHandler(agent2, msg, (err, result) => {
-                    expect(err).toBeUndefined();
+                    expect(err).toBeNull();
                     expect(result.code).toBeDefined();
                     expect(result.code).toEqual('remained');
                     resolve();
                 });
             });
-        }).timeout(5000);
+        });
 
         it('should execute stop command', () => {
             return new Promise(resolve => {
@@ -178,7 +178,7 @@ describe('console module test', () => {
                     resolve();
                 });
             });
-        }).timeout(5000);
+        });
 
         it('should execute list command', () => {
             const msg = { signal: 'list' };
@@ -209,7 +209,7 @@ describe('console module test', () => {
             };
             const agent = {};
             module.clientHandler(agent, msg1, (err, result) => {
-                expect(err).toBeUndefined();
+                expect(err).toBeNull();
                 expect(result.length).toEqual(0);
             });
             module.clientHandler(agent, msg2, (_err, result) => {

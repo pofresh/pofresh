@@ -199,7 +199,7 @@ describe('channel manager test', () => {
 
             channelService.pushMessageByUids(mockMsg, mockUids, (err, fails) => {
                 expect(invokeCount).toBe(2);
-                expect(err).toBeUndefined();
+                expect(err).toBeNull();
                 expect(fails).toBeDefined();
                 expect(fails.length).toBe(2);
                 expect(fails).toContainEqual(uid1);
