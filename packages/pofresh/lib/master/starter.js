@@ -34,8 +34,8 @@ starter.runServers = function (app) {
                 this.run(app, server);
             } else {
                 servers = app.get(Constants.RESERVED.SERVERS)[condition];
-                for (let i = 0; i < servers.length; i++) {
-                    this.run(app, servers[i]);
+                for (const ser of servers) {
+                    this.run(app, ser);
                 }
             }
     }
@@ -49,7 +49,7 @@ starter.runServers = function (app) {
  * @return {Void}
  */
 starter.run = (app, server, cb) => {
-    const env = app.get(Constants.RESERVED.ENV);
+    const _appEnv = app.get(Constants.RESERVED.ENV);
     let cmd, key;
     if (utils.isLocal(server.host)) {
         let options = [];

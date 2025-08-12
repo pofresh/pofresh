@@ -40,7 +40,7 @@ class Monitor {
                 utils.invokeCallback(cb, err);
                 return;
             }
-            moduleUtil.startModules(this.modules, err => {
+            moduleUtil.startModules(this.modules, _startModulesErr => {
                 utils.invokeCallback(cb, err);
             });
         });

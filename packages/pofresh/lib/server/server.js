@@ -88,8 +88,8 @@ class Server {
         }
         const dispatch = (err, resp, opts) => {
             if (err) {
-                handleError(true, this, err, msg, session, resp, opts, (err, resp, opts) => {
-                    response(true, this, err, msg, session, resp, opts, cb);
+                handleError(true, this, err, msg, session, resp, opts, (_err, resp, opts) => {
+                    response(true, this, _err, msg, session, resp, opts, cb);
                 });
                 return;
             }

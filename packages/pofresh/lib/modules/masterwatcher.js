@@ -39,21 +39,21 @@ class Module {
 
 // ----------------- bind methods -------------------------
 
-function onServerAdd(module, record) {
-    logger.debug('masterWatcher receive add server event, with server: %j', record);
-    if (!record || record.type === 'client' || !record.serverType) {
+function onServerAdd(module, serverRecord) {
+    logger.debug('masterWatcher receive add server event, with server: %j', serverRecord);
+    if (!serverRecord || serverRecord.type === 'client' || !serverRecord.serverType) {
         return;
     }
-    module.watchdog.addServer(record);
+    module.watchdog.addServer(serverRecord);
 }
 
-function onServerReconnect(module, record) {
-    logger.debug('masterWatcher receive reconnect server event, with server: %j', record);
-    if (!record || record.type === 'client' || !record.serverType) {
-        logger.warn('onServerReconnect receive wrong message: %j', record);
+function onServerReconnect(module, serverRecord) {
+    logger.debug('masterWatcher receive reconnect server event, with server: %j', serverRecord);
+    if (!serverRecord || serverRecord.type === 'client' || !serverRecord.serverType) {
+        logger.warn('onServerReconnect receive wrong message: %j', serverRecord);
         return;
     }
-    module.watchdog.reconnectServer(record);
+    module.watchdog.reconnectServer(serverRecord);
 }
 
 function onServerLeave(module, id, type) {
@@ -94,7 +94,7 @@ function query(module, _agent, _msg, cb) {
     utils.invokeCallback(cb, null, module.watchdog.query());
 }
 
-function record(module, _agent, msg, cb) {
+function masterRecord(module, _agent, msg, cb) {
     if (!msg) {
         utils.invokeCallback(cb, new Error('masterWatcher record empty message.'));
         return;
@@ -106,5 +106,5 @@ const masterMethods = {
     subscribe,
     unsubscribe,
     query,
-    record
+    record: masterRecord
 };

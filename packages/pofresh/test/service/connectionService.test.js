@@ -111,7 +111,7 @@ describe('connection service test', () => {
         });
     });
 
-    it('should getStatisticsInfo', _done => {
+    it('should getStatisticsInfo', () => {
         const service = new ConnectionService(mockApp);
         const uid1 = 'uid1',
             uid2 = 'uid2';

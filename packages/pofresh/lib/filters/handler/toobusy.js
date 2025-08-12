@@ -14,7 +14,9 @@ class Filter {
     constructor(maxLag, interval) {
         try {
             toobusy = require('toobusy-js');
-        } catch (_e) {}
+        } catch (_e) {
+            // Ignore module not found
+        }
         if (toobusy) {
             toobusy.maxLag(maxLag);
             toobusy.interval(interval);

@@ -40,7 +40,9 @@ class Connector extends EventEmitter {
         const sio = require('socket.io')(httpServer, opts);
 
         const port = this.port;
-        httpServer.listen(port, () => {});
+        httpServer.listen(port, () => {
+            // Server started
+        });
         sio.set('resource', '/socket.io');
         sio.set('transports', this.opts.transports);
         sio.set('heartbeat timeout', this.heartbeatTimeout);

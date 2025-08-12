@@ -30,7 +30,7 @@ class Server {
             if (err) {
                 process.exit(0);
             }
-            moduleUtil.startModules(this.modules, err => {
+            moduleUtil.startModules(this.modules, _startModulesErr => {
                 if (err) {
                     utils.invokeCallback(cb, err);
                     return;
@@ -80,7 +80,7 @@ class Server {
                     server[Constants.RESERVED.RESTART_FORCE] === 'true') &&
                 stopFlags.indexOf(id) < 0
             ) {
-                const setTimer = time => {
+                const setTimer = setTimerTime => {
                     pingTimer = setTimeout(() => {
                         utils.ping(server.host, flag => {
                             if (flag) {
@@ -88,11 +88,11 @@ class Server {
                             } else {
                                 count++;
                                 if (count > 3) {
-                                    time = Constants.TIME.TIME_WAIT_MAX_PING;
+                                    setTimerTime = Constants.TIME.TIME_WAIT_MAX_PING;
                                 } else {
-                                    time = Constants.TIME.TIME_WAIT_PING * count;
+                                    setTimerTime = Constants.TIME.TIME_WAIT_PING * count;
                                 }
-                                setTimer(time);
+                                setTimer(setTimerTime);
                             }
                         });
                     }, time);

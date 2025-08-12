@@ -75,11 +75,8 @@ function gen_length(length) {
     return len;
 }
 
-function gen_string(str, without_length) {
+function gen_string(str, without_length = false) {
     /* based on code in (from http://farhadi.ir/downloads/utf8.js) */
-    if (arguments.length < 2) {
-        without_length = false;
-    }
     if (typeof str !== 'string') {
         return null;
     }

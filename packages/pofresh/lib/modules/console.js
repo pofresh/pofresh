@@ -69,11 +69,11 @@ class Module {
             case 'blacklist':
                 if (this.app.isFrontend()) {
                     const connector = this.app.components.__connector__;
-                    msg.blacklist.forEach(ip => {
+                    for (const ip of msg.blacklist) {
                         if (connector.blacklist.indexOf(ip) === -1) {
                             connector.blacklist.push(ip);
                         }
-                    });
+                    }
                 }
                 break;
             case 'restart': {
@@ -146,9 +146,9 @@ function kill(_app, agent, msg, cb) {
         }
     );
 
-    const agentRequestCallback = msg => {
+    const agentRequestCallback = _msg => {
         for (let i = 0; i < serverIds.length; ++i) {
-            if (serverIds[i] === msg) {
+            if (serverIds[i] === _msg) {
                 serverIds.splice(i, 1);
                 latch.done();
                 break;
@@ -169,8 +169,8 @@ function stop(app, agent, msg, cb) {
     if (serverIds.length) {
         servers = app.getServers();
         app.set(Constants.RESERVED.STOP_SERVERS, serverIds);
-        for (let i = 0; i < serverIds.length; i++) {
-            const serverId = serverIds[i];
+
+        for (const serverId of serverIds) {
             if (servers[serverId]) {
                 agent.notifyById(serverId, moduleId, { signal: msg.signal });
             } else {
@@ -205,8 +205,8 @@ function restart(app, agent, msg, cb) {
             utils.invokeCallback(cb, new Error(`restart servers with unknown server type: ${type}`));
             return;
         }
-        for (let i = 0; i < servers.length; i++) {
-            serverIds.push(servers[i].id);
+        for (const server of servers.length) {
+            serverIds.push(server.id);
         }
     } else if (!serverIds.length) {
         servers = app.getServers();
@@ -221,20 +221,22 @@ function restart(app, agent, msg, cb) {
             return;
         }
         utils.invokeCallback(cb, null, utils.arrayDiff(serverIds, successIds));
-        successIds.forEach(id =>
-            agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, { action: 'startOver' }, () => {})
-        );
+        for (const id of successIds) {
+            agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, { action: 'startOver' }, () => {
+                // console.log('startOver', id)
+            })
+        }
     });
 
     const request = id =>
         (() => {
-            agent.request(id, moduleId, { signal: msg.signal }, msg => {
-                if (!utils.size(msg)) {
+            agent.request(id, moduleId, { signal: msg.signal }, resMsg => {
+                if (!utils.size(resMsg)) {
                     latch.done();
                     return;
                 }
                 setTimeout(() => {
-                    runServer(app, msg, (err, _status) => {
+                    runServer(app, resMsg, (err, _status) => {
                         if (err) {
                             logger.error(`restart ${id} failed.`);
                         } else {
@@ -247,8 +249,8 @@ function restart(app, agent, msg, cb) {
             });
         })();
 
-    for (let j = 0; j < serverIds.length; j++) {
-        request(serverIds[j]);
+    for (const serverId in serverIds) {
+        request(serverId);
     }
 }
 
@@ -260,8 +262,8 @@ function list(agent, msg, cb) {
         utils.invokeCallback(cb, null, { msg: serverInfo });
     });
 
-    const callback = msg => {
-        serverInfo[msg.serverId] = msg.body;
+    const callback = _msg => {
+        serverInfo[_msg.serverId] = _msg.body;
         latch.done();
     };
     for (sid in agent.idMap) {
@@ -291,9 +293,9 @@ function removeCron(_app, agent, msg, cb) {
 
 function blacklist(agent, msg, cb) {
     const ips = msg.args;
-    for (let i = 0; i < ips.length; i++) {
-        if (!new RegExp(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g).test(ips[i])) {
-            utils.invokeCallback(cb, new Error(`blacklist ip: ${ips[i]} is error format.`), null);
+    for (const ip of ips) {
+        if (!new RegExp(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g).test(ip)) {
+            utils.invokeCallback(cb, new Error(`blacklist ip: ${ip} is error format.`), null);
             return;
         }
     }
@@ -305,13 +307,12 @@ function blacklist(agent, msg, cb) {
 
 function parseArgs(msg, info, cb) {
     const rs = {};
-    const args = msg.args;
-    for (let i = 0; i < args.length; i++) {
-        if (args[i].indexOf('=') < 0) {
+    for (const arg of msg.args) {
+        if (arg.indexOf('=') < 0) {
             cb(new Error('Error server parameters format.'), null);
             return;
         }
-        const pairs = args[i].split('=');
+        const pairs = arg.split('=');
         const key = pairs[0];
         if (info[key]) {
             info[key] = 1;
@@ -410,9 +411,8 @@ function startCluster(app, msg, cb) {
 
 function checkCluster(msg) {
     let flag = false;
-    const args = msg.args;
-    for (let i = 0; i < args.length; i++) {
-        if (utils.startsWith(args[i], Constants.RESERVED.CLUSTER_COUNT)) {
+    for (const arg of msg.args) {
+        if (utils.startsWith(arg, Constants.RESERVED.CLUSTER_COUNT)) {
             flag = true;
         }
     }

@@ -18,7 +18,7 @@ const Package = require('../package');
  * @module
  */
 
-const pofresh = (module.exports = {});
+const pofresh = {};
 
 /**
  * Framework version.
@@ -79,41 +79,43 @@ pofresh.createApp = opts => {
 /**
  * Auto-load bundled components with getters.
  */
-fs.readdirSync(`${__dirname}/components`).forEach(filename => {
+for (const filename of fs.readdirSync(`${__dirname}/components`)) {
     if (!/\.js$/.test(filename)) {
-        return;
+        continue;
     }
     const name = path.basename(filename, '.js');
     const _load = load.bind(null, './components/', name);
 
     pofresh.components.__defineGetter__(name, _load);
     pofresh.__defineGetter__(name, _load);
-});
+}
 
-fs.readdirSync(`${__dirname}/filters/handler`).forEach(filename => {
+for (const filename of fs.readdirSync(`${__dirname}/filters/handler`)) {
     if (!/\.js$/.test(filename)) {
-        return;
+        continue;
     }
     const name = path.basename(filename, '.js');
     const _load = load.bind(null, './filters/handler/', name);
 
     pofresh.filters.__defineGetter__(name, _load);
     pofresh.__defineGetter__(name, _load);
-});
+}
 
-fs.readdirSync(`${__dirname}/filters/rpc`).forEach(filename => {
+for (const filename of fs.readdirSync(`${__dirname}/filters/rpc`)) {
     if (!/\.js$/.test(filename)) {
-        return;
+        continue;
     }
     const name = path.basename(filename, '.js');
     const _load = load.bind(null, './filters/rpc/', name);
 
     pofresh.rpcFilters.__defineGetter__(name, _load);
-});
-
-function load(path, name) {
-    if (name) {
-        return require(path + name);
-    }
-    return require(path);
 }
+
+function load(_path, name) {
+    if (name) {
+        return require(path.join(_path, name));
+    }
+    return require(_path);
+}
+
+module.exports = pofresh;

@@ -35,16 +35,16 @@ class Module {
 
 // ----------------- monitor start method -------------------------
 
-function subscribeRequest(self, agent, id, cb) {
-    const msg = { action: 'subscribe', id };
+function subscribeRequest(self, agent, watcherId, cb) {
+    const msg = { action: 'subscribe', id: watcherId };
     agent.request(Constants.KEYWORDS.MASTER_WATCHER, msg, (err, servers) => {
         if (err) {
             logger.error('subscribeRequest request to master with error: %j', err.stack);
             utils.invokeCallback(cb, err);
         }
         const res = [];
-        for (const id in servers) {
-            res.push(servers[id]);
+        for (const serverId in servers) {
+            res.push(servers[serverId]);
         }
         addServers(self, res);
         utils.invokeCallback(cb);
