@@ -22,7 +22,8 @@ const ST_STOPED = 2; // server stoped
  * Server factory function.
  *
  * @param {Object} app  current application context
- * @return {Object} erver instance
+ * @param {Object} opts
+ * @return {Object} server instance
  */
 module.exports.create = (app, opts) => new Server(app, opts);
 
@@ -73,7 +74,7 @@ class Server {
      *
      * @param  {Object} msg request message
      * @param  {Object} session session object
-     * @param  {Callback} callback function
+     * @param  {Callback} cb function
      */
     globalHandle(msg, session, cb) {
         if (this.state !== ST_STARTED) {
@@ -88,19 +89,19 @@ class Server {
         }
         const dispatch = (err, resp, opts) => {
             if (err) {
-                handleError(true, this, err, msg, session, resp, opts, (_err, resp, opts) => {
-                    response(true, this, _err, msg, session, resp, opts, cb);
+                handleError(true, this, err, msg, session, resp, opts, (_err, _resp, _opts) => {
+                    response(true, this, _err, msg, session, _resp, _opts, cb);
                 });
                 return;
             }
 
             if (this.app.getServerType() !== routeRecord.serverType) {
-                doForward(this.app, msg, session, routeRecord, (err, resp, opts) => {
-                    response(true, this, err, msg, session, resp, opts, cb);
+                doForward(this.app, msg, session, routeRecord, (_err, _resp, _opts) => {
+                    response(true, this, _err, msg, session, _resp, _opts, cb);
                 });
             } else {
-                doHandle(this, msg, session, routeRecord, (err, resp, opts) => {
-                    response(true, this, err, msg, session, resp, opts, cb);
+                doHandle(this, msg, session, routeRecord, (_err, _resp, _opts) => {
+                    response(true, this, _err, msg, session, _resp, _opts, cb);
                 });
             }
         };
@@ -140,8 +141,7 @@ class Server {
      * @param {Array} crons would be removed in application
      */
     removeCrons(crons) {
-        for (let i = 0, l = crons.length; i < l; i++) {
-            const cron = crons[i];
+        for (const cron of crons.length) {
             const id = Number.parseInt(cron.id, 10);
             if (this.jobs[id]) {
                 schedule.cancelJob(this.jobs[id]);
@@ -253,8 +253,8 @@ function afterFilter(isGlobal, server, err, msg, session, resp, opts, cb) {
                 // do nothing
             });
         } else {
-            fm.afterFilter(err, msg, session, resp, err => {
-                cb(err, resp, opts);
+            fm.afterFilter(err, msg, session, _resp, _err => {
+                cb(_err, _resp, opts);
             });
         }
     }
@@ -359,8 +359,8 @@ function doHandle(server, msg, session, routeRecord, cb) {
     const handle = (err, resp, opts) => {
         if (err) {
             // error from before filter
-            handleError(false, self, err, msg, session, resp, opts, (err, resp, opts) => {
-                response(false, self, err, msg, session, resp, opts, cb);
+            handleError(false, self, err, msg, session, resp, opts, (_err, _resp, _opts) => {
+                response(false, self, _err, msg, session, _resp, _opts, cb);
             });
             return;
         }
@@ -415,8 +415,7 @@ function scheduleCrons(server, crons) {
             continue;
         }
 
-        const id = schedule.scheduleJob(time, handler[job].bind(handler));
-        server.jobs[jobId] = id;
+        server.jobs[jobId] = schedule.scheduleJob(time, handler[job].bind(handler));
     }
 }
 

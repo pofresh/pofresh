@@ -175,7 +175,7 @@ Application.disable = function (setting) {
 /**
  * Override require method in application
  *
- * @param {String} relative path of file
+ * @param {String} ph path of file
  *
  * @memberOf Application
  */
@@ -194,9 +194,6 @@ Application.configureLogger = function (jsLogger) {
         const env = this.get(Constants.RESERVED.ENV);
         const originPath = path.join(base, Constants.FILEPATH.LOG);
         const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
-
-        // 获取一个日志实例用于错误报告
-        const _errorLogger = jsLogger.getLogger('pofresh.application', __filename);
 
         if (fs.existsSync(originPath)) {
             jsLogger.configure(originPath, { serverId: this.serverId, base });
@@ -360,7 +357,7 @@ Application.load = function (name, component, opts) {
  * @return {Server|Mixed} for chaining, or the setting value
  * @memberOf Application
  */
-Application.loadConfigBaseApp = function (key, val, reload) {
+Application.loadConfigBaseApp = function (key, val, reload = false) {
     const env = this.get(Constants.RESERVED.ENV);
     const originPath = path.join(Application.getBase(), val);
     const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
@@ -474,7 +471,7 @@ Application.start = function (cb) {
  * Lifecycle callback for after start.
  *
  * @param  {Function} cb callback function
- * @return {Void}
+ * @return {null}
  */
 Application.afterStart = function (cb) {
     if (this.state !== STATE_START) {
@@ -587,7 +584,7 @@ Application.configure = function (...args) {
 /**
  * Register admin modules. Admin modules is the extends point of the monitor system.
  *
- * @param {String} module (optional) module id or provoided by module.moduleId
+ * @param {String} moduleId (optional) module id or provoided by module.moduleId
  * @param {Object} module module object or factory function for module
  * @param {Object} opts construct parameter for module
  * @memberOf Application
@@ -674,8 +671,6 @@ Application.use = function (plugin, opts = {}) {
                 logger.error('events %s not exist at %s', filename, absolutePath);
             }
         }
-    } else {
-        return;
     }
 };
 
