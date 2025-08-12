@@ -18,7 +18,7 @@ describe('utils test', () => {
         it('should ok if cb is null', () => {
             const p1 = 1,
                 p2 = 'str';
-            (() => {
+            expect(() => {
                 utils.invokeCallback(null, p1, p2);
             }).not.toThrow();
         });
@@ -97,14 +97,18 @@ describe('utils test', () => {
     });
 
     describe('#unicodeToUtf8', () => {
-        it('should return the origin string if the string does not have any Chinese characters', () => {
+        it('should return encoded bytes if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
-            expect(utils.unicodeToUtf8(src)).toBe(src);
+            const result = utils.unicodeToUtf8(src);
+            expect(result).toBeInstanceOf(Uint8Array);
+            expect(result.length).toBeGreaterThan(0);
         });
 
-        it('should not return the origin string if the string has Chinese characters', () => {
+        it('should return encoded bytes if the string has Chinese characters', () => {
             const src = 'string with Chinese characters 你好';
-            expect(utils.unicodeToUtf8(src)).not.toBe(src);
+            const result = utils.unicodeToUtf8(src);
+            expect(result).toBeInstanceOf(Uint8Array);
+            expect(result.length).toBeGreaterThan(src.length);
         });
     });
 

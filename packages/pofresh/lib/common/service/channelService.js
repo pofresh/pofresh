@@ -320,7 +320,7 @@ class Channel {
      */
     pushMessage(route, msg, opts, cb) {
         if (this.state !== ST_INITED) {
-            utils.invokeCallback(new Error('channel is not running now'));
+            utils.invokeCallback(cb, new Error('channel is not running now'));
             return;
         }
 

@@ -22,7 +22,7 @@ describe('session service test', () => {
                 expect(uid).toBe(euid);
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid, uid, err => {
                     expect(err).toBeUndefined();
                     const sessions = service.getByUid(uid);
@@ -57,7 +57,7 @@ describe('session service test', () => {
                 resolve();
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid, test_uid, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -69,7 +69,7 @@ describe('session service test', () => {
             const sid = 1,
                 uid = 'changchang';
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid, uid, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -84,7 +84,7 @@ describe('session service test', () => {
             const sid = 1;
             const uid = 'py';
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.unbind(sid, uid, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -105,7 +105,7 @@ describe('session service test', () => {
 
             const _session = service.create(sid, fid, socket);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.unbind(sid, uid, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -130,7 +130,7 @@ describe('session service test', () => {
                 resolve();
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.unbind(sid, uid, err => {
                     expect(err).toBeUndefined();
                     const sessions = service.getByUid(uid);
@@ -156,7 +156,7 @@ describe('session service test', () => {
 
             const _session = service.create(sid, fid, socket);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid, uid, _err => {
                     service.remove(sid);
                     expect(service.get(sid)).toBeUndefined();
@@ -183,7 +183,7 @@ describe('session service test', () => {
 
             const session = service.create(sid, fid, socket);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.import(sid, key, value, err => {
                     expect(err).toBeUndefined();
                     expect(value).toEqual(session.get(key));
@@ -198,7 +198,7 @@ describe('session service test', () => {
             const key = 'key-1',
                 value = 'value-1';
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.import(sid, key, value, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -227,7 +227,7 @@ describe('session service test', () => {
 
             const session = service.create(sid, fid, socket);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.importAll(sid, settings, err => {
                     expect(err).toBeUndefined();
                     expect(value).toEqual(session.get(key));
@@ -243,7 +243,7 @@ describe('session service test', () => {
             const key = 'key-1',
                 value = 'value-1';
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.import(sid, key, value, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -263,7 +263,7 @@ describe('session service test', () => {
             settings[key] = value;
             settings[key2] = value2;
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.importAll(sid, settings, err => {
                     expect(err).toBeDefined();
                     resolve();
@@ -299,7 +299,7 @@ describe('session service test', () => {
                 eventCount++;
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid1, uid, _err => {
                     service.bind(sid2, uid, _err => {
                         service.kick(uid, err => {
@@ -341,7 +341,7 @@ describe('session service test', () => {
                 eventCount++;
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.bind(sid1, uid, _err => {
                     service.bind(sid2, uid, _err => {
                         service.kickBySessionId(sid1, err => {
@@ -361,7 +361,7 @@ describe('session service test', () => {
             const service = new SessionService();
             const uid = 'changchang';
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.kick(uid, err => {
                     expect(err).toBeUndefined();
                     resolve();
@@ -386,7 +386,7 @@ describe('session service test', () => {
                 eventCount++;
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.kickBySessionId(sid, err => {
                     expect(err).toBeUndefined();
                     expect(service.get(sid)).toBeUndefined();
@@ -400,7 +400,7 @@ describe('session service test', () => {
             const service = new SessionService();
             const sid = 1;
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.kickBySessionId(sid, err => {
                     expect(err).toBeUndefined();
                     resolve();
@@ -457,7 +457,7 @@ describe('session service test', () => {
                 resolve();
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.forEachBindedSession(session => {
                     expect(session).toBeDefined();
                     expect(outter_session.id).toEqual(session.id);
@@ -494,7 +494,7 @@ describe('frontend session test', () => {
                 expect(uid).toBe(euid);
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 fsession.bind(uid, err => {
                     expect(err).toBeUndefined();
                     const sessions = service.getByUid(uid);
@@ -529,7 +529,7 @@ describe('frontend session test', () => {
                 resolve();
             });
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 fsession.unbind(uid, err => {
                     expect(err).toBeUndefined();
                     const sessions = service.getByUid(uid);
@@ -586,7 +586,7 @@ describe('frontend session test', () => {
             fsession.set(key, value);
             fsession.set(key2, value2);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 fsession.push(key, err => {
                     expect(err).toBeUndefined();
                     expect(value).toEqual(session.get(key));
@@ -617,7 +617,7 @@ describe('frontend session test', () => {
             fsession.set(key, value);
             fsession.set(key2, value2);
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 fsession.pushAll(err => {
                     expect(err).toBeUndefined();
                     expect(value).toEqual(session.get(key));

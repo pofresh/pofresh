@@ -46,7 +46,7 @@ describe('filter service test', () => {
             const service = new FilterService();
             service.before(mockFilter1);
             service.before(mockFilter2);
-            
+
             await new Promise(resolve => {
                 service.beforeFilter(null, session, () => {
                     expect(session).toBeDefined();
@@ -64,7 +64,7 @@ describe('filter service test', () => {
             const service = new FilterService();
             service.after(mockFilter1);
             service.after(mockFilter2);
-            
+
             await new Promise(resolve => {
                 service.afterFilter(null, null, session, null, () => {
                     expect(session).toBeDefined();
@@ -149,7 +149,7 @@ describe('filter service test', () => {
             service.before(mockFilter1);
             service.before(respFilter);
             service.before(mockFilter2);
-            
+
             await new Promise(resolve => {
                 service.beforeFilter(null, session, (err, resp) => {
                     expect(err).toBeDefined();

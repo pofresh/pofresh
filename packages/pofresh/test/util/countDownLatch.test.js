@@ -20,12 +20,11 @@ describe('countdown latch test', () => {
     let _countDownLatch2;
 
     describe('#count down', () => {
-        it('should invoke the callback after the done method was invoked the specified times', done => {
+        it('should invoke the callback after the done method was invoked the specified times', () => {
             let n = 3,
                 doneCount = 0;
             const cdl = CountDownLatch.createCountDownLatch(n, () => {
                 expect(doneCount).toBe(n);
-                done();
             });
 
             for (let i = 0; i < n; i++) {
@@ -35,13 +34,13 @@ describe('countdown latch test', () => {
         });
 
         it('should throw exception if pass a negative or zero to the create method', () => {
-            (() => {
+            expect(() => {
                 CountDownLatch.createCountDownLatch(-1, () => {
                     // Mock callback for negative count test
                 });
             }).toThrow();
 
-            (() => {
+            expect(() => {
                 CountDownLatch.createCountDownLatch(0, () => {
                     // Mock callback for zero count test
                 });
@@ -49,7 +48,7 @@ describe('countdown latch test', () => {
         });
 
         it('should throw exception if pass illegal cb to the create method', () => {
-            (() => {
+            expect(() => {
                 CountDownLatch.createCountDownLatch(1, null);
             }).toThrow();
         });
@@ -64,7 +63,7 @@ describe('countdown latch test', () => {
                 cdl.done();
             }
 
-            (() => {
+            expect(() => {
                 cdl.done();
             }).toThrow();
         });

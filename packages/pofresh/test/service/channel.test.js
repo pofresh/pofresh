@@ -154,8 +154,8 @@ describe('channel test', () => {
 
                 channel.pushMessage(mockMsg, () => {
                     expect(invokeCount).toBe(2);
+                    resolve();
                 });
-                resolve();
             });
         });
         it('should fail if channel has destroied', () => {
@@ -165,9 +165,12 @@ describe('channel test', () => {
 
             channel.destroy();
 
-            channel.pushMessage({}, err => {
-                expect(err).toBeDefined();
-                expect(err.message).toBe('channel is not running now');
+            return new Promise(resolve => {
+                channel.pushMessage('test.route', {}, {}, err => {
+                    expect(err).toBeDefined();
+                    expect(err.message).toBe('channel is not running now');
+                    resolve();
+                });
             });
         });
     });

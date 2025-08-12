@@ -33,6 +33,9 @@
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": "off"
+      },
+      "nursery": {
+        "noBitwiseOperators": "off"
       }
     },
     "domains": {

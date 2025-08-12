@@ -38,7 +38,7 @@ describe('#toobusyFilter', () => {
             }
             const start = new Date();
             while (Date.now() - start < 250) {
-                for (let i = 0; i < 1e5;) {
+                for (let i = 0; i < 1e5; ) {
                     i++;
                 }
             }

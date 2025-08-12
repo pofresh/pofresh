@@ -49,7 +49,7 @@ describe('handler service test', () => {
             const service = new HandlerService(mockApp, mockOpts);
             service.handlerMap = { connector: mockHandlers };
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.handle(mockRouteRecord, mockMsg, mockSession, () => {
                     expect(invoke1Count).toBe(1);
                     expect(invoke2Count).toBe(0);
@@ -64,7 +64,7 @@ describe('handler service test', () => {
             const service = new HandlerService(mockApp, mockOpts);
             service.handlerMap = { connector: mockHandlers };
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve, _reject) => {
                 service.handle(mockRouteRecord, mockMsg, mockSession, err => {
                     expect(err).toBeDefined();
                     resolve();

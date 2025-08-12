@@ -6,7 +6,7 @@ const mockSession = {
     key: '123'
 };
 
-const WAIT_TIME = 100;
+const _WAIT_TIME = 100;
 describe('#serialFilter', () => {
     it('should do before filter ok', async () => {
         const service = new FilterService();
