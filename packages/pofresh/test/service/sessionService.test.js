@@ -42,10 +42,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'py',
                 test_uid = 'test';
@@ -96,10 +104,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'py';
 
@@ -117,10 +133,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'py';
 
@@ -147,10 +171,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'changchang';
 
@@ -173,10 +205,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const key = 'key-1',
                 value = 'value-1';
@@ -211,10 +251,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const key = 'key-1',
                 value = 'value-1',
@@ -281,10 +329,18 @@ describe('session service test', () => {
                 fid2 = 'frontend-server-1';
 
             const socket = {
-                emit() {},
-                disconnect() {},
-                removeAllListeners() {},
-                on() {}
+                emit() {
+                    // Mock implementation for testing
+                },
+                disconnect() {
+                    // Mock implementation for testing
+                },
+                removeAllListeners() {
+                    // Mock implementation for testing
+                },
+                on() {
+                    // Mock implementation for testing
+                }
             };
             const uid = 'changchang';
             let eventCount = 0;
@@ -323,10 +379,18 @@ describe('session service test', () => {
                 fid2 = 'frontend-server-1';
 
             const socket = {
-                emit() {},
-                disconnect() {},
-                removeAllListeners() {},
-                on() {}
+                emit() {
+                    // Mock implementation for testing
+                },
+                disconnect() {
+                    // Mock implementation for testing
+                },
+                removeAllListeners() {
+                    // Mock implementation for testing
+                },
+                on() {
+                    // Mock implementation for testing
+                }
             };
             const uid = 'changchang';
             let eventCount = 0;
@@ -374,10 +438,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1';
             const socket = {
-                emit() {},
-                disconnect() {},
-                removeAllListeners() {},
-                on() {}
+                emit() {
+                    // Mock implementation for testing
+                },
+                disconnect() {
+                    // Mock implementation for testing
+                },
+                removeAllListeners() {
+                    // Mock implementation for testing
+                },
+                on() {
+                    // Mock implementation for testing
+                }
             };
             let eventCount = 0;
 
@@ -415,10 +487,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
 
             const outter_session = service.create(sid, fid, socket);
@@ -444,10 +524,18 @@ describe('session service test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'py';
 
@@ -476,10 +564,18 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'changchang';
             let eventCount = 0;
@@ -514,10 +610,18 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const uid = 'py';
 
@@ -546,10 +650,18 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const key = 'key-1',
                 value = 'value-1';
@@ -570,10 +682,18 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const key = 'key-1',
                 value = 'value-1',
@@ -601,10 +721,18 @@ describe('frontend session test', () => {
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const key = 'key-1',
                 value = 'value-1',
@@ -629,15 +757,23 @@ describe('frontend session test', () => {
     });
 
     describe('#export', () => {
-        it('should equal frontend session after export', async () => {
+        it('should equal frontend session after export', () => {
             const service = new SessionService();
             const sid = 1,
                 fid = 'frontend-server-1',
                 socket = {
-                    emit() {},
-                    disconnect() {},
-                    removeAllListeners() {},
-                    on() {}
+                    emit() {
+                        // Mock implementation for testing
+                    },
+                    disconnect() {
+                        // Mock implementation for testing
+                    },
+                    removeAllListeners() {
+                        // Mock implementation for testing
+                    },
+                    on() {
+                        // Mock implementation for testing
+                    }
                 };
             const _uid = 'py';
 

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import FilterService from '../../lib/common/service/filterService.js';
 
 const WAIT_TIME = 50;
@@ -28,8 +27,12 @@ const mockFilter2 = {
 };
 
 const blackholdFilter = {
-    before() {},
-    after() {}
+    before() {
+        // Intentionally empty for testing
+    },
+    after() {
+        // Intentionally empty for testing
+    }
 };
 
 const MockSession = function () {
@@ -77,18 +80,18 @@ describe('filter service test', () => {
             });
         });
 
-        it('should be ok if filter is a function', done => {
+        it('should be ok if filter is a function', () => {
             const session = { beforeCount: 0, afterCount: 0 };
             const service = new FilterService();
             let beforeCount = 0,
                 afterCount = 0;
 
-            service.before((_msg, session, cb) => {
-                session.beforeCount++;
+            service.before((_msg, sessionObj, cb) => {
+                sessionObj.beforeCount++;
                 cb();
             });
-            service.after((_err, _msg, session, _resp, cb) => {
-                session.afterCount++;
+            service.after((_err, _msg, sessionObj, _resp, cb) => {
+                sessionObj.afterCount++;
                 cb();
             });
             service.beforeFilter(null, session, () => {
@@ -103,12 +106,10 @@ describe('filter service test', () => {
                 expect(session.afterCount).toBe(1);
                 expect(beforeCount).toBe(1);
                 expect(afterCount).toBe(1);
-
-                done();
             }, WAIT_TIME);
         });
 
-        it('should not invoke the callback if filter not invoke callback', done => {
+        it('should not invoke the callback if filter not invoke callback', () => {
             const session = new MockSession();
             const service = new FilterService();
             let beforeCount = 0,
@@ -130,8 +131,6 @@ describe('filter service test', () => {
                 expect(session.afterCount2).toBe(0);
                 expect(beforeCount).toBe(0);
                 expect(afterCount).toBe(0);
-
-                done();
             }, WAIT_TIME);
         });
 

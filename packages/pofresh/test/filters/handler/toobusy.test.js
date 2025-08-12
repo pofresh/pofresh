@@ -7,7 +7,7 @@ const mockSession = {
 };
 
 describe('#toobusyFilter', () => {
-    it('should do before filter ok', async () => {
+    it('should do before filter ok', () => {
         const service = new FilterService();
         const filter = toobusyFilter();
         service.before(filter);
@@ -18,7 +18,7 @@ describe('#toobusyFilter', () => {
         });
     });
 
-    it('should do before filter error because of too busy', async () => {
+    it('should do before filter error because of too busy', () => {
         const service = new FilterService();
         const filter = toobusyFilter(10, 100);
         service.before(filter);

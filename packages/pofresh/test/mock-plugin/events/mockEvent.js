@@ -4,4 +4,6 @@ const Event = function (app) {
 
 module.exports = Event;
 
-Event.prototype.bind_session = _session => {};
+Event.prototype.bind_session = _session => {
+    // Mock implementation for testing
+};

@@ -8,7 +8,7 @@ const mockData = {
 };
 
 describe('#rpcLogFilter', () => {
-    it('should do after filter by before filter', async () => {
+    it('should do after filter by before filter', () => {
         const rpcLogFilter = RpcLogFilter();
         rpcLogFilter.before(mockData.serverId, mockData.msg, mockData.opts, (_serverId, _msg, _opts) => {
             rpcLogFilter.after(mockData.serverId, mockData.msg, mockData.opts, () => {

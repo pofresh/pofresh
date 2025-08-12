@@ -10,7 +10,8 @@
       "**/build/**",
       "**/*.min.js",
       "**/public/js/lib/**",
-      "**/template/**/public/**"
+      "**/template/**/public/**",
+      "test"
     ]
   },
   "linter": {

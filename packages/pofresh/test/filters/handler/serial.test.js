@@ -8,7 +8,7 @@ const mockSession = {
 
 const _WAIT_TIME = 100;
 describe('#serialFilter', () => {
-    it('should do before filter ok', async () => {
+    it('should do before filter ok', () => {
         const service = new FilterService();
         const filter = serialFilter();
         service.before(filter);
@@ -19,14 +19,14 @@ describe('#serialFilter', () => {
         });
     });
 
-    it('should do after filter by doing before filter ok', async () => {
+    it('should do after filter by doing before filter ok', () => {
         const service = new FilterService();
         const filter = serialFilter();
         let _session;
         service.before(filter);
         service.after(filter);
 
-        await new Promise(resolve => {
+        return new Promise(resolve => {
             service.beforeFilter(null, mockSession, () => {
                 expect(mockSession).toBeDefined();
                 expect(mockSession.__serialTask__).toBeDefined();

@@ -62,8 +62,8 @@ MockManager.prototype.destroyChannel = function (name, cb) {
         return;
     }
 
-    for (let i = 0; i < removes.length; i++) {
-        delete this.usersMap[removes[i]];
+    for (const remove of removes) {
+        delete this.usersMap[remove];
     }
     utils.invokeCallback(cb);
 };

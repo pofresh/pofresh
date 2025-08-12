@@ -8,7 +8,7 @@ const mockData = {
 };
 
 describe('#toobusyFilter', () => {
-    it('should no callback for toobusy', async () => {
+    it('should no callback for toobusy', () => {
         const toobusyFilter = ToobusyFilter(10, 100);
         function load() {
             let callbackInvoked = true;

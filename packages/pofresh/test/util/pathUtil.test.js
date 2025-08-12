@@ -47,8 +47,8 @@ describe('path util test', () => {
         it('should create remote path record correctly', () => {
             const namespace = 'user';
             const serverType = 'connector';
-            const path = '/some/path/to/remote';
-            const r = pathUtil.remotePathRecord(namespace, serverType, path);
+            const remotePath = '/some/path/to/remote';
+            const r = pathUtil.remotePathRecord(namespace, serverType, remotePath);
             expect(r).toBeDefined();
             expect(namespace).toBe(r.namespace);
             expect(serverType).toBe(r.serverType);

@@ -8,7 +8,7 @@ const mockSession = {
 
 const _WAIT_TIME = 100;
 describe('#serialFilter', () => {
-    it('should do before filter ok', async () => {
+    it('should do before filter ok', () => {
         const service = new FilterService();
         const filter = serialFilter();
         service.before(filter);
@@ -19,7 +19,7 @@ describe('#serialFilter', () => {
         });
     });
 
-    it('should do after filter by doing before filter ok', async () => {
+    it('should do after filter by doing before filter ok', () => {
         const service = new FilterService();
         const filter = serialFilter();
         let _session;
