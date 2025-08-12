@@ -211,10 +211,10 @@ function parseArgs(args) {
     const argsMap = {};
     let mainPos = 1;
 
-    while (args[mainPos].indexOf('--') > 0) {
+    while (args[mainPos] && args[mainPos].indexOf('--') > 0) {
         mainPos++;
     }
-    argsMap.main = args[mainPos];
+    argsMap.main = args[mainPos] || '';
 
     for (let i = mainPos + 1; i < args.length; i++) {
         const arg = args[i];

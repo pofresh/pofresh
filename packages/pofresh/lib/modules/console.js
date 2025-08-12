@@ -205,7 +205,7 @@ function restart(app, agent, msg, cb) {
             utils.invokeCallback(cb, new Error(`restart servers with unknown server type: ${type}`));
             return;
         }
-        for (const server of servers.length) {
+        for (const server of servers) {
             serverIds.push(server.id);
         }
     } else if (!serverIds.length) {

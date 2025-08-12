@@ -52,7 +52,7 @@ describe('path util test', () => {
             expect(r).toBeDefined();
             expect(namespace).toBe(r.namespace);
             expect(serverType).toBe(r.serverType);
-            expect(path).toBe(r.path);
+            expect(remotePath).toBe(r.path);
         });
     });
 

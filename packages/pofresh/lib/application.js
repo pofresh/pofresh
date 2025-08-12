@@ -4,9 +4,6 @@
  * MIT Licensed
  */
 
-/**
- * Module dependencies.
- */
 const fs = require('fs');
 const path = require('path');
 const utils = require('./util/utils');
@@ -16,201 +13,173 @@ const events = require('./util/events');
 const appUtil = require('./util/appUtil');
 const Constants = require('./util/constants');
 const appManager = require('./common/manager/appManager');
-/**
- * Application prototype.
- *
- * @module
- */
-const Application = {};
 
-// Top-level regex constants
+// 常量定义
 const JS_FILE_REGEX = /\.js$/;
 
-/**
- * Application states
- */
-const STATE_INITED = 1; // app has inited
-const STATE_START = 2; // app start
-const STATE_STARTED = 3; // app has started
-const STATE_STOPED = 4; // app has stoped
-
-/**
- * Initialize the server.
- *
- *   - setup default configuration
- */
-Application.init = function (opts = {}) {
-    this.loaded = []; // loaded component list
-    this.components = {}; // name -> component map
-    this.settings = {}; // collection keep set/get
-    const base = opts.base || path.dirname(require.main.filename);
-    this.set(Constants.RESERVED.BASE, base, true);
-    this.event = new EventEmitter(); // event object to sub/pub events
-
-    // current server info
-    this.serverId = null; // current server id
-    this.serverType = null; // current server type
-    this.curServer = null; // current server info
-    this.startTime = null; // current server start time
-
-    // global server infos
-    this.master = null; // master server info
-    this.servers = {}; // current global server info maps, id -> info
-    this.serverTypeMaps = {}; // current global type maps, type -> [info]
-    this.serverTypes = []; // current global server type list
-    this.lifecycleCbs = {}; // current server custom lifecycle callbacks
-    this.clusterSeq = {}; // cluster id seqence
-
-    appUtil.defaultConfiguration(this);
-
-    this.state = STATE_INITED;
-    logger.info('application inited: %j', this.getServerId());
+// 应用状态枚举
+const AppState = {
+    INITED: 1,   // 应用已初始化
+    START: 2,    // 应用启动中
+    STARTED: 3,  // 应用已启动
+    STOPPED: 4   // 应用已停止
 };
 
 /**
- * Get application base path
- *
- *  // cwd: /home/game/
- *  pofresh start
- *  // app.getBase() -> /home/game
- *
- * @return {String} application base path
- *
- * @memberOf Application
+ * Application 原型对象
+ * 提供应用程序的核心功能和生命周期管理
+ */
+const Application = {};
+
+/**
+ * 初始化应用服务器
+ * 设置默认配置和初始化各种属性
+ * @param {Object} opts - 初始化选项
+ * @param {string} opts.base - 应用基础路径
+ */
+Application.init = function (opts = {}) {
+    // 组件管理
+    this.loaded = [];        // 已加载的组件列表
+    this.components = {};    // 组件名称到组件实例的映射
+    this.settings = {};      // 应用设置存储
+    
+    // 设置基础路径
+    const base = opts.base || path.dirname(require.main.filename);
+    this.set(Constants.RESERVED.BASE, base, true);
+    
+    // 事件系统
+    this.event = new EventEmitter();
+
+    // 服务器信息初始化
+    Object.assign(this, {
+        serverId: null,
+        serverType: null,
+        curServer: null,
+        startTime: null,
+        master: null,
+        servers: {},
+        serverTypeMaps: {},
+        serverTypes: [],
+        lifecycleCbs: {},
+        clusterSeq: {}
+    });
+
+    // 应用默认配置
+    appUtil.defaultConfiguration(this);
+
+    this.state = AppState.INITED;
+    logger.info(`应用初始化完成: ${this.getServerId()}`);
+};
+
+/**
+ * 获取应用基础路径
+ * @return {string} 应用基础路径
  */
 Application.getBase = function () {
     return this.get(Constants.RESERVED.BASE);
 };
 
 /**
- * Assign `setting` to `val`, or return `setting`'s value.
- *
- * Example:
- *
- *  app.set('key1', 'value1');
- *  app.get('key1');  // 'value1'
- *  app.key1;         // undefined
- *
- *  app.set('key2', 'value2', true);
- *  app.get('key2');  // 'value2'
- *  app.key2;         // 'value2'
- *
- * @param {String} setting the setting of application
- * @param {String} val the setting's value
- * @param {Boolean} attach whether attach the settings to application
- * @return {Server|Mixed} for chaining, or the setting value
- * @memberOf Application
+ * 设置或获取应用配置
+ * @param {string} setting - 配置键名
+ * @param {*} val - 配置值（可选）
+ * @param {boolean} attach - 是否将配置附加到应用实例上
+ * @return {*} 链式调用返回this，获取时返回配置值
+ * 
+ * @example
+ * app.set('key1', 'value1');
+ * app.get('key1');  // 'value1'
+ * 
+ * app.set('key2', 'value2', true);
+ * app.key2;         // 'value2'
  */
 Application.set = function (setting, val, attach = false) {
-    if (setting === undefined) {
-        return this;
-    }
-
-    if (val === undefined) {
-        return this.settings[setting];
-    }
+    if (setting === undefined) return this;
+    if (val === undefined) return this.settings[setting];
 
     this.settings[setting] = val;
-    if (attach) {
-        this[setting] = val;
-    }
+    if (attach) this[setting] = val;
+    
     return this;
 };
 
 /**
- * Get property from setting
- *
- * @param {String} setting application setting
- * @return {String} val
- * @memberOf Application
+ * 获取应用配置
+ * @param {string} setting - 配置键名
+ * @return {*} 配置值
  */
 Application.get = function (setting) {
     return this.settings[setting];
 };
 
 /**
- * Check if `setting` is enabled.
- *
- * @param {String} setting application setting
- * @return {Boolean}
- * @memberOf Application
+ * 检查配置是否启用
+ * @param {string} setting - 配置键名
+ * @return {boolean} 是否启用
  */
 Application.enabled = function (setting) {
     return !!this.get(setting);
 };
 
 /**
- * Check if `setting` is disabled.
- *
- * @param {String} setting application setting
- * @return {Boolean}
- * @memberOf Application
+ * 检查配置是否禁用
+ * @param {string} setting - 配置键名
+ * @return {boolean} 是否禁用
  */
 Application.disabled = function (setting) {
     return !this.get(setting);
 };
 
 /**
- * Enable `setting`.
- *
- * @param {String} setting application setting
- * @return {app} for chaining
- * @memberOf Application
+ * 启用配置
+ * @param {string} setting - 配置键名
+ * @return {Application} 链式调用
  */
 Application.enable = function (setting) {
     return this.set(setting, true);
 };
 
 /**
- * Disable `setting`.
- *
- * @param {String} setting application setting
- * @return {app} for chaining
- * @memberOf Application
+ * 禁用配置
+ * @param {string} setting - 配置键名
+ * @return {Application} 链式调用
  */
 Application.disable = function (setting) {
     return this.set(setting, false);
 };
 
 /**
- * Override require method in application
- *
- * @param {String} ph path of file
- *
- * @memberOf Application
+ * 重写require方法，基于应用基础路径
+ * @param {string} ph - 文件路径
+ * @return {*} require的结果
  */
 Application.require = ph => require(path.join(Application.getBase(), ph));
 
 /**
- * Configure logger with {$base}/config/log4js.json
- *
- * @param {Object} jsLogger pofresh-logger instance without configuration
- *
- * @memberOf Application
+ * 配置日志系统
+ * @param {Object} jsLogger - pofresh-logger实例
  */
 Application.configureLogger = function (jsLogger) {
-    if (process.env.pofresh_LOGGER !== 'off') {
-        const base = this.getBase();
-        const env = this.get(Constants.RESERVED.ENV);
-        const originPath = path.join(base, Constants.FILEPATH.LOG);
-        const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
+    if (process.env.pofresh_LOGGER === 'off') return;
+    
+    const base = this.getBase();
+    const env = this.get(Constants.RESERVED.ENV);
+    const originPath = path.join(base, Constants.FILEPATH.LOG);
+    const presentPath = path.join(base, Constants.FILEPATH.CONFIG_DIR, env, path.basename(Constants.FILEPATH.LOG));
+    const loggerConfig = { serverId: this.serverId, base };
 
-        if (fs.existsSync(originPath)) {
-            jsLogger.configure(originPath, { serverId: this.serverId, base });
-        } else if (fs.existsSync(presentPath)) {
-            jsLogger.configure(presentPath, { serverId: this.serverId, base });
-        } else {
-            logger.error('logger file path configuration is error.');
-        }
+    if (fs.existsSync(originPath)) {
+        jsLogger.configure(originPath, loggerConfig);
+    } else if (fs.existsSync(presentPath)) {
+        jsLogger.configure(presentPath, loggerConfig);
+    } else {
+        logger.error(`日志配置文件未找到: ${originPath} 或 ${presentPath}`);
     }
 };
 
 /**
- * add a filter to before and after filter
- *
- * @param {Object} filter provide before and after filter method.
- *                        A filter should have two methods: before and after.
- * @memberOf Application
+ * 添加前置和后置过滤器
+ * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
 Application.filter = function (filter) {
     this.before(filter);
@@ -218,31 +187,24 @@ Application.filter = function (filter) {
 };
 
 /**
- * Add before filter.
- *
- * @param {Object|Function} bf before fileter, bf(msg, session, next)
- * @memberOf Application
+ * 添加前置过滤器
+ * @param {Object|Function} bf - 前置过滤器 bf(msg, session, next)
  */
 Application.before = function (bf) {
     addFilter(this, Constants.KEYWORDS.BEFORE_FILTER, bf);
 };
 
 /**
- * Add after filter.
- *
- * @param {Object|Function} af after filter, `af(err, msg, session, resp, next)`
- * @memberOf Application
+ * 添加后置过滤器
+ * @param {Object|Function} af - 后置过滤器 af(err, msg, session, resp, next)
  */
 Application.after = function (af) {
     addFilter(this, Constants.KEYWORDS.AFTER_FILTER, af);
 };
 
 /**
- * add a global filter to before and after global filter
- *
- * @param {Object} filter provide before and after filter method.
- *                        A filter should have two methods: before and after.
- * @memberOf Application
+ * 添加全局前置和后置过滤器
+ * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
 Application.globalFilter = function (filter) {
     this.globalBefore(filter);
@@ -250,51 +212,40 @@ Application.globalFilter = function (filter) {
 };
 
 /**
- * Add global before filter.
- *
- * @param {Object|Function} bf before fileter, bf(msg, session, next)
- * @memberOf Application
+ * 添加全局前置过滤器
+ * @param {Object|Function} bf - 全局前置过滤器 bf(msg, session, next)
  */
 Application.globalBefore = function (bf) {
     addFilter(this, Constants.KEYWORDS.GLOBAL_BEFORE_FILTER, bf);
 };
 
 /**
- * Add global after filter.
- *
- * @param {Object|Function} af after filter, `af(err, msg, session, resp, next)`
- * @memberOf Application
+ * 添加全局后置过滤器
+ * @param {Object|Function} af - 全局后置过滤器 af(err, msg, session, resp, next)
  */
 Application.globalAfter = function (af) {
     addFilter(this, Constants.KEYWORDS.GLOBAL_AFTER_FILTER, af);
 };
 
 /**
- * Add rpc before filter.
- *
- * @param {Object|Function} bf before fileter, bf(serverId, msg, opts, next)
- * @memberOf Application
+ * 添加RPC前置过滤器
+ * @param {Object|Function} bf - RPC前置过滤器 bf(serverId, msg, opts, next)
  */
 Application.rpcBefore = function (bf) {
     addFilter(this, Constants.KEYWORDS.RPC_BEFORE_FILTER, bf);
 };
 
 /**
- * Add rpc after filter.
- *
- * @param {Object|Function} af after filter, `af(serverId, msg, opts, next)`
- * @memberOf Application
+ * 添加RPC后置过滤器
+ * @param {Object|Function} af - RPC后置过滤器 af(serverId, msg, opts, next)
  */
 Application.rpcAfter = function (af) {
     addFilter(this, Constants.KEYWORDS.RPC_AFTER_FILTER, af);
 };
 
 /**
- * add a rpc filter to before and after rpc filter
- *
- * @param {Object} filter provide before and after filter method.
- *                        A filter should have two methods: before and after.
- * @memberOf Application
+ * 添加RPC前置和后置过滤器
+ * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
 Application.rpcFilter = function (filter) {
     this.rpcBefore(filter);
@@ -302,46 +253,42 @@ Application.rpcFilter = function (filter) {
 };
 
 /**
- * Load component
- *
- * @param  {String} name    (optional) name of the component
- * @param  {Object} component component instance or factory function of the component
- * @param  {[type]} opts    (optional) construct parameters for the factory function
- * @return {Object}     app instance for chain invoke
- * @memberOf Application
+ * 加载组件
+ * @param {string} name - 组件名称（可选）
+ * @param {Object|Function} component - 组件实例或工厂函数
+ * @param {Object} opts - 构造参数（可选）
+ * @return {Application} 链式调用
  */
 Application.load = function (name, component, opts) {
-    let fnName = '';
+    // 参数重载处理
     if (typeof name !== 'string') {
-        opts = component;
-        component = name;
-        name = null;
+        [opts, component, name] = [component, name, null];
         if (typeof component.name === 'string') {
             name = component.name;
-            fnName = name;
         }
     }
 
+    // 如果是工厂函数，则调用它
     if (typeof component === 'function') {
         component = component(this, opts);
-        if (fnName && component.name && fnName !== component.name) {
-            name = component.name;
-        }
     }
 
-    if (!name && typeof component.name === 'string') {
+    // 尝试从组件对象获取名称
+    if (!name && typeof component?.name === 'string') {
         name = component.name;
     }
 
+    // 检查重复组件
     if (name && this.components[name]) {
-        // ignore duplicate component
-        logger.warn('ignore duplicate component: %j', name);
-        return;
+        logger.warn(`忽略重复组件: ${name}`);
+        return this;
     }
 
+    // 添加到已加载列表
     this.loaded.push(component);
+    
+    // 如果有名称，添加到组件映射
     if (name) {
-        // components with a name would get by name throught app.components later.
         this.components[name] = component;
     }
 
@@ -349,79 +296,67 @@ Application.load = function (name, component, opts) {
 };
 
 /**
- * Load Configure json file to settings.(support different enviroment directory & compatible for old path)
- *
- * @param {String} key environment key
- * @param {String} val environment value
- * @param {Boolean} reload whether reload after change default false
- * @return {Server|Mixed} for chaining, or the setting value
- * @memberOf Application
+ * 加载配置文件到设置中（支持不同环境目录和旧路径兼容）
+ * @param {string} key - 配置键名
+ * @param {string} val - 配置文件路径
+ * @param {boolean} reload - 是否监听文件变化自动重载
  */
 Application.loadConfigBaseApp = function (key, val, reload = false) {
     const env = this.get(Constants.RESERVED.ENV);
     const originPath = path.join(Application.getBase(), val);
     const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
+    
     let realPath;
+    let config;
+    
     if (fs.existsSync(originPath)) {
         realPath = originPath;
         const file = require(originPath);
-        let config = file;
-        if (file[env]) {
-            config = file[env];
-        }
+        config = file[env] || file;
         this.set(key, config);
     } else if (fs.existsSync(presentPath)) {
         realPath = presentPath;
-        const pfile = require(presentPath);
-        this.set(key, pfile);
+        config = require(presentPath);
+        this.set(key, config);
     } else {
-        logger.error('invalid configuration with file path: %s', key);
+        logger.error(`配置文件未找到: ${key} -> ${originPath} 或 ${presentPath}`);
+        return;
     }
 
-    if (!!realPath && !!reload) {
+    // 设置文件监听
+    if (realPath && reload) {
         fs.watch(realPath, event => {
             if (event === 'change') {
                 delete require.cache[require.resolve(realPath)];
                 this.loadConfigBaseApp(key, val);
+                logger.info(`配置文件已重载: ${key}`);
             }
         });
     }
 };
 
 /**
- * Load Configure json file to settings.
- *
- * @param {String} key environment key
- * @param {String} val environment value
- * @return {Server|Mixed} for chaining, or the setting value
- * @memberOf Application
+ * 加载配置文件到设置中
+ * @param {string} key - 配置键名
+ * @param {string} val - 配置文件路径
  */
 Application.loadConfig = function (key, val) {
     const env = this.get(Constants.RESERVED.ENV);
-    let config = require(val);
-    if (config[env]) {
-        config = config[env];
-    }
-    this.set(key, config);
+    const config = require(val);
+    this.set(key, config[env] || config);
 };
 
 /**
- * Set the route function for the specified server type.
- *
- * Examples:
- *
- *  app.route('area', routeFunc);
- *
- *  let routeFunc = function(session, msg, app, cb) {
- *    // all request to area would be route to the first area server
- *    let areas = app.getServersByType('area');
- *    cb(null, areas[0].id);
- *  };
- *
- * @param  {String} serverType server type string
- * @param  {Function} routeFunc  route function. routeFunc(session, msg, app, cb)
- * @return {Object}     current application instance for chain invoking
- * @memberOf Application
+ * 设置指定服务器类型的路由函数
+ * @param {string} serverType - 服务器类型
+ * @param {Function} routeFunc - 路由函数 routeFunc(session, msg, app, cb)
+ * @return {Application} 链式调用
+ * 
+ * @example
+ * app.route('area', (session, msg, app, cb) => {
+ *   const areas = app.getServersByType('area');
+ *   cb(null, areas[0].id);
+ * });
  */
 Application.route = function (serverType, routeFunc) {
     let routes = this.get(Constants.KEYWORDS.ROUTE);
@@ -434,30 +369,32 @@ Application.route = function (serverType, routeFunc) {
 };
 
 /**
- * Start application. It would load the default components and start all the loaded components.
- *
- * @param  {Function} cb callback function
- * @memberOf Application
+ * 启动应用程序，加载默认组件并启动所有已加载的组件
+ * @param {Function} cb - 回调函数
  */
 Application.start = function (cb) {
     this.startTime = Date.now();
-    if (this.state > STATE_INITED) {
-        utils.invokeCallback(cb, new Error('application has already start.'));
+    
+    if (this.state > AppState.INITED) {
+        utils.invokeCallback(cb, new Error('应用程序已经启动'));
         return;
     }
+    
     appUtil.startByType(this, () => {
         appUtil.loadDefaultComponents(this);
+        
         const startUp = () => {
             appUtil.optComponents(this.loaded, Constants.RESERVED.START, err => {
-                this.state = STATE_START;
+                this.state = AppState.START;
                 if (err) {
                     utils.invokeCallback(cb, err);
                 } else {
-                    logger.info('%j enter after start...', this.getServerId());
+                    logger.info(`${this.getServerId()} 进入启动后阶段...`);
                     this.afterStart(cb);
                 }
             });
         };
+        
         const beforeFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
         if (beforeFun) {
             beforeFun.call(null, this, startUp);
@@ -468,24 +405,25 @@ Application.start = function (cb) {
 };
 
 /**
- * Lifecycle callback for after start.
- *
- * @param  {Function} cb callback function
- * @return {null}
+ * 启动后的生命周期回调
+ * @param {Function} cb - 回调函数
  */
 Application.afterStart = function (cb) {
-    if (this.state !== STATE_START) {
-        utils.invokeCallback(cb, new Error('application is not running now.'));
+    if (this.state !== AppState.START) {
+        utils.invokeCallback(cb, new Error('应用程序当前未运行'));
         return;
     }
 
     const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
+    
     appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, err => {
-        this.state = STATE_STARTED;
+        this.state = AppState.STARTED;
         const id = this.getServerId();
+        
         if (!err) {
-            logger.info('%j finish start', id);
+            logger.info(`${id} 启动完成`);
         }
+        
         if (afterFun) {
             afterFun.call(null, this, () => {
                 utils.invokeCallback(cb, err);
@@ -493,101 +431,92 @@ Application.afterStart = function (cb) {
         } else {
             utils.invokeCallback(cb, err);
         }
+        
         const usedTime = Date.now() - this.startTime;
-        logger.info('%j startup in %s ms', id, usedTime);
+        logger.info(`${id} 启动耗时 ${usedTime} ms`);
         this.event.emit(events.START_SERVER, id);
     });
 };
 
 /**
- * Stop components.
- *
- * @param  {Boolean} force whether stop the app immediately
+ * 停止组件
+ * @param {boolean} force - 是否强制停止应用
+ * @param {Function} cb - 回调函数
  */
-Application.stop = function (force) {
-    if (this.state > STATE_STARTED) {
-        logger.warn('[pofresh application] application is not running now.');
+Application.stop = function (force, cb) {
+    if (this.state < AppState.STARTED) {
+        utils.invokeCallback(cb, new Error('应用程序当前未运行'));
         return;
     }
-    this.state = STATE_STOPED;
+    
+    this.state = AppState.STOPED;
 
+    // 设置超时强制退出
     this.stopTimer = setTimeout(() => {
-        process.exit(0);
+        process.exit(1);
     }, Constants.TIME.TIME_WAIT_STOP);
 
-    const cancelShutDownTimer = () => {
-        if (this.stopTimer) {
-            clearTimeout(this.stopTimer);
-        }
-    };
     const shutDown = () => {
         appUtil.stopComps(this.loaded, 0, force, () => {
-            cancelShutDownTimer();
-            if (force) {
-                process.exit(0);
+            if (this.stopTimer) {
+                clearTimeout(this.stopTimer);
             }
+            if (force) {
+                process.exit(1);
+            }
+            utils.invokeCallback(cb);
         });
     };
-    const stopFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
-    if (stopFun) {
-        stopFun.call(null, this, shutDown, cancelShutDownTimer);
+    
+    // 执行关闭钩子
+    const shutDownHook = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
+    const stopServiceHook = this.get(Constants.RESERVED.STOP_SERVICE_HOOK);
+    
+    if (shutDownHook) {
+        shutDownHook.call(this, this, shutDown, shutDown);
+    } else if (stopServiceHook) {
+        stopServiceHook.call(this, this, shutDown, shutDown);
     } else {
         shutDown();
     }
 };
 
 /**
- * Configure callback for the specified env and server type.
- * When no env is specified that callback will
- * be invoked for all environments and when no type is specified
- * that callback will be invoked for all server types.
- *
- * Examples:
- *
- *  app.configure(function(){
- *    // executed for all envs and server types
- *  });
- *
- *  app.configure('development', function(){
- *    // executed development env
- *  });
- *
- *  app.configure('development', 'connector', function(){
- *    // executed for development env and connector server type
- *  });
- *
- * @return {Application} for chaining
- * @memberOf Application
- * @param args
+ * 配置指定环境和服务器类型的回调
+ * @param {...*} args - 参数列表：[env], [type], callback
+ * @return {Application} 链式调用
+ * 
+ * @example
+ * app.configure(() => {
+ *   // 所有环境和服务器类型都执行
+ * });
+ * 
+ * app.configure('development', () => {
+ *   // 仅开发环境执行
+ * });
+ * 
+ * app.configure('development', 'connector', () => {
+ *   // 开发环境的connector服务器类型执行
+ * });
  */
 Application.configure = function (...args) {
     const callback = args.pop();
-    let currentEnv = Constants.RESERVED.ALL;
-    let currentType = Constants.RESERVED.ALL;
+    const [currentEnv = Constants.RESERVED.ALL, currentType = Constants.RESERVED.ALL] = args;
 
-    if (args.length > 0) {
-        currentEnv = args[0];
-    }
-    if (args.length > 1) {
-        currentType = args[1];
-    }
+    const envMatch = currentEnv === Constants.RESERVED.ALL || containsValue(this.settings.env, currentEnv);
+    const typeMatch = currentType === Constants.RESERVED.ALL || containsValue(this.settings.serverType, currentType);
 
-    if (
-        (currentEnv === Constants.RESERVED.ALL || containsValue(this.settings.env, currentEnv)) &&
-        (currentType === Constants.RESERVED.ALL || containsValue(this.settings.serverType, currentType))
-    ) {
+    if (envMatch && typeMatch) {
         callback.call(this);
     }
     return this;
 };
 
 /**
- * Register admin modules. Admin modules is the extends point of the monitor system.
- *
- * @param {String} moduleId (optional) module id or provoided by module.moduleId
- * @param {Object} module module object or factory function for module
- * @param {Object} opts construct parameter for module
- * @memberOf Application
+ * 注册管理模块，管理模块是监控系统的扩展点
+ * @param {string} moduleId - 模块ID（可选）
+ * @param {Object|Function} module - 模块对象或工厂函数
+ * @param {Object} opts - 构造参数
  */
 Application.registerAdmin = function (moduleId, module, opts) {
     let modules = this.get(Constants.KEYWORDS.MODULE);
@@ -596,210 +525,207 @@ Application.registerAdmin = function (moduleId, module, opts) {
         this.set(Constants.KEYWORDS.MODULE, modules);
     }
 
-    let currentModuleId = moduleId;
-    let currentModule = module;
-    let currentOpts = opts;
-
+    // 参数重载处理
     if (typeof moduleId !== 'string') {
-        currentOpts = module;
-        currentModule = moduleId;
-        if (currentModule) {
-            currentModuleId = currentModule.moduleId;
-        }
+        [opts, module, moduleId] = [module, moduleId, module?.moduleId];
     }
 
-    if (!currentModuleId) {
+    if (!moduleId) {
+        logger.warn('模块ID为空，跳过注册');
         return;
     }
 
-    modules[currentModuleId] = {
-        moduleId: currentModuleId,
-        module: currentModule,
-        opts: currentOpts
+    modules[moduleId] = {
+        moduleId,
+        module,
+        opts
     };
+    
+    logger.info(`管理模块已注册: ${moduleId}`);
 };
 
 /**
- * Use plugin.
- *
- * @param  {Object} plugin plugin instance
- * @param  {[type]} opts    (optional) construct parameters for the factory function
- * @memberOf Application
+ * 使用插件
+ * @param {Object} plugin - 插件实例
+ * @param {Object} opts - 构造参数（可选）
  */
 Application.use = function (plugin, opts = {}) {
     if (!plugin.components) {
-        logger.error('invalid components, no components exist');
+        logger.error('无效的组件配置，组件不存在');
         return;
     }
 
-    const dir = path.dirname(plugin.components);
-
-    if (!fs.existsSync(plugin.components)) {
-        logger.error('fail to find components, find path: %s', plugin.components);
-        return;
-    }
-
-    for (const filename of fs.readdirSync(plugin.components)) {
-        if (!JS_FILE_REGEX.test(filename)) {
-            continue;
-        }
-        const name = path.basename(filename, '.js');
-        const param = opts[name] || {};
-        const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
-        if (fs.existsSync(absolutePath)) {
-            this.load(require(absolutePath), param);
-        } else {
-            logger.error('component %s not exist at %s', name, absolutePath);
-        }
-    }
-
-    // load events
+    // 加载组件
+    this._loadPluginComponents(plugin.components, opts);
+    
+    // 加载事件
     if (plugin.events) {
-        if (!fs.existsSync(plugin.events)) {
-            logger.error('fail to find events, find path: %s', plugin.events);
-            return;
-        }
-
-        for (const filename of fs.readdirSync(plugin.events)) {
-            if (!JS_FILE_REGEX.test(filename)) {
-                continue;
-            }
-            const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
-            if (fs.existsSync(absolutePath)) {
-                bindEvents(require(absolutePath), this);
-            } else {
-                logger.error('events %s not exist at %s', filename, absolutePath);
-            }
-        }
+        this._loadPluginEvents(plugin.events);
     }
 };
 
 /**
- * Application transaction. Transcation includes conditions and handlers, if conditions are satisfied, handlers would be executed.
- * And you can set retry times to execute handlers. The transaction log is in file logs/transaction.log.
+ * 加载插件组件
+ * @private
+ */
+Application._loadPluginComponents = function (componentsPath, opts) {
+    if (!fs.existsSync(componentsPath)) {
+        logger.error(`组件路径不存在: ${componentsPath}`);
+        return;
+    }
+
+    const dir = path.dirname(componentsPath);
+    
+    fs.readdirSync(componentsPath)
+        .filter(filename => JS_FILE_REGEX.test(filename))
+        .forEach(filename => {
+            const name = path.basename(filename, '.js');
+            const param = opts[name] || {};
+            const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
+            
+            try {
+                if (fs.existsSync(absolutePath)) {
+                    this.load(require(absolutePath), param);
+                    logger.debug(`组件已加载: ${name}`);
+                } else {
+                    logger.error(`组件不存在: ${name} at ${absolutePath}`);
+                }
+            } catch (err) {
+                logger.error(`加载组件失败 ${name}: ${err.message}`);
+            }
+        });
+};
+
+/**
+ * 加载插件事件
+ * @private
+ */
+Application._loadPluginEvents = function (eventsPath) {
+    if (!fs.existsSync(eventsPath)) {
+        logger.error(`事件路径不存在: ${eventsPath}`);
+        return;
+    }
+
+    const dir = path.dirname(eventsPath);
+    
+    fs.readdirSync(eventsPath)
+        .filter(filename => JS_FILE_REGEX.test(filename))
+        .forEach(filename => {
+            const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
+            
+            try {
+                if (fs.existsSync(absolutePath)) {
+                    bindEvents(require(absolutePath), this);
+                    logger.debug(`事件已绑定: ${filename}`);
+                } else {
+                    logger.error(`事件文件不存在: ${filename} at ${absolutePath}`);
+                }
+            } catch (err) {
+                logger.error(`绑定事件失败 ${filename}: ${err.message}`);
+            }
+        });
+};
+
+/**
+ * 事务处理，包含条件和处理器，如果条件满足则执行处理器
+ * 可以设置重试次数来执行处理器，事务日志记录在 logs/transaction.log
  *
- * @param {String} name transaction name
- * @param {Object} conditions functions which are called before transaction
- * @param {Object} handlers functions which are called during transaction
- * @param {Number} retry retry times to execute handlers if conditions are successfully executed
- * @memberOf Application
+ * @param {string} name - 事务名称
+ * @param {Object} conditions - 事务前调用的条件函数
+ * @param {Object} handlers - 事务期间调用的处理器函数
+ * @param {number} retry - 条件成功执行后处理器的重试次数
  */
 Application.transaction = (name, conditions, handlers, retry) => {
-    appManager.transaction(name, conditions, handlers, retry);
+    return appManager.transaction(name, conditions, handlers, retry);
 };
 
 /**
- * Get master server info.
- *
- * @return {Object} master server info, {id, host, port}
- * @memberOf Application
+ * 获取主服务器信息
+ * @return {Object} 主服务器信息 {id, host, port}
  */
 Application.getMaster = function () {
     return this.master;
 };
 
 /**
- * Get current server info.
- *
- * @return {Object} current server info, {id, serverType, host, port}
- * @memberOf Application
+ * 获取当前服务器信息
+ * @return {Object} 当前服务器信息 {id, serverType, host, port}
  */
 Application.getCurServer = function () {
     return this.curServer;
 };
 
 /**
- * Get current server id.
- *
- * @return {String|Number} current server id from servers.json
- * @memberOf Application
+ * 获取当前服务器ID
+ * @return {string|number} 来自servers.json的当前服务器ID
  */
 Application.getServerId = function () {
     return this.serverId;
 };
 
 /**
- * Get current server type.
- *
- * @return {String|Number} current server type from servers.json
- * @memberOf Application
+ * 获取当前服务器类型
+ * @return {string} 来自servers.json的当前服务器类型
  */
 Application.getServerType = function () {
     return this.serverType;
 };
 
 /**
- * Get all the current server infos.
- *
- * @return {Object} server info map, key: server id, value: server info
- * @memberOf Application
+ * 获取所有当前服务器信息
+ * @return {Object} 服务器信息映射，键：服务器ID，值：服务器信息
  */
 Application.getServers = function () {
     return this.servers;
 };
 
 /**
- * Get all server infos from servers.json.
- *
- * @return {Object} server info map, key: server id, value: server info
- * @memberOf Application
+ * 从servers.json获取所有服务器信息
+ * @return {Object} 服务器信息映射，键：服务器ID，值：服务器信息
  */
 Application.getServersFromConfig = function () {
     return this.get(Constants.KEYWORDS.SERVER_MAP);
 };
 
 /**
- * Get all the server type.
- *
- * @return {Array} server type list
- * @memberOf Application
+ * 获取所有服务器类型
+ * @return {Array} 服务器类型列表
  */
 Application.getServerTypes = function () {
     return this.serverTypes;
 };
 
 /**
- * Get server info by server id from current server cluster.
- *
- * @param  {String} serverId server id
- * @return {Object} server info or undefined
- * @memberOf Application
+ * 根据服务器ID从当前服务器集群获取服务器信息
+ * @param {string} serverId - 服务器ID
+ * @return {Object|undefined} 服务器信息或undefined
  */
 Application.getServerById = function (serverId) {
     return this.servers[serverId];
 };
 
 /**
- * Get server info by server id from servers.json.
- *
- * @param  {String} serverId server id
- * @return {Object} server info or undefined
- * @memberOf Application
+ * 根据服务器ID从servers.json获取服务器信息
+ * @param {string} serverId - 服务器ID
+ * @return {Object|undefined} 服务器信息或undefined
  */
-
 Application.getServerFromConfig = function (serverId) {
     return this.get(Constants.KEYWORDS.SERVER_MAP)[serverId];
 };
 
 /**
- * Get server infos by server type.
- *
- * @param  {String} serverType server type
- * @return {Array}      server info list
- * @memberOf Application
+ * 根据服务器类型获取服务器信息列表
+ * @param {string} serverType - 服务器类型
+ * @return {Array} 服务器信息列表
  */
 Application.getServersByType = function (serverType) {
-    return this.serverTypeMaps[serverType];
+    return this.serverTypeMaps[serverType] || [];
 };
 
 /**
- * Check the server whether is a frontend server
- *
- * @param  {server}  server server info. it would check current server
- *            if server not specified
- * @return {Boolean}
- *
- * @memberOf Application
+ * 检查服务器是否为前端服务器
+ * @param {Object} server - 服务器信息，未指定时检查当前服务器
+ * @return {boolean} 是否为前端服务器
  */
 Application.isFrontend = function (server) {
     const currentServer = server || this.getCurServer();
@@ -807,12 +733,9 @@ Application.isFrontend = function (server) {
 };
 
 /**
- * Check the server whether is a backend server
- *
- * @param  {server}  server server info. it would check current server
- *            if server not specified
- * @return {Boolean}
- * @memberOf Application
+ * 检查服务器是否为后端服务器
+ * @param {Object} server - 服务器信息，未指定时检查当前服务器
+ * @return {boolean} 是否为后端服务器
  */
 Application.isBackend = function (server) {
     const currentServer = server || this.getCurServer();
@@ -820,40 +743,35 @@ Application.isBackend = function (server) {
 };
 
 /**
- * Check whether current server is a master server
- *
- * @return {Boolean}
- * @memberOf Application
+ * 检查当前服务器是否为主服务器
+ * @return {boolean} 是否为主服务器
  */
 Application.isMaster = function () {
     return this.serverType === Constants.RESERVED.MASTER;
 };
 
 /**
- * Add new server info to current application in runtime.
- *
- * @param {Array} servers new server info list
- * @memberOf Application
+ * 运行时向当前应用添加新服务器信息
+ * @param {Array} servers - 新服务器信息列表
  */
 Application.addServers = function (servers) {
     if (!servers?.length) {
         return;
     }
 
-    let _item, _slist;
     // 使用现代数组方法优化循环
     for (const server of servers) {
-        // update global server map
+        // 更新全局服务器映射
         this.servers[server.id] = server;
 
-        // update global server type map
+        // 更新全局服务器类型映射
         let slist = this.serverTypeMaps[server.serverType];
         if (!slist) {
             this.serverTypeMaps[server.serverType] = slist = [];
         }
         replaceServer(slist, server);
 
-        // update global server type list
+        // 更新全局服务器类型列表
         if (!this.serverTypes.includes(server.serverType)) {
             this.serverTypes.push(server.serverType);
         }
@@ -862,10 +780,8 @@ Application.addServers = function (servers) {
 };
 
 /**
- * Remove server info from current application at runtime.
- *
- * @param  {Array} ids server id list
- * @memberOf Application
+ * 运行时从当前应用移除服务器信息
+ * @param {Array} ids - 服务器ID列表
  */
 Application.removeServers = function (ids) {
     if (!ids?.length) {
@@ -879,20 +795,18 @@ Application.removeServers = function (ids) {
             continue;
         }
 
-        // clean global server map
+        // 清理全局服务器映射
         delete this.servers[id];
 
-        // clean global server type map
+        // 清理全局服务器类型映射
         removeServer(this.serverTypeMaps[item.serverType], id);
     }
     this.event.emit(events.REMOVE_SERVERS, ids);
 };
 
 /**
- * Replace server info from current application at runtime.
- *
- * @param  {Object} server id map
- * @memberOf Application
+ * 运行时替换当前应用的服务器信息
+ * @param {Object} servers - 服务器ID映射
  */
 Application.replaceServers = function (servers) {
     if (!servers) {
@@ -903,6 +817,7 @@ Application.replaceServers = function (servers) {
     this.serverTypeMaps = {};
     this.serverTypes = [];
     const serverArray = [];
+    
     for (const id in servers) {
         if (!Object.hasOwn(servers, id)) {
             continue;
@@ -914,8 +829,9 @@ Application.replaceServers = function (servers) {
             this.serverTypeMaps[serverType] = slist = [];
         }
         this.serverTypeMaps[serverType].push(server);
-        // update global server type list
-        if (this.serverTypes.indexOf(serverType) < 0) {
+        
+        // 更新全局服务器类型列表
+        if (!this.serverTypes.includes(serverType)) {
             this.serverTypes.push(serverType);
         }
         serverArray.push(server);
@@ -924,76 +840,95 @@ Application.replaceServers = function (servers) {
 };
 
 /**
- * Add crons from current application at runtime.
- *
- * @param  {Array} crons new crons would be added in application
- * @memberOf Application
+ * 运行时向当前应用添加定时任务
+ * @param {Array} crons - 要添加的定时任务列表
  */
 Application.addCrons = function (crons) {
     if (!crons?.length) {
-        logger.warn('crons is not defined.');
+        logger.warn('定时任务列表为空');
         return;
     }
     this.event.emit(events.ADD_CRONS, crons);
+    logger.info(`已添加 ${crons.length} 个定时任务`);
 };
 
 /**
- * Remove crons from current application at runtime.
- *
- * @param  {Array} crons old crons would be removed in application
- * @memberOf Application
+ * 运行时从当前应用移除定时任务
+ * @param {Array} crons - 要移除的定时任务列表
  */
 Application.removeCrons = function (crons) {
     if (!crons?.length) {
-        logger.warn('ids is not defined.');
+        logger.warn('定时任务列表为空');
         return;
     }
     this.event.emit(events.REMOVE_CRONS, crons);
+    logger.info(`已移除 ${crons.length} 个定时任务`);
 };
 
-function replaceServer(slist, serverInfo) {
-    const existingIndex = slist.findIndex(s => s.id === serverInfo.id);
-    if (existingIndex !== -1) {
-        slist[existingIndex] = serverInfo;
+/**
+ * 替换服务器列表中的服务器信息
+ * @private
+ */
+function replaceServer(serverList, serverInfo) {
+    const index = serverList.findIndex(server => server.id === serverInfo.id);
+    if (index !== -1) {
+        serverList[index] = serverInfo;
     } else {
-        slist.push(serverInfo);
+        serverList.push(serverInfo);
     }
 }
 
-function removeServer(slist, id) {
-    if (!slist?.length) {
+/**
+ * 从服务器列表中移除指定服务器
+ * @private
+ */
+function removeServer(serverList, id) {
+    if (!serverList?.length) {
         return;
     }
-
-    const index = slist.findIndex(s => s.id === id);
+    const index = serverList.findIndex(server => server.id === id);
     if (index !== -1) {
-        slist.splice(index, 1);
+        serverList.splice(index, 1);
     }
 }
 
+/**
+ * 检查字符串是否包含在设置中
+ * @private
+ */
 function containsValue(str, settings) {
     if (!settings) {
         return false;
     }
 
-    const ts = settings.split('|');
-    for (let i = 0, l = ts.length; i < l; i++) {
-        if (str === ts[i]) {
-            return true;
-        }
+    if (typeof settings === 'string') {
+        return settings.split('|').includes(str);
     }
+
+    if (Array.isArray(settings)) {
+        return settings.includes(str);
+    }
+
     return false;
 }
 
-function bindEvents(Event, app) {
-    const emethods = new Event(app);
-    for (const m in emethods) {
-        if (typeof emethods[m] === 'function') {
-            app.event.on(m, emethods[m].bind(emethods));
+/**
+ * 绑定事件处理器
+ * @private
+ */
+function bindEvents(EventClass, app) {
+    const eventMethods = new EventClass(app);
+    Object.keys(eventMethods).forEach(methodName => {
+        if (typeof eventMethods[methodName] === 'function') {
+            app.event.on(methodName, eventMethods[methodName].bind(eventMethods));
         }
-    }
+    });
 }
 
+/**
+ * 添加过滤器
+ * @private
+ */
 function addFilter(app, type, filter) {
     let filters = app.get(type);
     if (!filters) {
