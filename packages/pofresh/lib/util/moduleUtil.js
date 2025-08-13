@@ -51,13 +51,17 @@ function loadModules(self, consoleService) {
  * @param {Array} modules - Array of modules to start
  * @param {function} callback - Completion callback
  */
-function startModules(modules, callback) {
+async function startModules(modules, callback) {
     if (!modules) {
         utils.invokeCallback(callback, null);
         return;
     }
 
-    startModule(null, modules, 0, callback);
+    try {
+        await startModule(null, modules, 0, callback);
+    } catch (error) {
+        utils.invokeCallback(callback, error);
+    }
 }
 
 /**

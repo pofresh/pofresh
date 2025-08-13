@@ -153,14 +153,26 @@ function unicodeToUtf8(str) {
  * @param {string} host - Host to ping
  * @param {function} callback - Callback function
  */
-function ping(host, callback) {
+async function ping(host, callback) {
     if (isLocal(host)) {
         invokeCallback(callback, true);
-    } else {
+        return;
+    }
+
+    try {
         const cmd = `ping -w 15 ${host}`;
-        exec(cmd, (err, _stdout, _stderr) => {
-            invokeCallback(callback, !err);
+        await new Promise((resolve, reject) => {
+            exec(cmd, (err, _stdout, _stderr) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
+        invokeCallback(callback, true);
+    } catch (_error) {
+        invokeCallback(callback, false);
     }
 }
 
@@ -169,7 +181,7 @@ function ping(host, callback) {
  * @param {Object} server - Server configuration object
  * @param {function} callback - Callback function
  */
-function checkPort(server, callback) {
+async function checkPort(server, callback) {
     if (!(server.port || server.clientPort) || os.platform() === 'win32') {
         invokeCallback(callback, 'leisure');
         return;
@@ -178,27 +190,28 @@ function checkPort(server, callback) {
     const port = server.port || server.clientPort;
     const host = server.host;
 
-    checkPortInternal(port, host, result => {
+    try {
+        const result = await checkPortInternal(port, host);
         invokeCallback(callback, result);
-    });
+    } catch (_error) {
+        invokeCallback(callback, 'error');
+    }
 }
 
 /**
  * Internal function to check port availability
  * @private
  */
-async function checkPortInternal(port, host, callback) {
+async function checkPortInternal(port, host) {
     if (!port) {
-        invokeCallback(callback, 'leisure');
-        return;
+        return 'leisure';
     }
 
     // Validate port range
     const portNum = Number.parseInt(port, 10);
     if (Number.isNaN(portNum) || portNum < 1 || portNum > 65_535) {
         LOG.error('Invalid port number: %s', port);
-        invokeCallback(callback, 'error');
-        return;
+        throw new Error('Invalid port number');
     }
 
     if (isLocal(host)) {
@@ -206,7 +219,7 @@ async function checkPortInternal(port, host, callback) {
         const net = require('net');
         const timeout = 2000;
 
-        const check = new Promise(resolve => {
+        const check = new Promise((resolve, _reject) => {
             const socket = new net.Socket();
 
             socket.setTimeout(timeout);
@@ -226,56 +239,50 @@ async function checkPortInternal(port, host, callback) {
             socket.connect(portNum, '127.0.0.1');
         });
 
-        try {
-            const result = await check;
-            invokeCallback(callback, result);
-        } catch (_error) {
-            invokeCallback(callback, 'leisure');
-        }
-    } else {
-        // Remote port check - use SSH connection
-        const { spawn } = require('child_process');
-        const sshParams = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS) || [];
+        return await check;
+    }
+    // Remote port check - use SSH connection
+    const { spawn } = require('child_process');
+    const sshParams = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS) || [];
 
-        // Validate SSH parameters for security
-        const validParams = sshParams.filter(param => typeof param === 'string' && SSH_PARAM_REGEX.test(param));
+    // Validate SSH parameters for security
+    const validParams = sshParams.filter(param => typeof param === 'string' && SSH_PARAM_REGEX.test(param));
 
-        const args = [...validParams, host, 'nc', '-z', host, portNum.toString()];
+    const args = [...validParams, host, 'nc', '-z', host, portNum.toString()];
 
-        try {
-            const child = spawn('ssh', args, {
-                stdio: 'pipe',
-                timeout: 5000
+    try {
+        const child = spawn('ssh', args, {
+            stdio: 'pipe',
+            timeout: 5000
+        });
+
+        let hasError = false;
+        child.stderr.on('data', data => {
+            hasError = true;
+            LOG.warn('SSH port check warning: %s', data.toString().trim());
+        });
+
+        const result = await new Promise((resolve, _reject) => {
+            child.on('close', code => {
+                if (hasError) {
+                    _reject(new Error('SSH error'));
+                } else if (code === 0) {
+                    resolve('busy');
+                } else {
+                    resolve('leisure');
+                }
             });
 
-            let hasError = false;
-            child.stderr.on('data', data => {
-                hasError = true;
-                LOG.warn('SSH port check warning: %s', data.toString().trim());
+            child.on('error', err => {
+                LOG.error('SSH port check error: %s', err.message);
+                _reject(err);
             });
+        });
 
-            const result = await new Promise((resolve, reject) => {
-                child.on('close', code => {
-                    if (hasError) {
-                        reject(new Error('SSH error'));
-                    } else if (code === 0) {
-                        resolve('busy');
-                    } else {
-                        resolve('leisure');
-                    }
-                });
-
-                child.on('error', err => {
-                    LOG.error('SSH port check error: %s', err.message);
-                    reject(err);
-                });
-            });
-
-            invokeCallback(callback, result);
-        } catch (err) {
-            LOG.error('Failed to spawn SSH process: %s', err.message);
-            invokeCallback(callback, 'error');
-        }
+        return result;
+    } catch (err) {
+        LOG.error('Failed to spawn SSH process: %s', err.message);
+        throw err;
     }
 }
 

@@ -30,18 +30,16 @@ function defaultConfiguration(app) {
  * Start servers by type
  * @param {Object} app - Application instance
  * @param {string} serverType - Server type to start
- * @param {function} callback - Completion callback
  */
-function startServersByType(app, serverType, callback) {
+async function startServersByType(app, serverType) {
     const serverMap = app.get(Constants.KEYWORDS.SERVER_MAP);
     const servers = Object.values(serverMap).filter(server => server.serverType === serverType);
 
     if (!servers.length) {
-        utils.invokeCallback(callback);
         return;
     }
 
-    startServers(servers, 0, callback);
+    await startServers(servers, 0);
 }
 
 /**
@@ -50,7 +48,7 @@ function startServersByType(app, serverType, callback) {
  * @param {string} serverType - Server type to stop
  * @param {function} callback - Completion callback
  */
-function stopServersByType(app, serverType, callback) {
+async function stopServersByType(app, serverType, callback) {
     const serverMap = app.get(Constants.KEYWORDS.SERVER_MAP);
     const servers = Object.values(serverMap).filter(server => server.serverType === serverType);
 
@@ -59,7 +57,7 @@ function stopServersByType(app, serverType, callback) {
         return;
     }
 
-    stopServers(servers, 0, callback);
+    await stopServers(servers, 0, callback);
 }
 
 /**
@@ -176,44 +174,56 @@ function configLogger(app) {
  * Start servers sequentially
  * @private
  */
-function startServers(servers, index, callback) {
+async function startServers(servers, index) {
     if (index >= servers.length) {
-        utils.invokeCallback(callback);
         return;
     }
 
     const server = servers[index];
-    starter.startServer(server, error => {
-        if (error) {
-            LOG.error('Failed to start server %s: %s', server.id, error.message);
-        } else {
-            LOG.info('Server %s started successfully', server.id);
-        }
-
-        startServers(servers, index + 1, callback);
-    });
+    try {
+        await new Promise((resolve, reject) => {
+            starter.startServer(server, error => {
+                if (error) {
+                    LOG.error('Failed to start server %s: %s', server.id, error.message);
+                    reject(error);
+                } else {
+                    LOG.info('Server %s started successfully', server.id);
+                    resolve();
+                }
+            });
+        });
+        await startServers(servers, index + 1);
+    } catch (error) {
+        throw error;
+    }
 }
 
 /**
  * Stop servers sequentially
  * @private
  */
-function stopServers(servers, index, callback) {
+async function stopServers(servers, index) {
     if (index >= servers.length) {
-        utils.invokeCallback(callback);
         return;
     }
 
     const server = servers[index];
-    starter.stopServer(server, error => {
-        if (error) {
-            LOG.error('Failed to stop server %s: %s', server.id, error.message);
-        } else {
-            LOG.info('Server %s stopped successfully', server.id);
-        }
-
-        stopServers(servers, index + 1, callback);
-    });
+    try {
+        await new Promise((resolve, reject) => {
+            starter.stopServer(server, error => {
+                if (error) {
+                    LOG.error('Failed to stop server %s: %s', server.id, error.message);
+                    reject(error);
+                } else {
+                    LOG.info('Server %s stopped successfully', server.id);
+                    resolve();
+                }
+            });
+        });
+        await stopServers(servers, index + 1);
+    } catch (error) {
+        throw error;
+    }
 }
 
 module.exports = {
