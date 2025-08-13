@@ -148,7 +148,7 @@ describe('utils test', () => {
         });
     });
 
-    describe('#extends', () => {
+    describe('#extend', () => {
         it('should extends opts', () => {
             const opts = {
                 test: 123
@@ -156,7 +156,7 @@ describe('utils test', () => {
             const add = {
                 aaa: 555
             };
-            const result = utils.extends(opts, add);
+            const result = utils.extend(opts, add);
             expect(result).toEqual({
                 test: 123,
                 aaa: 555

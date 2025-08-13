@@ -19,10 +19,10 @@ const JS_FILE_REGEX = /\.js$/;
 
 // 应用状态枚举
 const AppState = {
-    INITED: 1,   // 应用已初始化
-    START: 2,    // 应用启动中
-    STARTED: 3,  // 应用已启动
-    STOPPED: 4   // 应用已停止
+    INITED: 1, // 应用已初始化
+    START: 2, // 应用启动中
+    STARTED: 3, // 应用已启动
+    STOPPED: 4 // 应用已停止
 };
 
 /**
@@ -39,14 +39,14 @@ const Application = {};
  */
 Application.init = function (opts = {}) {
     // 组件管理
-    this.loaded = [];        // 已加载的组件列表
-    this.components = {};    // 组件名称到组件实例的映射
-    this.settings = {};      // 应用设置存储
-    
+    this.loaded = []; // 已加载的组件列表
+    this.components = {}; // 组件名称到组件实例的映射
+    this.settings = {}; // 应用设置存储
+
     // 设置基础路径
     const base = opts.base || path.dirname(require.main.filename);
     this.set(Constants.RESERVED.BASE, base, true);
-    
+
     // 事件系统
     this.event = new EventEmitter();
 
@@ -85,21 +85,27 @@ Application.getBase = function () {
  * @param {*} val - 配置值（可选）
  * @param {boolean} attach - 是否将配置附加到应用实例上
  * @return {*} 链式调用返回this，获取时返回配置值
- * 
+ *
  * @example
  * app.set('key1', 'value1');
  * app.get('key1');  // 'value1'
- * 
+ *
  * app.set('key2', 'value2', true);
  * app.key2;         // 'value2'
  */
 Application.set = function (setting, val, attach = false) {
-    if (setting === undefined) return this;
-    if (val === undefined) return this.settings[setting];
+    if (setting === undefined) {
+        return this;
+    }
+    if (val === undefined) {
+        return this.settings[setting];
+    }
 
     this.settings[setting] = val;
-    if (attach) this[setting] = val;
-    
+    if (attach) {
+        this[setting] = val;
+    }
+
     return this;
 };
 
@@ -160,8 +166,10 @@ Application.require = ph => require(path.join(Application.getBase(), ph));
  * @param {Object} jsLogger - pofresh-logger实例
  */
 Application.configureLogger = function (jsLogger) {
-    if (process.env.pofresh_LOGGER === 'off') return;
-    
+    if (process.env.pofresh_LOGGER === 'off') {
+        return;
+    }
+
     const base = this.getBase();
     const env = this.get(Constants.RESERVED.ENV);
     const originPath = path.join(base, Constants.FILEPATH.LOG);
@@ -286,7 +294,7 @@ Application.load = function (name, component, opts) {
 
     // 添加到已加载列表
     this.loaded.push(component);
-    
+
     // 如果有名称，添加到组件映射
     if (name) {
         this.components[name] = component;
@@ -305,10 +313,10 @@ Application.loadConfigBaseApp = function (key, val, reload = false) {
     const env = this.get(Constants.RESERVED.ENV);
     const originPath = path.join(Application.getBase(), val);
     const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
-    
+
     let realPath;
     let config;
-    
+
     if (fs.existsSync(originPath)) {
         realPath = originPath;
         const file = require(originPath);
@@ -351,7 +359,7 @@ Application.loadConfig = function (key, val) {
  * @param {string} serverType - 服务器类型
  * @param {Function} routeFunc - 路由函数 routeFunc(session, msg, app, cb)
  * @return {Application} 链式调用
- * 
+ *
  * @example
  * app.route('area', (session, msg, app, cb) => {
  *   const areas = app.getServersByType('area');
@@ -374,15 +382,15 @@ Application.route = function (serverType, routeFunc) {
  */
 Application.start = function (cb) {
     this.startTime = Date.now();
-    
+
     if (this.state > AppState.INITED) {
         utils.invokeCallback(cb, new Error('应用程序已经启动'));
         return;
     }
-    
+
     appUtil.startByType(this, () => {
         appUtil.loadDefaultComponents(this);
-        
+
         const startUp = () => {
             appUtil.optComponents(this.loaded, Constants.RESERVED.START, err => {
                 this.state = AppState.START;
@@ -394,7 +402,7 @@ Application.start = function (cb) {
                 }
             });
         };
-        
+
         const beforeFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
         if (beforeFun) {
             beforeFun.call(null, this, startUp);
@@ -415,15 +423,15 @@ Application.afterStart = function (cb) {
     }
 
     const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
-    
+
     appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, err => {
         this.state = AppState.STARTED;
         const id = this.getServerId();
-        
+
         if (!err) {
             logger.info(`${id} 启动完成`);
         }
-        
+
         if (afterFun) {
             afterFun.call(null, this, () => {
                 utils.invokeCallback(cb, err);
@@ -431,7 +439,7 @@ Application.afterStart = function (cb) {
         } else {
             utils.invokeCallback(cb, err);
         }
-        
+
         const usedTime = Date.now() - this.startTime;
         logger.info(`${id} 启动耗时 ${usedTime} ms`);
         this.event.emit(events.START_SERVER, id);
@@ -448,7 +456,7 @@ Application.stop = function (force, cb) {
         utils.invokeCallback(cb, new Error('应用程序当前未运行'));
         return;
     }
-    
+
     this.state = AppState.STOPED;
 
     // 设置超时强制退出
@@ -467,11 +475,11 @@ Application.stop = function (force, cb) {
             utils.invokeCallback(cb);
         });
     };
-    
+
     // 执行关闭钩子
     const shutDownHook = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
     const stopServiceHook = this.get(Constants.RESERVED.STOP_SERVICE_HOOK);
-    
+
     if (shutDownHook) {
         shutDownHook.call(this, this, shutDown, shutDown);
     } else if (stopServiceHook) {
@@ -485,16 +493,16 @@ Application.stop = function (force, cb) {
  * 配置指定环境和服务器类型的回调
  * @param {...*} args - 参数列表：[env], [type], callback
  * @return {Application} 链式调用
- * 
+ *
  * @example
  * app.configure(() => {
  *   // 所有环境和服务器类型都执行
  * });
- * 
+ *
  * app.configure('development', () => {
  *   // 仅开发环境执行
  * });
- * 
+ *
  * app.configure('development', 'connector', () => {
  *   // 开发环境的connector服务器类型执行
  * });
@@ -540,7 +548,7 @@ Application.registerAdmin = function (moduleId, module, opts) {
         module,
         opts
     };
-    
+
     logger.info(`管理模块已注册: ${moduleId}`);
 };
 
@@ -557,7 +565,7 @@ Application.use = function (plugin, opts = {}) {
 
     // 加载组件
     this._loadPluginComponents(plugin.components, opts);
-    
+
     // 加载事件
     if (plugin.events) {
         this._loadPluginEvents(plugin.events);
@@ -575,14 +583,14 @@ Application._loadPluginComponents = function (componentsPath, opts) {
     }
 
     const dir = path.dirname(componentsPath);
-    
+
     fs.readdirSync(componentsPath)
         .filter(filename => JS_FILE_REGEX.test(filename))
         .forEach(filename => {
             const name = path.basename(filename, '.js');
             const param = opts[name] || {};
             const absolutePath = path.join(dir, Constants.DIR.COMPONENT, filename);
-            
+
             try {
                 if (fs.existsSync(absolutePath)) {
                     this.load(require(absolutePath), param);
@@ -607,12 +615,12 @@ Application._loadPluginEvents = function (eventsPath) {
     }
 
     const dir = path.dirname(eventsPath);
-    
+
     fs.readdirSync(eventsPath)
         .filter(filename => JS_FILE_REGEX.test(filename))
         .forEach(filename => {
             const absolutePath = path.join(dir, Constants.DIR.EVENT, filename);
-            
+
             try {
                 if (fs.existsSync(absolutePath)) {
                     bindEvents(require(absolutePath), this);
@@ -817,7 +825,7 @@ Application.replaceServers = function (servers) {
     this.serverTypeMaps = {};
     this.serverTypes = [];
     const serverArray = [];
-    
+
     for (const id in servers) {
         if (!Object.hasOwn(servers, id)) {
             continue;
@@ -829,7 +837,7 @@ Application.replaceServers = function (servers) {
             this.serverTypeMaps[serverType] = slist = [];
         }
         this.serverTypeMaps[serverType].push(server);
-        
+
         // 更新全局服务器类型列表
         if (!this.serverTypes.includes(serverType)) {
             this.serverTypes.push(serverType);

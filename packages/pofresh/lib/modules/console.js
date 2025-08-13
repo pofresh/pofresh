@@ -224,7 +224,7 @@ function restart(app, agent, msg, cb) {
         for (const id of successIds) {
             agent.request(id, Constants.KEYWORDS.MONITOR_WATCHER, { action: 'startOver' }, () => {
                 // console.log('startOver', id)
-            })
+            });
         }
     });
 

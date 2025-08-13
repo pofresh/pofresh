@@ -1,26 +1,29 @@
-const { table, getBorderCharacters } = require('table');
 const chalk = require('chalk');
+const { getBorderCharacters, table } = require('table');
 
 const config = {
     border: getBorderCharacters('void'),
     drawHorizontalLine: () => false
 };
 
-const exp = module.exports;
-
 /**
- * Outputs the specified `rows` as fixed-width columns, adding
- *
- * @rows {Array} Matrix of properties to output in row major form
- * @colors {Array} Set of colors to use for the headers
- * @return {String}
+ * Outputs the specified `rows` as fixed-width columns, adding colors to headers
+ * @param {Array} rows - Matrix of properties to output in row major form
+ * @param {Array} colors - Set of colors to use for the headers
+ * @returns {string} Formatted table string
  */
-exp.stringifyRows = (rows, colors = []) => {
-    if (!(rows?.length && rows[0].length)) {
+function stringifyRows(rows = [], colors = []) {
+    if (!(rows?.length && rows[0]?.length)) {
         return '';
     }
-    rows[0].forEach((header, index) => {
-        rows[0][index] = colors[index] ? chalk[colors[index]](header) : header;
-    });
-    return table(rows, config);
+
+    const headerRow = rows[0].map((header, index) => (colors[index] ? chalk[colors[index]](header) : header));
+
+    const formattedRows = [headerRow, ...rows.slice(1)];
+
+    return table(formattedRows, config);
+}
+
+module.exports = {
+    stringifyRows
 };
