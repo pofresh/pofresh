@@ -1,98 +1,146 @@
 const os = require('os');
 const admin = require('pofresh-admin');
-const utils = require('./utils');
-const Constants = require('./constants');
-const pathUtil = require('./pathUtil');
-const starter = require('../master/starter');
-const logger = require('pofresh-logger').getLogger('pofresh', __filename);
-const pro = module.exports;
+const utils = require('./utils.js');
+const Constants = require('./constants.js');
+const pathUtil = require('./pathUtil.js');
+const starter = require('../master/starter.js');
+const logger = require('pofresh-logger').getLogger('pofresh', 'moduleUtil.js');
 
 /**
- * Load admin modules
+ * Module utilities for loading and managing admin modules
  */
-pro.loadModules = (self, consoleService) => {
-    // load app register modules
+
+/**
+ * Load admin modules into the console service
+ * @param {Object} self - Self context
+ * @param {Object} consoleService - Console service instance
+ * @throws {Error} If module loading fails
+ */
+function loadModules(self, consoleService) {
+    // Load app register modules
     const _modules = self.app.get(Constants.KEYWORDS.MODULE);
 
     if (!_modules) {
         return;
     }
 
-    const modules = [];
-    for (const m in _modules) {
-        modules.push(_modules[m]);
-    }
+    const modules = Object.values(_modules);
 
-    let record, moduleId, module;
-    for (let i = 0, l = modules.length; i < l; i++) {
-        record = modules[i];
-        if (typeof record.module === 'function') {
-            module = record.module(record.opts, consoleService);
-        } else {
-            module = record.module;
+    modules.forEach((record, index) => {
+        try {
+            const moduleId = record.moduleId || record.module?.moduleId;
+            const module =
+                typeof record.module === 'function' ? record.module(record.opts, consoleService) : record.module;
+
+            if (!moduleId) {
+                logger.warn('Ignoring module at index %d: missing moduleId', index);
+                return;
+            }
+
+            consoleService.register(moduleId, module);
+            self.modules.push(module);
+        } catch (error) {
+            logger.error('Failed to load module at index %d:', index, error);
+            throw error;
         }
-
-        moduleId = record.moduleId || module.moduleId;
-
-        if (!moduleId) {
-            logger.warn('ignore an unknown module.');
-            continue;
-        }
-        consoleService.register(moduleId, module);
-        self.modules.push(module);
-    }
-};
-
-pro.startModules = (modules, cb) => {
-    // invoke the start lifecycle method of modules
-
-    if (!modules) {
-        return;
-    }
-    startModule(null, modules, 0, cb);
-};
+    });
+}
 
 /**
- * Append the default system admin modules
+ * Start modules by invoking their start lifecycle methods
+ * @param {Array} modules - Array of modules to start
+ * @param {function} callback - Completion callback
  */
-pro.registerDefaultModules = (isMaster, app, closeWatcher) => {
-    if (!closeWatcher) {
-        if (isMaster) {
-            app.registerAdmin(require('../modules/masterwatcher'), { app });
-        } else {
-            app.registerAdmin(require('../modules/monitorwatcher'), { app });
-        }
+async function startModules(modules, callback) {
+    if (!modules) {
+        utils.invokeCallback(callback, null);
+        return;
     }
-    app.registerAdmin(admin.modules.watchServer, { app });
-    app.registerAdmin(require('../modules/console'), { app, starter });
-    if (app.enabled('systemMonitor')) {
-        if (os.platform() !== Constants.PLATFORM.WIN) {
-            app.registerAdmin(admin.modules.systemInfo);
-            app.registerAdmin(admin.modules.nodeInfo);
-            app.registerAdmin(admin.modules.profiler);
-        }
-        app.registerAdmin(admin.modules.monitorLog, {
-            path: pathUtil.getLogPath(app.getBase())
-        });
-        app.registerAdmin(admin.modules.scripts, {
-            app,
-            path: pathUtil.getScriptPath(app.getBase())
-        });
-    }
-};
 
-function startModule(err, modules, index, cb) {
+    try {
+        await startModule(null, modules, 0, callback);
+    } catch (error) {
+        utils.invokeCallback(callback, error);
+    }
+}
+
+/**
+ * Register default system admin modules
+ * @param {boolean} isMaster - Whether this is a master server
+ * @param {Object} app - Application instance
+ * @param {boolean} closeWatcher - Whether to close watcher
+ */
+function registerDefaultModules(isMaster, app, closeWatcher = false) {
+    try {
+        if (!closeWatcher) {
+            if (isMaster) {
+                app.registerAdmin(require('../modules/masterwatcher.js'), { app });
+            } else {
+                app.registerAdmin(require('../modules/monitorwatcher.js'), { app });
+            }
+        }
+
+        app.registerAdmin(admin.modules.watchServer, { app });
+        app.registerAdmin(require('../modules/console.js'), { app, starter });
+
+        if (app.enabled('systemMonitor')) {
+            if (os.platform() !== Constants.PLATFORM.WIN) {
+                app.registerAdmin(admin.modules.systemInfo);
+                app.registerAdmin(admin.modules.nodeInfo);
+                app.registerAdmin(admin.modules.profiler);
+            }
+
+            app.registerAdmin(admin.modules.monitorLog, {
+                path: pathUtil.getLogPath(app.getBase())
+            });
+
+            app.registerAdmin(admin.modules.scripts, {
+                app,
+                path: pathUtil.getScriptPath(app.getBase())
+            });
+        }
+    } catch (error) {
+        logger.error('Failed to register default modules:', error);
+        throw error;
+    }
+}
+
+/**
+ * Internal function to start modules recursively
+ * @private
+ */
+async function startModule(err, modules, index, callback) {
     if (err || index >= modules.length) {
-        utils.invokeCallback(cb, err);
+        utils.invokeCallback(callback, err);
         return;
     }
 
     const module = modules[index];
     if (module && typeof module.start === 'function') {
-        module.start(err => {
-            startModule(err, modules, index + 1, cb);
-        });
+        try {
+            await new Promise((resolve, reject) => {
+                module.start(error => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+
+            startModule(null, modules, index + 1, callback);
+        } catch (error) {
+            logger.error('Failed to start module at index %d:', index, error);
+            startModule(error, modules, index + 1, callback);
+        }
     } else {
-        startModule(err, modules, index + 1, cb);
+        startModule(null, modules, index + 1, callback);
     }
 }
+
+module.exports = {
+    loadModules,
+    startModules,
+    registerDefaultModules,
+    startModule
+};

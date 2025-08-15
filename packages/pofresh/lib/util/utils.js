@@ -1,258 +1,344 @@
+const { exec } = require('child_process');
 const os = require('os');
-const _util = require('util');
-const exec = require('child_process').exec;
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
-const Constants = require('./constants');
-const pofresh = require('../pofresh');
+const pofresh = require('../pofresh.js');
+const Constants = require('./constants.js');
 
-const utils = module.exports;
+const LOG = logger;
+const CHINESE_CHAR_REGEX = /[\u4e00-\u9fa5]/;
+const SSH_PARAM_REGEX = /^[a-zA-Z0-9=-]+$/;
+const DATE_FORMAT_REGEX = /yyyy|MM|dd|hh|mm|ss|SSS|q/g;
 
 /**
- * Invoke callback with check
+ * General utility functions for the Pofresh framework
+ * Provides common helper functions for callback handling, data manipulation,
+ * networking, and system operations
  */
-utils.invokeCallback = (cb, ...args) => {
+
+/**
+ * Invoke callback with arguments, checking if callback is a function
+ * @param {function} cb - Callback function
+ * @param {...*} args - Arguments to pass to callback
+ */
+function invokeCallback(cb, ...args) {
     if (typeof cb === 'function') {
         cb(...args);
     }
-};
+}
 
 /**
- * Get the count of elements of object
+ * Get the count of own properties (excluding functions) in an object
+ * @param {Object} obj - Object to count properties of
+ * @returns {number} Count of properties
  */
-utils.size = obj => {
+function size(obj) {
+    if (!obj || typeof obj !== 'object') {
+        return 0;
+    }
+
     let count = 0;
-    for (const i in obj) {
-        if (Object.hasOwn(obj, i) && typeof obj[i] !== 'function') {
+    for (const key in obj) {
+        if (Object.hasOwn(obj, key) && typeof obj[key] !== 'function') {
             count++;
         }
     }
     return count;
-};
+}
 
 /**
- * Check a string whether ends with another string
+ * Check if a string ends with a suffix
+ * @param {string} str - String to check
+ * @param {string} suffix - Suffix to look for
+ * @returns {boolean} True if string ends with suffix
  */
-utils.endsWith = (str, suffix) => typeof str === 'string' && typeof suffix === 'string' && str.endsWith(suffix);
+function endsWith(str, suffix) {
+    return (
+        typeof str === 'string' &&
+        typeof suffix === 'string' &&
+        str.length >= suffix.length &&
+        str.slice(-suffix.length) === suffix
+    );
+}
 
 /**
- * Check a string whether starts with another string
+ * Check if a string starts with a prefix
+ * @param {string} str - String to check
+ * @param {string} prefix - Prefix to look for
+ * @returns {boolean} True if string starts with prefix
  */
-utils.startsWith = (str, prefix) => typeof str === 'string' && typeof prefix === 'string' && str.startsWith(prefix);
+function startsWith(str, prefix) {
+    return (
+        typeof str === 'string' &&
+        typeof prefix === 'string' &&
+        str.length >= prefix.length &&
+        str.slice(0, prefix.length) === prefix
+    );
+}
 
 /**
- * Compare the two arrays and return the difference.
+ * Compare two arrays and return the difference (elements in array1 not in array2)
+ * @param {Array} array1 - First array
+ * @param {Array} array2 - Second array
+ * @returns {Array} Array of elements in array1 not in array2
  */
-utils.arrayDiff = (array1, array2) => {
+function arrayDiff(array1, array2) {
+    if (!(Array.isArray(array1) && Array.isArray(array2))) {
+        return [];
+    }
+
     const set2 = new Set(array2);
     return array1.filter(item => !set2.has(item));
-};
+}
 
 /**
- * Date format - optimized version using Intl.DateTimeFormat
+ * Date formatting with support for various format strings
+ * @param {Date|string|number} date - Date to format
+ * @param {string} dateFormat - Format string (default: 'MMddhhmm')
+ * @returns {string} Formatted date string
  */
-utils.format = (date, format = 'MMddhhmm') => {
+function format(date, dateFormat = 'MMddhhmm') {
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) {
+        return '';
+    }
+
     const pad = (n, len = 2) => n.toString().padStart(len, '0');
     const replacements = {
-        yyyy: date.getFullYear(),
-        MM: pad(date.getMonth() + 1),
-        dd: pad(date.getDate()),
-        hh: pad(date.getHours()),
-        mm: pad(date.getMinutes()),
-        ss: pad(date.getSeconds()),
-        SSS: pad(date.getMilliseconds(), 3),
-        q: Math.ceil((date.getMonth() + 1) / 3)
+        yyyy: d.getFullYear(),
+        MM: pad(d.getMonth() + 1),
+        dd: pad(d.getDate()),
+        hh: pad(d.getHours()),
+        mm: pad(d.getMinutes()),
+        ss: pad(d.getSeconds()),
+        SSS: pad(d.getMilliseconds(), 3),
+        q: Math.ceil((d.getMonth() + 1) / 3)
     };
 
-    return format.replace(/yyyy|MM|dd|hh|mm|ss|SSS|q/g, match => replacements[match]);
-};
+    return dateFormat.replace(DATE_FORMAT_REGEX, match => replacements[match]);
+}
 
 /**
- * check if has Chinese characters.
+ * Check if a string contains Chinese characters
+ * @param {string} str - String to check
+ * @returns {boolean} True if string contains Chinese characters
  */
-utils.hasChineseChar = str => /[\u4e00-\u9fa5]/.test(str);
+function hasChineseChar(str) {
+    if (typeof str !== 'string') {
+        return false;
+    }
+    return CHINESE_CHAR_REGEX.test(str);
+}
 
 /**
- * transform unicode to utf8 - optimized version
+ * Convert unicode string to UTF-8 bytes
+ * @param {string} str - String to convert
+ * @returns {Uint8Array} UTF-8 encoded bytes
  */
-utils.unicodeToUtf8 = str => {
+function unicodeToUtf8(str) {
     try {
-        // 使用现代浏览器内置的TextEncoder/TextDecoder
+        // Use modern TextEncoder if available
         if (typeof TextEncoder !== 'undefined') {
             return new TextEncoder().encode(str);
         }
 
-        // 回退到原生方法
+        // Fallback to native method
         return unescape(encodeURIComponent(str));
     } catch (_e) {
-        // 异常处理
         return str;
     }
-};
+}
 
 /**
- * Ping server to check if network is available
- *
+ * Ping a server to check if network is available
+ * @param {string} host - Host to ping
+ * @param {function} callback - Callback function
  */
-utils.ping = (host, cb) => {
-    if (utils.isLocal(host)) {
-        cb(true);
-    } else {
-        const cmd = `ping -w 15 ${host}`;
-        exec(cmd, (err, _stdout, _stderr) => {
-            if (err) {
-                cb(false);
-                return;
-            }
-            cb(true);
-        });
-    }
-};
-
-/**
- * Check if server is exsit.
- *
- */
-utils.checkPort = function (server, cb) {
-    if (!(server.port || server.clientPort) || os.platform() === 'win32') {
-        this.invokeCallback(cb, 'leisure');
+async function ping(host, callback) {
+    if (isLocal(host)) {
+        invokeCallback(callback, true);
         return;
     }
 
-    const _port = server.port || server.clientPort;
+    try {
+        const cmd = `ping -w 15 ${host}`;
+        await new Promise((resolve, reject) => {
+            exec(cmd, (err, _stdout, _stderr) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+        invokeCallback(callback, true);
+    } catch (_error) {
+        invokeCallback(callback, false);
+    }
+}
+
+/**
+ * Check if a server port is available
+ * @param {Object} server - Server configuration object
+ * @param {function} callback - Callback function
+ */
+async function checkPort(server, callback) {
+    if (!(server.port || server.clientPort) || os.platform() === 'win32') {
+        invokeCallback(callback, 'leisure');
+        return;
+    }
+
+    const port = server.port || server.clientPort;
     const host = server.host;
 
-    // 使用Node.js原生方式检查端口，避免命令注入
-    const net = require('net');
+    try {
+        const result = await checkPortInternal(port, host);
+        invokeCallback(callback, result);
+    } catch (_error) {
+        invokeCallback(callback, 'error');
+    }
+}
 
-    const checkPortInternal = (portToCheck, callback) => {
-        if (!portToCheck) {
-            callback('leisure');
-            return;
-        }
+/**
+ * Internal function to check port availability
+ * @private
+ */
+async function checkPortInternal(port, host) {
+    if (!port) {
+        return 'leisure';
+    }
 
-        // 验证端口范围为有效数字
-        const portNum = Number.parseInt(portToCheck, 10);
-        if (Number.isNaN(portNum) || portNum < 1 || portNum > 65_535) {
-            logger.error('Invalid port number: %s', portToCheck);
-            callback('error');
-            return;
-        }
+    // Validate port range
+    const portNum = Number.parseInt(port, 10);
+    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65_535) {
+        LOG.error('Invalid port number: %s', port);
+        throw new Error('Invalid port number');
+    }
 
-        if (this.isLocal(host)) {
-            // 本地端口检查 - 使用安全的TCP连接测试
+    if (isLocal(host)) {
+        // Local port check - use TCP connection test
+        const net = require('net');
+        const timeout = 2000;
+
+        const check = new Promise((resolve, _reject) => {
             const socket = new net.Socket();
-            const timeout = 2000;
 
             socket.setTimeout(timeout);
             socket.on('connect', () => {
                 socket.destroy();
-                callback('busy');
+                resolve('busy');
             });
             socket.on('timeout', () => {
                 socket.destroy();
-                callback('leisure');
+                resolve('leisure');
             });
             socket.on('error', () => {
                 socket.destroy();
-                callback('leisure');
+                resolve('leisure');
             });
 
             socket.connect(portNum, '127.0.0.1');
-        } else {
-            // 远程端口检查 - 使用安全的SSH连接
-            const { spawn } = require('child_process');
-            const sshParams = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS) || [];
+        });
 
-            // 验证SSH参数安全性 - 仅允许已知安全参数
-            const validParams = sshParams.filter(param => typeof param === 'string' && /^[a-zA-Z0-9=-]+$/.test(param));
+        return await check;
+    }
+    // Remote port check - use SSH connection
+    const { spawn } = require('child_process');
+    const sshParams = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS) || [];
 
-            const args = [...validParams, host, 'nc', '-z', host, portNum.toString()];
+    // Validate SSH parameters for security
+    const validParams = sshParams.filter(param => typeof param === 'string' && SSH_PARAM_REGEX.test(param));
 
-            try {
-                const child = spawn('ssh', args, {
-                    stdio: 'pipe',
-                    timeout: 5000
-                });
+    const args = [...validParams, host, 'nc', '-z', host, portNum.toString()];
 
-                let hasError = false;
-                child.stderr.on('data', data => {
-                    hasError = true;
-                    logger.warn('SSH port check warning: %s', data.toString().trim());
-                });
+    try {
+        const child = spawn('ssh', args, {
+            stdio: 'pipe',
+            timeout: 5000
+        });
 
-                child.on('close', code => {
-                    if (hasError) {
-                        callback('error');
-                    } else if (code === 0) {
-                        callback('busy');
-                    } else {
-                        callback('leisure');
-                    }
-                });
+        let hasError = false;
+        child.stderr.on('data', data => {
+            hasError = true;
+            LOG.warn('SSH port check warning: %s', data.toString().trim());
+        });
 
-                child.on('error', err => {
-                    logger.error('SSH port check error: %j', err.message);
-                    callback('error');
-                });
-            } catch (err) {
-                logger.error('Failed to spawn SSH process: %j', err.message);
-                callback('error');
-            }
-        }
-    };
-
-    // 检查主要端口
-    checkPortInternal(server.port, result1 => {
-        if (result1 === 'busy') {
-            this.invokeCallback(cb, 'busy');
-        } else if (result1 === 'error') {
-            this.invokeCallback(cb, 'error');
-        } else {
-            // 检查客户端端口
-            checkPortInternal(server.clientPort, result2 => {
-                this.invokeCallback(cb, result2);
+        const result = await new Promise((resolve, _reject) => {
+            child.on('close', code => {
+                if (hasError) {
+                    _reject(new Error('SSH error'));
+                } else if (code === 0) {
+                    resolve('busy');
+                } else {
+                    resolve('leisure');
+                }
             });
-        }
-    });
-};
 
-utils.isLocal = host => {
-    const app = require('../pofresh').app;
+            child.on('error', err => {
+                LOG.error('SSH port check error: %s', err.message);
+                _reject(err);
+            });
+        });
+
+        return result;
+    } catch (err) {
+        LOG.error('Failed to spawn SSH process: %s', err.message);
+        throw err;
+    }
+}
+
+/**
+ * Check if a host is local
+ * @param {string} host - Host to check
+ * @returns {boolean} True if host is local
+ */
+function isLocal(host) {
+    const localIps = Object.values(os.networkInterfaces())
+        .flat()
+        .filter(details => details.family === 'IPv4')
+        .map(details => details.address);
+
+    const app = pofresh.app;
+
     if (app) {
         return (
             host === '127.0.0.1' ||
             host === 'localhost' ||
             host === '0.0.0.0' ||
-            inLocal(host) ||
+            localIps.includes(host) ||
             host === app.master.host
         );
     }
-    return host === '127.0.0.1' || host === 'localhost' || host === '0.0.0.0' || inLocal(host);
-};
+
+    return host === '127.0.0.1' || host === 'localhost' || host === '0.0.0.0' || localIps.includes(host);
+}
 
 /**
- * Load cluster server.
- *
+ * Load cluster server configuration
+ * @param {Object} app - Application instance
+ * @param {Object} server - Server configuration
+ * @param {Object} serverMap - Server map to populate
  */
-utils.loadCluster = (app, server, serverMap) => {
+function loadCluster(app, server, serverMap) {
     const increaseFields = {};
     const count = Number.parseInt(server[Constants.RESERVED.CLUSTER_COUNT], 10);
-    let seq = app.clusterSeq[server.serverType];
-    if (seq) {
+    let seq = app.clusterSeq?.[server.serverType] || 0;
+
+    if (app.clusterSeq) {
         app.clusterSeq[server.serverType] = seq + count;
     } else {
-        seq = 0;
-        app.clusterSeq[server.serverType] = count;
+        app.clusterSeq = { [server.serverType]: count };
     }
 
+    // Find fields that need incrementing
     for (const key in server) {
         const value = server[key].toString();
-        if (value.indexOf(Constants.RESERVED.CLUSTER_SIGNAL) > 0) {
+        if (value.includes(Constants.RESERVED.CLUSTER_SIGNAL)) {
             const base = server[key].slice(0, -2);
             increaseFields[key] = base;
         }
     }
 
+    // Clone and create cluster servers
     const clone = src => {
         const rs = {};
         for (const key in src) {
@@ -260,29 +346,67 @@ utils.loadCluster = (app, server, serverMap) => {
         }
         return rs;
     };
-    for (let i = 0, l = seq; i < count; i++, l++) {
+
+    for (let i = 0; i < count; i++, seq++) {
         const cserver = clone(server);
-        cserver.id = `${Constants.RESERVED.CLUSTER_PREFIX + server.serverType}-${l}`;
+        cserver.id = `${Constants.RESERVED.CLUSTER_PREFIX}${server.serverType}-${seq}`;
+
+        // Apply incrementing values
         for (const k in increaseFields) {
             const v = Number.parseInt(increaseFields[k], 10);
             cserver[k] = v + i;
         }
+
         serverMap[cserver.id] = cserver;
     }
-};
+}
 
-utils.extends = (origin, add) => (add && utils.isObject(add) ? { ...origin, ...add } : origin);
+/**
+ * Extend object with properties from another object
+ * @param {Object} origin - Base object
+ * @param {Object} add - Object to add properties from
+ * @returns {Object} Extended object
+ */
+function extend(origin, add) {
+    if (add && isObject(add)) {
+        return { ...origin, ...add };
+    }
+    return origin;
+}
 
-utils.headHandler = headBuffer => {
-    // 使用位运算优化字节读取
+/**
+ * Parse head buffer to extract header information
+ * @param {Buffer} headBuffer - Head buffer
+ * @returns {number} Parsed header value
+ */
+function headHandler(headBuffer) {
+    // Use bit operations for optimized byte reading
     return (headBuffer.readUInt8(1) << 16) | (headBuffer.readUInt8(2) << 8) | headBuffer.readUInt8(3);
+}
+
+/**
+ * Check if value is an object (not null)
+ * @param {*} arg - Value to check
+ * @returns {boolean} True if value is an object
+ */
+function isObject(arg) {
+    return arg !== null && typeof arg === 'object';
+}
+
+module.exports = {
+    invokeCallback,
+    size,
+    endsWith,
+    startsWith,
+    arrayDiff,
+    format,
+    hasChineseChar,
+    unicodeToUtf8,
+    ping,
+    checkPort,
+    isLocal,
+    loadCluster,
+    extend,
+    headHandler,
+    isObject
 };
-
-const localIps = Object.values(os.networkInterfaces())
-    .flat()
-    .filter(details => details.family === 'IPv4')
-    .map(details => details.address);
-
-const inLocal = host => localIps.includes(host);
-
-utils.isObject = arg => arg !== null && typeof arg === 'object';
