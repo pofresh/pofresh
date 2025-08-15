@@ -1,10 +1,12 @@
 /**
- * This is the trigger used to decode the cronTimer and calculate the next execution time of the cron Trigger.
+ * Modern CronTrigger class with enhanced error handling and validation
  */
-
-const logger = require('log4js').getLogger(__filename);
+const ErrorHandler = require('./util/errorHandler');
+const Constants = require('./util/constants');
+const { validateTrigger } = require('./util/utils');
 const decoder = require('./cronTriggerDecoder');
 
+// Cron field indices
 const SECOND = 0;
 const MIN = 1;
 const HOUR = 2;
@@ -13,155 +15,367 @@ const MONTH = 4;
 const DOW = 5;
 
 /**
- * The constructor of the CronTrigger
- * @param trigger The trigger str used to build the cronTrigger instance
+ * Modern CronTrigger class for cron-based job scheduling
  */
 class CronTrigger {
     constructor(trigger, job) {
-        this.trigger = decoder.decodeCronTime(trigger);
-        this.nextTime = this.nextExecuteTime(Date.now());
+        // Validate inputs
+        ErrorHandler.validateInput(trigger, 'string', 'Cron trigger');
+        ErrorHandler.validateInput(job, 'object', 'Job');
+
+        // Validate cron expression
+        validateTrigger(trigger, 'cron');
+
+        // Decode cron expression
+        try {
+            this.trigger = decoder.decodeCronTime(trigger);
+            if (!this.trigger) {
+                throw new Error('Failed to decode cron expression');
+            }
+        } catch (err) {
+            throw new Error(`Invalid cron expression: ${err.message}`);
+        }
+
+        // Initialize properties
         this.job = job;
+        // Note: We can't call nextExecuteTime here because it would set isValid=false on error
+        // Instead, we'll initialize nextTime to null and let the first call to nextExecuteTime set it
+        this.nextTime = null;
+        
+        // Resource management
+        this.resources = new Set();
+        this.timers = new Set();
+        
+        // Statistics
+        this.stats = {
+            totalExecutions: 0,
+            computationTime: 0,
+            errors: 0
+        };
+        
+        // Validation state
+        this.isValid = true;
+        this.originalExpression = trigger;
+        
+        // Limits
+        this.maxYear = 2999;
+        this.maxIterations = 1000; // Prevent infinite loops
     }
 
     /**
-     * Get the current executeTime of trigger
+     * Get the current execution time of trigger
+     * @returns {number} Current execution timestamp
      */
     executeTime() {
+        if (!this.isValid) {
+            throw new Error('Trigger is no longer valid');
+        }
+        
+        // If nextTime is null, compute it now
+        if (this.nextTime === null) {
+            this.nextTime = this.nextExecuteTime(Date.now());
+        }
+        
         return this.nextTime;
     }
 
     /**
      * Calculate the next valid cronTime after the given time
-     * @param time given time point
-     * @return number|null nearest valid time after the given time point
+     * @param {number} time - Given time point (optional)
+     * @returns {number|null} Nearest valid time after the given time point
      */
     nextExecuteTime(time) {
-        //add 1s to the time, so it must be the next time
-        time = time ? time : this.nextTime;
-        time += 1000;
+        if (!this.isValid) {
+            throw new Error('Trigger is no longer valid');
+        }
 
-        const cronTrigger = this.trigger;
-        const date = new Date(time);
-        date.setMilliseconds(0);
+        const startTime = Date.now();
+        
+        try {
+            // Use provided time or current next time
+            time = time ? time : this.nextTime;
+            time += 1000; // Add 1 second to ensure next execution
 
-        outmost: while (true) {
-            if (date.getFullYear() > 2999) {
-                logger.error("Can't compute the next time, exceed the limit");
-                return null;
-            }
-            if (!decoder.timeMatch(date.getMonth(), cronTrigger[MONTH])) {
-                const nextMonth = decoder.nextCronTime(date.getMonth(), cronTrigger[MONTH]);
+            const cronTrigger = this.trigger;
+            const date = new Date(time);
+            date.setMilliseconds(0);
 
-                if (nextMonth === null) {
-                    return null;
+            let iterations = 0;
+
+            outmost: while (true) {
+                iterations++;
+                
+                // Prevent infinite loops
+                if (iterations > this.maxIterations) {
+                    throw new Error('Maximum computation iterations exceeded');
                 }
 
-                if (nextMonth <= date.getMonth()) {
-                    date.setFullYear(date.getFullYear() + 1);
-                    date.setMonth(0);
-                    date.setDate(1);
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-                    continue;
+                // Check year limit
+                if (date.getFullYear() > this.maxYear) {
+                    throw new Error(`Cannot compute next time beyond year ${this.maxYear}`);
                 }
 
-                date.setDate(1);
-                date.setMonth(nextMonth);
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            }
-
-            if (
-                !(
-                    decoder.timeMatch(date.getDate(), cronTrigger[DOM]) &&
-                    decoder.timeMatch(date.getDay(), cronTrigger[DOW])
-                )
-            ) {
-                const domLimit = decoder.getDomLimit(date.getFullYear(), date.getMonth());
-
-                do {
-                    const nextDom = decoder.nextCronTime(date.getDate(), cronTrigger[DOM]);
-                    if (nextDom === null) {
+                // Check month
+                if (!decoder.timeMatch(date.getMonth(), cronTrigger[MONTH])) {
+                    const nextMonth = decoder.nextCronTime(date.getMonth(), cronTrigger[MONTH]);
+                    if (nextMonth === null) {
                         return null;
                     }
 
-                    //If the date is in the next month, add month
-                    if (nextDom <= date.getDate() || nextDom > domLimit) {
+                    if (nextMonth <= date.getMonth()) {
+                        date.setFullYear(date.getFullYear() + 1);
+                        date.setMonth(0);
                         date.setDate(1);
-                        date.setMonth(date.getMonth() + 1);
                         date.setHours(0);
                         date.setMinutes(0);
                         date.setSeconds(0);
-                        continue outmost;
+                        continue;
                     }
 
-                    date.setDate(nextDom);
-                } while (!decoder.timeMatch(date.getDay(), cronTrigger[DOW]));
+                    date.setDate(1);
+                    date.setMonth(nextMonth);
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                }
 
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            }
+                // Check day of month and day of week
+                if (!this.checkDayAndWeek(date, cronTrigger)) {
+                    continue outmost;
+                }
 
-            if (!decoder.timeMatch(date.getHours(), cronTrigger[HOUR])) {
-                const nextHour = decoder.nextCronTime(date.getHours(), cronTrigger[HOUR]);
-
-                if (nextHour <= date.getHours()) {
-                    date.setDate(date.getDate() + 1);
+                // Check hour
+                if (!decoder.timeMatch(date.getHours(), cronTrigger[HOUR])) {
+                    const nextHour = decoder.nextCronTime(date.getHours(), cronTrigger[HOUR]);
+                    if (nextHour <= date.getHours()) {
+                        date.setDate(date.getDate() + 1);
+                        date.setHours(nextHour);
+                        date.setMinutes(0);
+                        date.setSeconds(0);
+                        continue;
+                    }
                     date.setHours(nextHour);
                     date.setMinutes(0);
                     date.setSeconds(0);
-                    continue;
                 }
 
-                date.setHours(nextHour);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            }
-
-            if (!decoder.timeMatch(date.getMinutes(), cronTrigger[MIN])) {
-                const nextMinute = decoder.nextCronTime(date.getMinutes(), cronTrigger[MIN]);
-
-                if (nextMinute <= date.getMinutes()) {
-                    date.setHours(date.getHours() + 1);
+                // Check minute
+                if (!decoder.timeMatch(date.getMinutes(), cronTrigger[MIN])) {
+                    const nextMinute = decoder.nextCronTime(date.getMinutes(), cronTrigger[MIN]);
+                    if (nextMinute <= date.getMinutes()) {
+                        date.setHours(date.getHours() + 1);
+                        date.setMinutes(nextMinute);
+                        date.setSeconds(0);
+                        continue;
+                    }
                     date.setMinutes(nextMinute);
                     date.setSeconds(0);
-                    continue;
                 }
 
-                date.setMinutes(nextMinute);
-                date.setSeconds(0);
-            }
-
-            if (!decoder.timeMatch(date.getSeconds(), cronTrigger[SECOND])) {
-                const nextSecond = decoder.nextCronTime(date.getSeconds(), cronTrigger[SECOND]);
-
-                if (nextSecond <= date.getSeconds()) {
-                    date.setMinutes(date.getMinutes() + 1);
+                // Check second
+                if (!decoder.timeMatch(date.getSeconds(), cronTrigger[SECOND])) {
+                    const nextSecond = decoder.nextCronTime(date.getSeconds(), cronTrigger[SECOND]);
+                    if (nextSecond <= date.getSeconds()) {
+                        date.setMinutes(date.getMinutes() + 1);
+                        date.setSeconds(nextSecond);
+                        continue;
+                    }
                     date.setSeconds(nextSecond);
-                    continue;
                 }
 
-                date.setSeconds(nextSecond);
+                break;
             }
-            break;
+
+            this.nextTime = date.getTime();
+            
+            // Update statistics
+            this.stats.computationTime = Date.now() - startTime;
+            this.stats.totalExecutions++;
+
+            return this.nextTime;
+
+        } catch (err) {
+            this.stats.errors++;
+            this.isValid = false;
+            throw new Error(`Failed to compute next execution time: ${err.message}`);
+        }
+    }
+
+    /**
+     * Check day of month and day of week constraints
+     * @param {Date} date - Date to check
+     * @param {Array} cronTrigger - Cron trigger configuration
+     * @returns {boolean} True if date matches constraints
+     */
+    checkDayAndWeek(date, cronTrigger) {
+        if (
+            !(
+                decoder.timeMatch(date.getDate(), cronTrigger[DOM]) &&
+                decoder.timeMatch(date.getDay(), cronTrigger[DOW])
+            )
+        ) {
+            const domLimit = decoder.getDomLimit(date.getFullYear(), date.getMonth());
+
+            do {
+                const nextDom = decoder.nextCronTime(date.getDate(), cronTrigger[DOM]);
+                if (nextDom === null) {
+                    return false;
+                }
+
+                // If the date is in the next month, add month
+                if (nextDom <= date.getDate() || nextDom > domLimit) {
+                    date.setDate(1);
+                    date.setMonth(date.getMonth() + 1);
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                    return false;
+                }
+
+                date.setDate(nextDom);
+            } while (!decoder.timeMatch(date.getDay(), cronTrigger[DOW]));
+
+            date.setHours(0);
+            date.setMinutes(0);
+            date.setSeconds(0);
         }
 
-        this.nextTime = date.getTime();
-        return this.nextTime;
+        return true;
+    }
+
+    /**
+     * Get trigger statistics
+     * @returns {Object} Statistics object
+     */
+    getStats() {
+        return {
+            ...this.stats,
+            nextTime: this.nextTime,
+            originalExpression: this.originalExpression,
+            isValid: this.isValid,
+            maxYear: this.maxYear
+        };
+    }
+
+    /**
+     * Add a resource to track
+     * @param {*} resource - Resource to track
+     */
+    addResource(resource) {
+        if (resource && typeof resource === 'object') {
+            this.resources.add(resource);
+        }
+    }
+
+    /**
+     * Remove a resource from tracking
+     * @param {*} resource - Resource to remove
+     */
+    removeResource(resource) {
+        this.resources.delete(resource);
+    }
+
+    /**
+     * Clean up trigger resources
+     */
+    cleanup() {
+        try {
+            // Clear all timers
+            if (this.timers && this.timers.size > 0) {
+                for (const timer of this.timers) {
+                    if (timer && typeof timer.clearTimeout === 'function') {
+                        clearTimeout(timer);
+                    }
+                }
+                this.timers.clear();
+            }
+
+            // Clear resources
+            if (this.resources) {
+                this.resources.clear();
+            }
+
+            // Mark as invalid
+            this.isValid = false;
+
+        } catch (err) {
+            // Log error but don't throw to prevent cleanup failures
+            console.error('Error during CronTrigger cleanup:', err);
+        }
+    }
+
+    /**
+     * Check if trigger is still valid
+     * @returns {boolean} True if trigger is valid
+     */
+    isTriggerValid() {
+        return this.isValid;
+    }
+
+    /**
+     * Reset trigger with new cron expression
+     * @param {string} newExpression - New cron expression
+     */
+    reset(newExpression) {
+        try {
+            // Validate new expression
+            validateTrigger(newExpression, 'cron');
+
+            // Decode new expression
+            const newTrigger = decoder.decodeCronTime(newExpression);
+            if (!newTrigger) {
+                throw new Error('Failed to decode new cron expression');
+            }
+
+            // Update trigger
+            this.trigger = newTrigger;
+            this.originalExpression = newExpression;
+            this.nextTime = this.nextExecuteTime(Date.now());
+            
+            // Reset statistics
+            this.stats.totalExecutions = 0;
+            this.stats.computationTime = 0;
+            this.stats.errors = 0;
+            
+            // Mark as valid
+            this.isValid = true;
+
+        } catch (err) {
+            throw new Error(`Failed to reset CronTrigger: ${err.message}`);
+        }
+    }
+
+    /**
+     * Validate cron expression format
+     * @param {string} expression - Cron expression to validate
+     * @returns {boolean} True if valid
+     */
+    static validateExpression(expression) {
+        try {
+            validateTrigger(expression, 'cron');
+            const decoded = decoder.decodeCronTime(expression);
+            return decoded !== null;
+        } catch {
+            return false;
+        }
     }
 }
 
 /**
- * Create cronTrigger
- * @param trigger The Cron Trigger string
- * @param job
- * @return CronTrigger Cron trigger
+ * Factory function to create CronTrigger instances with enhanced error handling
+ * @param {string} trigger - Cron trigger expression
+ * @param {Object} job - Job instance
+ * @returns {CronTrigger} New CronTrigger instance
  */
 function createTrigger(trigger, job) {
-    return new CronTrigger(trigger, job);
+    try {
+        return new CronTrigger(trigger, job);
+    } catch (err) {
+        throw new Error(`Failed to create CronTrigger: ${err.message}`);
+    }
 }
 
-module.exports.createTrigger = createTrigger;
+module.exports = {
+    CronTrigger,
+    createTrigger
+};

@@ -3,14 +3,14 @@ import { client as Client } from '../../index.js';
 
 describe('mailstation', () => {
     it('should create mailstation successfully', () => {
-        const client = Client.create();
+        const client = Client.create({ context: {} });
         expect(client).toBeDefined();
         expect(client.start).toBeDefined();
         expect(client.stop).toBeDefined();
     });
 
     it('should add server successfully', () => {
-        const client = Client.create();
+        const client = Client.create({ context: {} });
         const server = {
             id: 'test-server-1',
             serverType: 'test',
@@ -23,7 +23,7 @@ describe('mailstation', () => {
     });
 
     it('should add servers successfully', () => {
-        const client = Client.create();
+        const client = Client.create({ context: {} });
         const servers = [
             {
                 id: 'test-server-1',

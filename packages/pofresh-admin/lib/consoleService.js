@@ -5,6 +5,8 @@ const MonitorAgent = require('./monitor/monitorAgent');
 const MasterAgent = require('./master/masterAgent');
 const protocol = require('./util/protocol');
 const utils = require('./util/utils');
+const ErrorHandler = require('./util/errorHandler');
+const Constants = require('./util/constants');
 
 const MS_OF_SECOND = 1000;
 
@@ -25,10 +27,17 @@ const MS_OF_SECOND = 1000;
 class ConsoleService extends EventEmitter {
     constructor(opts) {
         super();
+        
+        // 输入验证
+        if (!opts || typeof opts !== 'object') {
+            throw new Error('Options must be an object');
+        }
+
         this.port = opts.port;
         this.env = opts.env;
         this.master = opts.master;
         this.values = {};
+        this.resourceManager = ErrorHandler.createResourceManager();
 
         this.modules = {};
         this.commands = {
@@ -52,6 +61,9 @@ class ConsoleService extends EventEmitter {
                 info: opts.info
             });
         }
+
+        // 设置错误处理
+        this.setupErrorHandling();
     }
 
     /**
@@ -61,28 +73,51 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     start(cb) {
-        if (this.master) {
-            this.agent.listen(this.port, err => {
-                if (err) {
-                    utils.invokeCallback(cb, err);
-                    return;
-                }
-
-                exportEvent(this, this.agent, 'register');
-                exportEvent(this, this.agent, 'disconnect');
-                exportEvent(this, this.agent, 'reconnect');
-                process.nextTick(() => utils.invokeCallback(cb));
-            });
-        } else {
-            logger.info('try to connect master: %j, %s, %j, %j', this.type, this.id, this.host, this.port);
-            this.agent.connect(this.port, this.host, cb);
-            exportEvent(this, this.agent, 'close');
+        if (typeof cb !== 'function' && cb !== undefined) {
+            throw new Error('Callback must be a function or undefined');
         }
 
-        exportEvent(this, this.agent, 'error');
+        cb = cb || (() => {});
 
-        for (const mid in this.modules) {
-            this.enable(mid);
+        const wrappedCallback = ErrorHandler.createTimeoutCallback(
+            cb, 
+            Constants.DEFAULT_PARAM.TIMEOUT, 
+            'ConsoleService.start'
+        );
+
+        try {
+            if (this.master) {
+                this.agent.listen(this.port, err => {
+                    if (err) {
+                        logger.error('Failed to start master server:', err);
+                        wrappedCallback.callback(err);
+                        return;
+                    }
+
+                    exportEvent(this, this.agent, 'register');
+                    exportEvent(this, this.agent, 'disconnect');
+                    exportEvent(this, this.agent, 'reconnect');
+                    
+                    logger.info('Master server started successfully on port %d', this.port);
+                    process.nextTick(() => wrappedCallback.callback());
+                });
+            } else {
+                logger.info('try to connect master: %j, %s, %j, %j', this.type, this.id, this.host, this.port);
+                this.agent.connect(this.port, this.host, wrappedCallback.callback);
+                exportEvent(this, this.agent, 'close');
+            }
+
+            exportEvent(this, this.agent, 'error');
+
+            // 启用所有模块
+            for (const mid in this.modules) {
+                this.enable(mid);
+            }
+
+            this.resourceManager.addTimer(wrappedCallback.cleanup);
+        } catch (err) {
+            logger.error('Error starting ConsoleService:', err);
+            wrappedCallback.callback(err);
         }
     }
 
@@ -93,6 +128,8 @@ class ConsoleService extends EventEmitter {
      */
     stop() {
         try {
+            logger.info('Stopping ConsoleService...');
+
             // 停止所有模块
             for (const mid in this.modules) {
                 try {
@@ -110,10 +147,15 @@ class ConsoleService extends EventEmitter {
 
             // 关闭代理
             if (this.agent) {
-                this.agent.close();
+                try {
+                    this.agent.close();
+                } catch (err) {
+                    logger.error('Error closing agent:', err);
+                }
             }
 
             // 清理资源
+            this.resourceManager.cleanup();
             this.modules = {};
             this.values = {};
 
@@ -132,7 +174,21 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     register(moduleId, module) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+        }
+
+        if (!module || typeof module !== 'object') {
+            throw new Error('Module must be an object');
+        }
+
+        // 检查模块是否已存在
+        if (this.modules[moduleId]) {
+            logger.warn('Module %s already exists, overwriting...', moduleId);
+        }
+
         this.modules[moduleId] = registerRecord(this, moduleId, module);
+        logger.info('Module %s registered successfully', moduleId);
     }
 
     /**
@@ -142,12 +198,24 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     enable(moduleId) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+        }
+
         const record = this.modules[moduleId];
-        if (record && !record.enable) {
+        if (!record) {
+            logger.warn('Module %s not found for enable', moduleId);
+            return false;
+        }
+
+        if (!record.enable) {
             record.enable = true;
             addToSchedule(this, record);
+            logger.info('Module %s enabled successfully', moduleId);
             return true;
         }
+
+        logger.debug('Module %s is already enabled', moduleId);
         return false;
     }
 
@@ -158,15 +226,27 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     disable(moduleId) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+        }
+
         const record = this.modules[moduleId];
-        if (record?.enable) {
+        if (!record) {
+            logger.warn('Module %s not found for disable', moduleId);
+            return false;
+        }
+
+        if (record.enable) {
             record.enable = false;
             if (record.schedule && record.jobId) {
                 schedule.cancelJob(record.jobId);
                 record.jobId = null;
             }
+            logger.info('Module %s disabled successfully', moduleId);
             return true;
         }
+
+        logger.debug('Module %s is already disabled', moduleId);
         return false;
     }
 
@@ -180,23 +260,40 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     execute(moduleId, method, msg, cb) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            const error = 'Module ID must be a non-empty string';
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
+            return;
+        }
+
+        if (!method || typeof method !== 'string') {
+            const error = 'Method must be a non-empty string';
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
+            return;
+        }
+
         const m = this.modules[moduleId];
         if (!m) {
-            logger.error('unknown module: %j.', moduleId);
-            cb(`unknown moduleId:${moduleId}`);
+            const error = `unknown moduleId:${moduleId}`;
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
             return;
         }
 
         if (!m.enable) {
-            logger.error('module %j is disable.', moduleId);
-            cb(`module ${moduleId} is disable`);
+            const error = `module ${moduleId} is disabled`;
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
             return;
         }
 
         const module = m.module;
         if (!module || typeof module[method] !== 'function') {
-            logger.error('module %j dose not have a method called %j.', moduleId, method);
-            cb(`module ${moduleId} dose not have a method called ${method}`);
+            const error = `module ${moduleId} does not have a method called ${method}`;
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
             return;
         }
 
@@ -211,14 +308,25 @@ class ConsoleService extends EventEmitter {
         if (aclMsg !== 0 && aclMsg !== 1) {
             log.error = aclMsg;
             this.emit('admin-log', log, aclMsg);
-            cb(new Error(aclMsg), null);
+            ErrorHandler.safeCallback(cb, new Error(aclMsg), null);
             return;
         }
 
         if (method === 'clientHandler') {
             this.emit('admin-log', log);
         }
-        module[method](this.agent, msg, cb);
+
+        try {
+            module[method](this.agent, msg, (err, result) => {
+                if (err) {
+                    logger.error('Error executing module %s method %s:', moduleId, method, err);
+                }
+                ErrorHandler.safeCallback(cb, err, result);
+            });
+        } catch (err) {
+            logger.error('Exception executing module %s method %s:', moduleId, method, err);
+            ErrorHandler.safeCallback(cb, err, null);
+        }
     }
 
     command(command, moduleId, msg, cb) {
@@ -255,6 +363,9 @@ class ConsoleService extends EventEmitter {
      */
 
     set(moduleId, value) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+        }
         this.values[moduleId] = value;
     }
 
@@ -265,7 +376,43 @@ class ConsoleService extends EventEmitter {
      * @api public
      */
     get(moduleId) {
+        if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+        }
         return this.values[moduleId];
+    }
+
+    /**
+     * 设置错误处理
+     * @private
+     */
+    setupErrorHandling() {
+        // 处理未捕获的异常
+        process.on('uncaughtException', (err) => {
+            logger.error('Uncaught Exception in ConsoleService:', err);
+            this.emit('error', err);
+        });
+
+        // 处理未处理的Promise拒绝
+        process.on('unhandledRejection', (reason, promise) => {
+            logger.error('Unhandled Rejection in ConsoleService:', reason);
+            this.emit('error', new Error(`Unhandled Rejection: ${reason}`));
+        });
+
+        // 优雅关闭
+        const gracefulShutdown = (signal) => {
+            logger.info(`Received ${signal}, starting graceful shutdown...`);
+            try {
+                this.stop();
+                process.exit(0);
+            } catch (err) {
+                logger.error('Error during graceful shutdown:', err);
+                process.exit(1);
+            }
+        };
+
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     }
 }
 

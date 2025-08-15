@@ -27,14 +27,14 @@ const serverList = [
 describe('client', () => {
     describe('#create', () => {
         it('should create client successfully', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             expect(client).toBeDefined();
             expect(client.start).toBeDefined();
             expect(client.stop).toBeDefined();
         });
 
         it('should add proxy instances by addProxies method', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             client.addProxies(records);
 
             const proxies = client.proxies;
@@ -42,14 +42,14 @@ describe('client', () => {
         });
 
         it('should add server by addServer method', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             client.addServer(serverList[0]);
 
             expect(client._station).toBeDefined();
         });
 
         it('should add servers by addServers method', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             client.addServers(serverList);
 
             expect(client._station).toBeDefined();
@@ -58,12 +58,12 @@ describe('client', () => {
 
     describe('#status', () => {
         it('should have correct initial state', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             expect(client.state).toBe(1); // STATE_INITED
         });
 
         it('should have proxies object', () => {
-            const client = Client.create();
+            const client = Client.create({ context: {} });
             expect(client.proxies).toBeDefined();
             expect(typeof client.proxies).toBe('object');
         });

@@ -1,16 +1,32 @@
+/**
+ * pofresh-rpc constants
+ * Defines all constants used in the RPC system
+ */
+
 module.exports = {
+    /**
+     * Failure handling modes
+     */
     FAIL_MODE: {
         FAILOVER: 'failover',
         FAILFAST: 'failfast',
         FAILSAFE: 'failsafe',
         FAILBACK: 'failback'
     },
+
+    /**
+     * Load balancing strategies
+     */
     SCHEDULE: {
         ROUNDROBIN: 'rr',
         WEIGHT_ROUNDROBIN: 'wrr',
         LEAST_ACTIVE: 'la',
         CONSISTENT_HASH: 'ch'
     },
+
+    /**
+     * Default parameters
+     */
     DEFAULT_PARAM: {
         FAILSAFE_RETRIES: 3,
         FAILSAFE_CONNECT_TIME: 5 * 1000,
@@ -20,6 +36,10 @@ module.exports = {
         DEFAULT_PENDING_SIZE: 10_000,
         KEEPALIVE: 10 * 1000
     },
+
+    /**
+     * RPC error codes
+     */
     RPC_ERROR: {
         SERVER_NOT_STARTED: 1,
         NO_TRAGET_SERVER: 2,
@@ -28,6 +48,10 @@ module.exports = {
         FAIL_SEND_MESSAGE: 5,
         FILTER_ERROR: 6
     },
+
+    /**
+     * Message topics
+     */
     TOPIC_RPC: 'r',
     TOPIC_HANDSHAKE: 'h'
 };

@@ -5,6 +5,7 @@ const SIOServer = require('../protocol/socketio/sioServer');
 const MasterSocket = require('./masterSocket');
 const protocol = require('../util/protocol');
 const utils = require('../util/utils');
+const ErrorHandler = require('../util/errorHandler');
 
 const ST_INITED = 1;
 const ST_STARTED = 2;
@@ -28,6 +29,12 @@ const ST_CLOSED = 3;
 class MasterAgent extends EventEmitter {
     constructor(consoleService, opts) {
         super();
+        
+        // 输入验证
+        if (!consoleService) {
+            throw new Error('ConsoleService is required');
+        }
+
         opts = opts || {};
         this.reqId = 1;
         this.idMap = {};
@@ -42,6 +49,10 @@ class MasterAgent extends EventEmitter {
         this.consoleService = consoleService;
         this.ServerClass = opts.Server || SIOServer;
         this.state = ST_INITED;
+        this.resourceManager = ErrorHandler.createResourceManager();
+
+        // 设置错误处理
+        this.setupErrorHandling();
     }
 
     /**
@@ -53,20 +64,51 @@ class MasterAgent extends EventEmitter {
      */
     listen(port, cb) {
         if (this.state > ST_INITED) {
-            logger.error('master agent has started or closed.');
+            const error = 'master agent has started or closed.';
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
             return;
         }
 
-        this.state = ST_STARTED;
-        this.server = new this.ServerClass();
+        if (!port || typeof port !== 'number' || port <= 0) {
+            const error = 'Port must be a positive number';
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
+            return;
+        }
 
-        this.server.once('listening', () => {
-            setImmediate(() => utils.invokeCallback(cb));
-        });
+        cb = cb || (() => {});
 
-        this.server.on('connection', socket => (this.sockets[socket.id] = new MasterSocket(this, socket)));
+        try {
+            this.state = ST_STARTED;
+            this.server = new this.ServerClass();
 
-        this.server.listen(port);
+            this.server.once('listening', () => {
+                logger.info('Master agent listening on port %d', port);
+                setImmediate(() => ErrorHandler.safeCallback(cb));
+            });
+
+            this.server.on('connection', socket => {
+                try {
+                    this.sockets[socket.id] = new MasterSocket(this, socket);
+                    this.resourceManager.addResource(socket);
+                    logger.debug('New socket connection: %s', socket.id);
+                } catch (err) {
+                    logger.error('Error creating MasterSocket:', err);
+                }
+            });
+
+            this.server.on('error', (err) => {
+                logger.error('Master server error:', err);
+                this.emit('error', err);
+            });
+
+            this.server.listen(port);
+            this.resourceManager.addResource(this.server);
+        } catch (err) {
+            logger.error('Error starting master server:', err);
+            ErrorHandler.safeCallback(cb, err);
+        }
     }
 
     /**
@@ -76,10 +118,43 @@ class MasterAgent extends EventEmitter {
      */
     close() {
         if (this.state > ST_STARTED) {
+            logger.debug('Master agent already closed or closing');
             return;
         }
-        this.state = ST_CLOSED;
-        this.server.close();
+
+        try {
+            logger.info('Closing master agent...');
+            this.state = ST_CLOSED;
+
+            // 清理所有连接
+            for (const socketId in this.sockets) {
+                const socket = this.sockets[socketId];
+                if (socket && typeof socket.close === 'function') {
+                    try {
+                        socket.close();
+                    } catch (err) {
+                        logger.error('Error closing socket %s:', socketId, err);
+                    }
+                }
+                delete this.sockets[socketId];
+            }
+
+            // 清理服务器
+            if (this.server) {
+                this.server.close();
+            }
+
+            // 清理资源管理器
+            this.resourceManager.cleanup();
+
+            // 清理所有回调和消息映射
+            this.clearCallbacks();
+
+            logger.info('Master agent closed successfully');
+        } catch (err) {
+            logger.error('Error closing master agent:', err);
+            this.emit('error', err);
+        }
     }
 
     /**
@@ -559,12 +634,54 @@ class MasterAgent extends EventEmitter {
     broadcastCommand(records, command, moduleId, msg) {
         msg = protocol.composeCommand(null, command, moduleId, msg);
         if (Array.isArray(records)) {
-            records.forEach(record => record.socket.send(Constants.TYPE_MONITOR, msg));
+            records.forEach(record => {
+                try {
+                    record.socket.send(Constants.TYPE_MONITOR, msg);
+                } catch (err) {
+                    logger.error('Error sending command to monitor:', err);
+                }
+            });
         } else {
             for (const id in records) {
-                records[id].socket.send(Constants.TYPE_MONITOR, msg);
+                try {
+                    records[id].socket.send(Constants.TYPE_MONITOR, msg);
+                } catch (err) {
+                    logger.error('Error sending command to monitor %s:', id, err);
+                }
             }
         }
+    }
+
+    /**
+     * 清理所有回调和消息映射
+     * @private
+     */
+    clearCallbacks() {
+        // 清理所有超时定时器
+        for (const reqId in this.callbacks) {
+            const callback = this.callbacks[reqId];
+            if (callback && callback.cleanup) {
+                callback.cleanup();
+            }
+        }
+        
+        // 清理回调映射
+        this.callbacks = {};
+        
+        // 清理请求消息映射
+        this.reqMsgMap = {};
+    }
+
+    /**
+     * 设置错误处理
+     * @private
+     */
+    setupErrorHandling() {
+        // 监听未处理的Promise拒绝
+        process.on('unhandledRejection', (reason, promise) => {
+            logger.error('Unhandled Rejection in MasterAgent:', reason);
+            this.emit('error', new Error(`Unhandled Rejection: ${reason}`));
+        });
     }
 }
 

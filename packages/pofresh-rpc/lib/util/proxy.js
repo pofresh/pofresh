@@ -1,69 +1,114 @@
+/**
+ * pofresh-rpc proxy module
+ * Provides proxy creation utilities for remote service calls
+ */
+
 const logger = require('pofresh-logger').getLogger('pofresh-rpc', 'rpc-proxy');
-const exp = module.exports;
 
 /**
- * Create proxy.
- *
- * @param  {Object} opts construct parameters
- *           opts.origin {Object} delegated object
- *           opts.proxyCB {Function} proxy invoke callback
- *           opts.service {String} deletgated service name
- *           opts.attach {Object} attach parameter pass to proxyCB
- * @return {Object}      proxy instance
+ * Proxy creation options
+ * @typedef {Object} ProxyOptions
+ * @property {Object} origin - delegated object
+ * @property {Function} proxyCB - proxy invoke callback
+ * @property {string} service - delegated service name
+ * @property {Object} attach - attach parameter pass to proxyCB
  */
-exp.create = opts => {
-    if (!opts?.origin) {
-        logger.warn('opts and opts.origin should not be empty.');
+
+/**
+ * Create a proxy for remote service calls
+ *
+ * @param {ProxyOptions} opts - construct parameters
+ * @returns {Object|null} proxy instance or null if invalid options
+ */
+function createProxy(opts) {
+    if (!opts || typeof opts !== 'object') {
+        logger.warn('[pofresh-rpc] proxy options are required');
+        return null;
+    }
+
+    if (!opts.origin || typeof opts.origin !== 'object') {
+        logger.warn('[pofresh-rpc] opts.origin should be an object');
         return null;
     }
 
     if (!opts.proxyCB || typeof opts.proxyCB !== 'function') {
-        logger.warn('opts.proxyCB is not a function, return the origin module directly.');
+        logger.warn('[pofresh-rpc] opts.proxyCB is not a function, return the origin module directly');
         return opts.origin;
     }
 
-    //generate proxy for function field
-    const res = {};
-    let origin = opts.origin;
-
-    origin = origin.__proto__;
-    while (true) {
-        if (origin === Object.prototype || origin === null) {
-            break;
-        }
-        const funs = Reflect.ownKeys(origin);
-        funs.forEach(fn => {
-            if (typeof origin[fn] === 'function' && fn !== 'constructor') {
-                res[fn] = genFunctionProxy(opts.service, fn, opts.origin, opts.attach, opts.proxyCB);
-            }
-        });
-        origin = origin.__proto__;
+    if (!opts.service || typeof opts.service !== 'string') {
+        logger.warn('[pofresh-rpc] opts.service should be a non-empty string');
+        return null;
     }
-    return res;
-};
+
+    try {
+        return generateProxyFromOrigin(opts);
+    } catch (error) {
+        logger.error(`[pofresh-rpc] error creating proxy for service ${opts.service}:`, error);
+        return null;
+    }
+}
 
 /**
- * Generate prxoy for function type field
- *
- * @param serviceName {String} delegated service name
- * @param methodName {String} delegated method name
- * @param origin {Object} origin object
- * @param attach {Object} attach object
- * @param proxyCB {Functoin} proxy callback function
- * @returns function proxy
+ * Generate proxy functions from origin object prototype chain
+ * @param {ProxyOptions} opts - proxy options
+ * @returns {Object} proxy instance with all methods
+ * @private
  */
-function genFunctionProxy(serviceName, methodName, _origin, attach, proxyCB) {
-    return (() => {
-        const proxy = () => {
-            const args = Array.from(arguments);
-            proxyCB(serviceName, methodName, args, attach);
-        };
+function generateProxyFromOrigin(opts) {
+    const proxyMethods = {};
+    let currentPrototype = opts.origin.__proto__;
 
-        proxy.toServer = () => {
-            const args = Array.from(arguments);
-            proxyCB(serviceName, methodName, args, attach, true);
-        };
-
-        return proxy;
-    })();
+    while (currentPrototype && currentPrototype !== Object.prototype && currentPrototype !== null) {
+        const methodNames = Reflect.ownKeys(currentPrototype);
+        
+        methodNames.forEach(methodName => {
+            if (typeof currentPrototype[methodName] === 'function' && methodName !== 'constructor') {
+                proxyMethods[methodName] = createFunctionProxy(
+                    opts.service,
+                    methodName,
+                    opts.origin,
+                    opts.attach,
+                    opts.proxyCB
+                );
+            }
+        });
+        
+        currentPrototype = currentPrototype.__proto__;
+    }
+    
+    return proxyMethods;
 }
+
+/**
+ * Create a function proxy for remote method calls
+ *
+ * @param {string} serviceName - delegated service name
+ * @param {string} methodName - delegated method name
+ * @param {Object} origin - origin object
+ * @param {Object} attach - attach object
+ * @param {Function} proxyCB - proxy callback function
+ * @returns {Function} proxy function with toServer method
+ * @private
+ */
+function createFunctionProxy(serviceName, methodName, origin, attach, proxyCB) {
+    const proxy = function() {
+        const args = Array.from(arguments);
+        proxyCB(serviceName, methodName, args, attach);
+    };
+
+    /**
+     * Route to specific server
+     * @returns {Function} proxy function for specific server routing
+     */
+    proxy.toServer = function() {
+        const args = Array.from(arguments);
+        proxyCB(serviceName, methodName, args, attach, true);
+    };
+
+    return proxy;
+}
+
+module.exports = {
+    create: createProxy
+};

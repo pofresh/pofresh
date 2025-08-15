@@ -1,17 +1,37 @@
+/**
+ * pofresh-rpc utilities module
+ * Provides various utility functions for RPC operations
+ */
+
 const Utils = {};
 
-Utils.invokeCallback = cb => {
+/**
+ * Invoke callback with arguments
+ * @param {Function} cb - callback function
+ * @param {...*} args - arguments to pass to callback
+ */
+Utils.invokeCallback = (cb, ...args) => {
     if (typeof cb === 'function') {
-        cb.apply(null, Array.prototype.slice.call(arguments, 1));
+        cb.apply(null, args);
     }
 };
 
+/**
+ * Apply callback with arguments array
+ * @param {Function} cb - callback function
+ * @param {Array} args - arguments array to pass to callback
+ */
 Utils.applyCallback = (cb, args) => {
     if (typeof cb === 'function') {
         cb.apply(null, args);
     }
 };
 
+/**
+ * Get object class name
+ * @param {Object} obj - object to get class name
+ * @returns {string|undefined} class name or undefined
+ */
 Utils.getObjectClass = obj => {
     if (!obj) {
         return;
@@ -44,93 +64,79 @@ Utils.getObjectClass = obj => {
 };
 
 /**
- * Utils check float
- *
- * @param  {Float}   float
- * @return {Boolean} true|false
- * @api public
+ * Check if value is a float number
+ * @param {*} v - value to check
+ * @returns {boolean} true if float, false otherwise
  */
 Utils.checkFloat = v => v === Number(v) && v % 1 !== 0;
 
 /**
- * Utils check type
- *
- * @param  {String}   type
- * @return {Function} high order function
- * @api public
+ * Create type checker function
+ * @param {string} type - type name
+ * @returns {Function} type checker function
  */
 Utils.isType = type => obj => ({}).toString.call(obj) === `[object ${type}]`;
 
 /**
- * Utils check array
- *
- * @param  {Array}   array
- * @return {Boolean} true|false
- * @api public
+ * Check if value is an array
+ * @param {*} array - value to check
+ * @returns {boolean} true if array, false otherwise
  */
 Utils.checkArray = Array.isArray || Utils.isType('Array');
 
 /**
- * Utils check number
- *
- * @param  {Number}  number
- * @return {Boolean} true|false
- * @api public
+ * Check if value is a number
+ * @param {*} number - value to check
+ * @returns {boolean} true if number, false otherwise
  */
 Utils.checkNumber = Utils.isType('Number');
 
 /**
- * Utils check function
- *
- * @param  {Function}   func function
- * @return {Boolean}    true|false
- * @api public
+ * Check if value is a function
+ * @param {*} func - value to check
+ * @returns {boolean} true if function, false otherwise
  */
 Utils.checkFunction = Utils.isType('Function');
+
 /**
- * Utils check object
- *
- * @param  {Object}   obj object
- * @return {Boolean}  true|false
- * @api public
+ * Check if value is an object
+ * @param {*} obj - value to check
+ * @returns {boolean} true if object, false otherwise
  */
 Utils.checkObject = Utils.isType('Object');
 
 /**
- * Utils check string
- *
- * @param  {String}   string
- * @return {Boolean}  true|false
- * @api public
+ * Check if value is a string
+ * @param {*} string - value to check
+ * @returns {boolean} true if string, false otherwise
  */
 Utils.checkString = Utils.isType('String');
 
 /**
- * Utils check boolean
- *
- * @param  {Object}   obj object
- * @return {Boolean}  true|false
- * @api public
+ * Check if value is a boolean
+ * @param {*} obj - value to check
+ * @returns {boolean} true if boolean, false otherwise
  */
 Utils.checkBoolean = Utils.isType('Boolean');
 
 /**
- * Utils check bean
- *
- * @param  {Object}   obj object
- * @return {Boolean}  true|false
- * @api public
+ * Check if value is a bean object
+ * @param {*} obj - value to check
+ * @returns {boolean} true if bean, false otherwise
  */
 Utils.checkBean = obj => obj?.$id && Utils.checkFunction(obj.writeFields) && Utils.checkFunction(obj.readFields);
 
+/**
+ * Check if value is null
+ * @param {*} obj - value to check
+ * @returns {boolean} true if null, false otherwise
+ */
 Utils.checkNull = obj => !Utils.isNotNull(obj);
 
 /**
- * Utils args to array
- *
- * @param  {Object}  args arguments
- * @return {Array}   array
- * @api public
+ * Convert arguments to array
+ * @param {ArrayLike} args - arguments object
+ * @returns {Array} array copy of arguments
  */
 Utils.toArray = args => {
     const len = args.length;
@@ -144,11 +150,9 @@ Utils.toArray = args => {
 };
 
 /**
- * Utils check is not null
- *
- * @param  {Object}   value
- * @return {Boolean}  true|false
- * @api public
+ * Check if value is not null
+ * @param {*} value - value to check
+ * @returns {boolean} true if not null, false otherwise
  */
 Utils.isNotNull = value => {
     if (value !== null && typeof value !== 'undefined') {
@@ -157,6 +161,11 @@ Utils.isNotNull = value => {
     return false;
 };
 
+/**
+ * Get type of object for serialization
+ * @param {*} object - object to get type
+ * @returns {number} type code
+ */
 Utils.getType = object => {
     if (object === null || typeof object === 'undefined') {
         return Utils.typeMap.null;
@@ -199,6 +208,7 @@ Utils.getType = object => {
     }
 };
 
+// Type mapping for serialization
 const typeArray = ['', 'null', 'buffer', 'array', 'string', 'object', 'bean', 'boolean', 'float', 'number'];
 const typeMap = {};
 for (let i = 1; i <= typeArray.length; i++) {
@@ -206,11 +216,19 @@ for (let i = 1; i <= typeArray.length; i++) {
 }
 
 Utils.typeArray = typeArray;
-
 Utils.typeMap = typeMap;
 
+/**
+ * Get bearcat instance (dependency injection container)
+ * @returns {Object} bearcat instance
+ */
 Utils.getBearcat = () => require('bearcat');
 
+/**
+ * Generate service mapping for RPC routing
+ * @param {Object} services - services object
+ * @returns {Array} [namespaceMap, serviceMap, methodMap, namespaceList, serviceList, methodList]
+ */
 Utils.genServicesMap = services => {
     const nMap = {}; // namespace
     const sMap = {}; // service

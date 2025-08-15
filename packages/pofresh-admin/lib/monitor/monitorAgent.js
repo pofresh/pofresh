@@ -2,6 +2,8 @@ const logger = require('pofresh-logger').getLogger('pofresh-admin', 'MonitorAgen
 const Client = require('../protocol/socketio/sioClient');
 const EventEmitter = require('events');
 const protocol = require('../util/protocol');
+const ErrorHandler = require('../util/errorHandler');
+const Constants = require('../util/constants');
 
 const ST_INITED = 1;
 const ST_CONNECTED = 2;
@@ -23,6 +25,16 @@ const ST_CLOSED = 4;
 class MonitorAgent extends EventEmitter {
     constructor(consoleService, opts) {
         super();
+        
+        // 输入验证
+        if (!consoleService) {
+            throw new Error('ConsoleService is required');
+        }
+
+        if (!opts || typeof opts !== 'object') {
+            throw new Error('Options must be an object');
+        }
+
         this.reqId = 1;
         this.opts = opts;
         this.id = opts.id;
@@ -33,6 +45,10 @@ class MonitorAgent extends EventEmitter {
         this.state = ST_INITED;
         this.consoleService = consoleService;
         this.Client = opts.Client || Client;
+        this.resourceManager = ErrorHandler.createResourceManager();
+
+        // 设置错误处理
+        this.setupErrorHandling();
     }
 
     /**
@@ -46,18 +62,20 @@ class MonitorAgent extends EventEmitter {
     connect(port, host, cb) {
         if (this.state > ST_INITED) {
             const err = new Error('monitor client has connected or closed.');
-            if (cb) {
-                cb(err);
-            }
+            ErrorHandler.safeCallback(cb, err);
             return;
         }
 
         // 输入验证
-        if (!(port && host)) {
-            const err = new Error('Port and host are required');
-            if (cb) {
-                cb(err);
-            }
+        if (!port || typeof port !== 'number' || port <= 0) {
+            const err = new Error('Port must be a positive number');
+            ErrorHandler.safeCallback(cb, err);
+            return;
+        }
+
+        if (!host || typeof host !== 'string') {
+            const err = new Error('Host must be a non-empty string');
+            ErrorHandler.safeCallback(cb, err);
             return;
         }
 
@@ -68,12 +86,13 @@ class MonitorAgent extends EventEmitter {
         const safeCallback = (err, result) => {
             if (!callbackInvoked) {
                 callbackInvoked = true;
-                cb(err, result);
+                ErrorHandler.safeCallback(cb, err, result);
             }
         };
 
         try {
             this.socket = new this.Client(this.opts);
+            this.resourceManager.addResource(this.socket);
         } catch (err) {
             return safeCallback(new Error(`Failed to create client socket: ${err.message}`));
         }
@@ -84,7 +103,7 @@ class MonitorAgent extends EventEmitter {
                 logger.error('Connection timeout for server %j %j', this.id, this.type);
                 safeCallback(new Error('Connection timeout'));
             }
-        }, 10_000); // 10秒超时
+        }, Constants.DEFAULT_PARAM.TIMEOUT);
 
         this.socket.on('register', msg => {
             clearTimeout(connectTimeout);
@@ -164,8 +183,10 @@ class MonitorAgent extends EventEmitter {
         this.socket.on('error', err => {
             if (this.state < ST_CONNECTED) {
                 // error occurs during connecting stage
-                cb(err);
+                clearTimeout(connectTimeout);
+                safeCallback(err);
             } else {
+                logger.error('Monitor agent socket error:', err);
                 this.emit('error', err);
             }
         });
@@ -195,6 +216,7 @@ class MonitorAgent extends EventEmitter {
         });
 
         this.socket.connect(host, port);
+        this.resourceManager.addTimer(connectTimeout);
     }
 
     /**
@@ -204,10 +226,30 @@ class MonitorAgent extends EventEmitter {
      */
     close() {
         if (this.state >= ST_CLOSED) {
+            logger.debug('Monitor agent already closed or closing');
             return;
         }
-        this.state = ST_CLOSED;
-        this.socket.disconnect();
+
+        try {
+            logger.info('Closing monitor agent...');
+            this.state = ST_CLOSED;
+
+            // 清理所有回调
+            this.clearCallbacks();
+
+            // 断开socket连接
+            if (this.socket) {
+                this.socket.disconnect();
+            }
+
+            // 清理资源
+            this.resourceManager.cleanup();
+
+            logger.info('Monitor agent closed successfully');
+        } catch (err) {
+            logger.error('Error closing monitor agent:', err);
+            this.emit('error', err);
+        }
     }
 
     /**
@@ -249,11 +291,57 @@ class MonitorAgent extends EventEmitter {
     request(moduleId, msg, cb) {
         if (this.state !== ST_REGISTERED) {
             logger.error(`agent can not request now, state:${this.state}`);
+            ErrorHandler.safeCallback(cb, new Error('Agent not registered'));
             return;
         }
+
+        if (!moduleId || typeof moduleId !== 'string') {
+            const error = 'Module ID must be a non-empty string';
+            logger.error(error);
+            ErrorHandler.safeCallback(cb, new Error(error));
+            return;
+        }
+
         const reqId = this.reqId++;
         this.callbacks[reqId] = cb;
-        this.socket.send('monitor', protocol.composeRequest(reqId, moduleId, msg));
+        
+        try {
+            this.socket.send('monitor', protocol.composeRequest(reqId, moduleId, msg));
+        } catch (err) {
+            logger.error('Error sending request:', err);
+            delete this.callbacks[reqId];
+            ErrorHandler.safeCallback(cb, err);
+        }
+    }
+
+    /**
+     * 清理所有回调
+     * @private
+     */
+    clearCallbacks() {
+        for (const reqId in this.callbacks) {
+            const callback = this.callbacks[reqId];
+            if (typeof callback === 'function') {
+                try {
+                    callback(new Error('Connection closed'));
+                } catch (err) {
+                    logger.error('Error in callback cleanup:', err);
+                }
+            }
+            delete this.callbacks[reqId];
+        }
+    }
+
+    /**
+     * 设置错误处理
+     * @private
+     */
+    setupErrorHandling() {
+        // 监听未处理的Promise拒绝
+        process.on('unhandledRejection', (reason, promise) => {
+            logger.error('Unhandled Rejection in MonitorAgent:', reason);
+            this.emit('error', new Error(`Unhandled Rejection: ${reason}`));
+        });
     }
 }
 

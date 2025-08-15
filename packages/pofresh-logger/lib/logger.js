@@ -3,127 +3,25 @@ const DailyRotateFile = require('winston-daily-rotate-file');
 const fs = require('fs');
 const util = require('util');
 
-// BatchLoggerManager for efficient log batching
-class BatchLoggerManager {
-    constructor(config) {
-        this.config = config;
-        this.timers = new Map();
-    }
+// 导入重构后的模块
+const BatchLoggerManager = require('./BatchLoggerManager');
+const SerializationUtils = require('./utils/serializationUtils');
+const ColorUtils = require('./utils/colorUtils');
+const ConfigUtils = require('./utils/configUtils');
 
-    // Add a log entry to the batch
-    addLogEntry(logger, level, message, meta) {
-        try {
-            if (!this.config.enabled) {
-                logger[level](message, meta);
-                return;
-            }
+// 批量日志配置 - 将在configure函数中更新
+let batchConfig = {
+    enabled: true,
+    sizeThreshold: 100,
+    timeThreshold: 500, // ms,
+    batches: new Map()
+};
 
-            const loggerKey = logger._batchKey || 'default';
-            if (!this.config.batches.has(loggerKey)) {
-                this.config.batches.set(loggerKey, []);
-            }
+// 初始化批量管理器
+let batchManager = new BatchLoggerManager(batchConfig);
 
-            const batch = this.config.batches.get(loggerKey);
-            batch.push({ level, message, meta });
-
-            // Check if we need to flush the batch
-            if (batch.length >= this.config.sizeThreshold) {
-                this.flushBatch(loggerKey, logger);
-            }
-
-            // Set up a timer if not already set
-            if (!this.timers.has(loggerKey)) {
-                this.timers.set(
-                    loggerKey,
-                    setTimeout(() => {
-                        this.flushBatch(loggerKey, logger);
-                    }, this.config.timeThreshold)
-                );
-            }
-        } catch (_error) {
-            // Enhanced error handling with stack trace and context
-            const _loggerKey = logger._batchKey || 'default';
-            // Graceful degradation: Try to log directly without batching
-            try {
-                logger[level](`[BATCH ERROR] ${message}`, meta);
-            } catch (_fallbackError) {
-                // Silently ignore fallback logging errors to prevent infinite loops
-            }
-        }
-    }
-
-    // Flush a specific batch
-    flushBatch(loggerKey, logger) {
-        try {
-            if (!this.config.batches.has(loggerKey)) {
-                return;
-            }
-
-            const batch = this.config.batches.get(loggerKey);
-            if (batch.length === 0) {
-                this.config.batches.delete(loggerKey);
-                if (this.timers.has(loggerKey)) {
-                    clearTimeout(this.timers.get(loggerKey));
-                    this.timers.delete(loggerKey);
-                }
-                return;
-            }
-
-            // Clear the timer for this batch
-            if (this.timers.has(loggerKey)) {
-                clearTimeout(this.timers.get(loggerKey));
-                this.timers.delete(loggerKey);
-            }
-
-            // Process the batch
-            for (const entry of batch) {
-                try {
-                    logger[entry.level](entry.message, entry.meta);
-                } catch (entryError) {
-                    // Attempt to log the error itself
-                    try {
-                        logger.error(`[ENTRY ERROR] ${entry.message}`, {
-                            originalError: entryError.message,
-                            stack: entryError.stack,
-                            meta: entry.meta
-                        });
-                    } catch (_errorLoggingError) {
-                        // Silently ignore logging errors to prevent infinite loops
-                    }
-                }
-            }
-        } catch (_error) {
-            // Save failed batch for later processing
-            try {
-                const currentBatch = this.config.batches.get(loggerKey);
-                if (currentBatch) {
-                    if (!this.failedBatches) {
-                        this.failedBatches = new Map();
-                    }
-                    if (!this.failedBatches.has(loggerKey)) {
-                        this.failedBatches.set(loggerKey, []);
-                    }
-                    this.failedBatches.get(loggerKey).push(...currentBatch);
-                }
-            } catch (_saveError) {
-                // Silently ignore save errors to prevent cascading failures
-            }
-        } finally {
-            // Clear the batch regardless of processing outcome
-            this.config.batches.delete(loggerKey);
-        }
-    }
-
-    // Flush all batches
-    flushAllBatches(loggers) {
-        for (const [loggerKey, _] of this.config.batches.entries()) {
-            const logger = loggers.get(loggerKey) || loggers.get('default');
-            if (logger) {
-                this.flushBatch(loggerKey, logger);
-            }
-        }
-    }
-}
+// 导出配置用于测试
+module.exports.batchConfig = batchConfig;
 
 const funcs = {
     env: doEnv,
@@ -131,50 +29,77 @@ const funcs = {
     opts: doOpts
 };
 
-// Winston logger instances cache with LRU implementation
+/**
+ * 高性能LRU缓存实现
+ */
 class LRUCache {
-    constructor(maxSize) {
-        this.maxSize = maxSize;
+    /**
+     * 构造函数
+     * @param {number} maxSize - 最大缓存大小
+     */
+    constructor(maxSize = 1000) {
+        this.maxSize = Math.max(maxSize, 1);
         this.cache = new Map();
         this.order = [];
     }
 
+    /**
+     * 获取缓存值
+     * @param {string} key - 缓存键
+     * @returns {*} 缓存值
+     */
     get(key) {
         if (!this.cache.has(key)) {
-            return;
+            return undefined;
         }
 
-        // Move to end (most recently used)
-        const index = this.order.indexOf(key);
-        if (index !== -1) {
-            this.order.splice(index, 1);
-        }
-        this.order.push(key);
-
+        // 移动到末尾（最近使用）
+        this.moveToEnd(key);
         return this.cache.get(key);
     }
 
+    /**
+     * 设置缓存值
+     * @param {string} key - 缓存键
+     * @param {*} value - 缓存值
+     */
     set(key, value) {
-        // Remove least recently used if full
-        if (this.cache.size >= this.maxSize) {
-            const lruKey = this.order.shift();
-            this.cache.delete(lruKey);
+        if (this.cache.has(key)) {
+            // 更新现有值
+            this.cache.set(key, value);
+            this.moveToEnd(key);
+        } else {
+            // 添加新值
+            if (this.cache.size >= this.maxSize) {
+                this.evictLeastRecentlyUsed();
+            }
+            this.cache.set(key, value);
+            this.order.push(key);
         }
-
-        // Add new item
-        this.cache.set(key, value);
-        this.order.push(key);
     }
 
+    /**
+     * 检查是否包含键
+     * @param {string} key - 缓存键
+     * @returns {boolean} 是否包含
+     */
     has(key) {
         return this.cache.has(key);
     }
 
+    /**
+     * 清空缓存
+     */
     clear() {
         this.cache.clear();
         this.order = [];
     }
 
+    /**
+     * 删除缓存
+     * @param {string} key - 缓存键
+     * @returns {boolean} 是否删除成功
+     */
     delete(key) {
         if (this.cache.has(key)) {
             this.cache.delete(key);
@@ -187,23 +112,48 @@ class LRUCache {
         return false;
     }
 
+    /**
+     * 获取所有键
+     * @returns {IterableIterator<string>} 键迭代器
+     */
     keys() {
         return this.cache.keys();
+    }
+
+    /**
+     * 移动键到末尾
+     * @param {string} key - 缓存键
+     * @private
+     */
+    moveToEnd(key) {
+        const index = this.order.indexOf(key);
+        if (index !== -1) {
+            this.order.splice(index, 1);
+        }
+        this.order.push(key);
+    }
+
+    /**
+     * 删除最少使用的项
+     * @private
+     */
+    evictLeastRecentlyUsed() {
+        if (this.order.length > 0) {
+            const lruKey = this.order.shift();
+            this.cache.delete(lruKey);
+        }
+    }
+
+    /**
+     * 获取缓存大小
+     * @returns {number} 缓存大小
+     */
+    size() {
+        return this.cache.size;
     }
 }
 
 const loggerCache = new LRUCache(1000);
-
-// Batch logging configuration
-const batchConfig = {
-    enabled: true,
-    sizeThreshold: 100,
-    timeThreshold: 500, // ms
-    batches: new Map()
-};
-
-// Initialize batch manager after batchConfig is defined
-const batchManager = new BatchLoggerManager(batchConfig);
 
 // Export batchConfig for testing purposes
 module.exports.batchConfig = batchConfig;
@@ -275,58 +225,25 @@ function getLogger(categoryName, ...additionalArgs) {
         }
     }
 
-    // Helper function to serialize objects
-    function serializeObject(obj) {
-        try {
-            return JSON.stringify(obj, circularReplacer(), 2);
-        } catch (_err) {
-            return util.inspect(obj, {
-                depth: getOptimalDepth(obj),
-                colors: false,
-                breakLength: 80,
-                compact: messageSize(obj) > 1000
-            });
-        }
-    }
-
-    // Helper function to process arguments
-    function processArguments(args) {
-        return args.map(arg => {
-            if (typeof arg === 'object' && arg !== null) {
-                return serializeObject(arg);
-            }
-            return arg;
-        });
-    }
-
-    // Helper function to get log level mapping
-    function mapLogLevel(item) {
-        if (item === 'log') {
-            return 'info';
-        }
-        if (item === 'fatal') {
-            return 'error';
-        }
-        if (item === 'trace') {
-            return 'debug';
-        }
-        return item;
-    }
+    // 使用SerializationUtils替换原有的辅助函数
+    const serializeObject = SerializationUtils.serializeObject.bind(SerializationUtils);
+    const processArguments = SerializationUtils.processArguments.bind(SerializationUtils);
+    const mapLogLevel = SerializationUtils.mapLogLevel.bind(SerializationUtils);
 
     // Helper function to format prefix
-    function formatPrefix(item, args) {
+    function formatPrefix(level, args) {
         if (process.env.RAW_MESSAGE) {
             return '';
         }
 
-        let p = '';
+        let prefix = '';
         if (args.length > 1) {
-            p = `[${prefix}] `;
+            prefix = `[${args.join('] [')}] `;
         }
         if (args.length && process.env.LOGGER_LINE) {
-            p = `${getLine()}: ${p}`;
+            prefix = `${getLine()}: ${prefix}`;
         }
-        return colorize(p, colours[item]);
+        return ColorUtils.colorize(prefix, ColorUtils.getLevelColor(level));
     }
 
     // Create log methods for each level
@@ -367,66 +284,67 @@ function getLogger(categoryName, ...additionalArgs) {
 
 const configState = {};
 
+/**
+ * 初始化配置文件重载
+ * @param {string} filename - 配置文件路径
+ * @param {number} reloadSecs - 重载间隔（秒）
+ */
 function initReloadConfiguration(filename, reloadSecs) {
     if (configState.timerId) {
         clearInterval(configState.timerId);
         configState.timerId = undefined;
     }
-    configState.filename = filename;
-    configState.lastMTime = getMTime(filename);
-    configState.timerId = setInterval(reloadConfiguration, reloadSecs * 1000);
-}
 
-function getMTime(filename) {
-    let mtime;
     try {
-        mtime = fs.statSync(filename).mtime;
+        configState.filename = ConfigUtils.getAbsolutePath(filename);
+        configState.lastMTime = ConfigUtils.getMTime(configState.filename);
+        
+        configState.timerId = setInterval(reloadConfiguration, reloadSecs * 1000);
     } catch (error) {
-        throw new Error(`Cannot find file with given path: ${filename}. Error: ${error.message}`);
+        console.error(`Failed to initialize reload configuration: ${error.message}`);
     }
-    return mtime;
 }
 
-function loadConfigurationFile(filename) {
-    if (filename) {
-        try {
-            const content = fs.readFileSync(filename, 'utf8');
-            return JSON.parse(content);
-        } catch (error) {
-            throw new Error(`Failed to load configuration file ${filename}: ${error.message}`);
-        }
-    }
-    return;
-}
-
+/**
+ * 重新加载配置
+ */
 function reloadConfiguration() {
-    const mtime = getMTime(configState.filename);
-    if (!mtime) {
-        return;
-    }
-    if (configState.lastMTime && mtime.getTime() > configState.lastMTime.getTime()) {
-        configureOnceOff(loadConfigurationFile(configState.filename));
-    }
-    configState.lastMTime = mtime;
-}
-
-function configureOnceOff(config) {
-    if (config) {
-        try {
-            if (config.replaceConsole) {
-                const logger = getLogger('console');
-                console.log = logger.info.bind(logger);
-                console.info = logger.info.bind(logger);
-                console.warn = logger.warn.bind(logger);
-                console.error = logger.error.bind(logger);
-                console.debug = logger.debug.bind(logger);
-            }
-        } catch (e) {
-            // Enhanced error handling with stack trace
-            const _errorMessage = `Problem reading winston config ${util.inspect(config)}. Error was "${e.message}"`;
-            // Graceful degradation: Continue with default configuration
+    try {
+        const mtime = ConfigUtils.getMTime(configState.filename);
+        if (!mtime) {
             return;
         }
+
+        if (configState.lastMTime && mtime.getTime() > configState.lastMTime.getTime()) {
+            const config = ConfigUtils.loadConfigurationFile(configState.filename);
+            configureOnceOff(config);
+        }
+        configState.lastMTime = mtime;
+    } catch (error) {
+        console.error(`Configuration reload failed: ${error.message}`);
+    }
+}
+
+/**
+ * 单次配置
+ * @param {Object} config - 配置对象
+ */
+function configureOnceOff(config) {
+    if (!config) {
+        return;
+    }
+
+    try {
+        if (config.replaceConsole) {
+            const logger = getLogger('console');
+            console.log = logger.info.bind(logger);
+            console.info = logger.info.bind(logger);
+            console.warn = logger.warn.bind(logger);
+            console.error = logger.error.bind(logger);
+            console.debug = logger.debug.bind(logger);
+        }
+    } catch (error) {
+        console.error(`Problem reading winston config: ${error.message}`);
     }
 }
 
@@ -444,105 +362,37 @@ function configureOnceOff(config) {
  * @return {Void}
  */
 
+/**
+ * 将log4js配置转换为Winston配置
+ * @param {Object} log4jsConfig - log4js配置对象
+ * @returns {Object} Winston配置对象
+ */
 function convertLog4jsToWinston(log4jsConfig) {
     const winstonTransports = [];
     let defaultLevel = log4jsConfig.categories?.default?.level || 'info';
 
-    // Convert log4js levels to Winston levels
-    if (defaultLevel === 'all') {
-        defaultLevel = 'silly';
-    }
-    if (defaultLevel === 'trace') {
-        defaultLevel = 'debug';
-    }
-    if (defaultLevel === 'fatal') {
-        defaultLevel = 'error';
-    }
+    // 映射log4js级别到Winston级别
+    const levelMap = {
+        'all': 'silly',
+        'trace': 'debug',
+        'fatal': 'error'
+    };
+    defaultLevel = levelMap[defaultLevel] || defaultLevel;
 
-    // Convert appenders to Winston transports
+    // 转换appenders到Winston传输器
     if (log4jsConfig.appenders) {
         for (const appenderName of Object.keys(log4jsConfig.appenders)) {
             const appender = log4jsConfig.appenders[appenderName];
-
-            switch (appender.type) {
-                case 'console':
-                    winstonTransports.push(
-                        new winston.transports.Console({
-                            format: winston.format.combine(
-                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                                winston.format.errors({ stack: true }),
-                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                                    const categoryStr = category || 'default';
-                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                                    const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
-                                    const levelColor = colours[level.toLowerCase()] || colours.info;
-                                    return colorize(logLine, levelColor);
-                                })
-                            )
-                        })
-                    );
-                    break;
-                case 'file':
-                    winstonTransports.push(
-                        new winston.transports.File({
-                            filename: appender.filename,
-                            maxsize: appender.maxLogSize,
-                            maxFiles: appender.backups,
-                            format: winston.format.combine(
-                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                                winston.format.errors({ stack: true }),
-                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                                    const categoryStr = category || 'default';
-                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                                    return stack ? `${baseMessage}\n${stack}` : baseMessage;
-                                })
-                            )
-                        })
-                    );
-                    break;
-                case 'dateFile':
-                    winstonTransports.push(
-                        new DailyRotateFile({
-                            filename: appender.filename,
-                            datePattern: appender.pattern || 'YYYY-MM-DD',
-                            maxSize: appender.maxLogSize,
-                            maxFiles: appender.daysToKeep || appender.numBackups,
-                            format: winston.format.combine(
-                                winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                                winston.format.errors({ stack: true }),
-                                winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                                    const categoryStr = category || 'default';
-                                    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                                    return stack ? `${baseMessage}\n${stack}` : baseMessage;
-                                })
-                            )
-                        })
-                    );
-                    break;
-                default:
-                    // Unknown appender type, skip silently
-                    break;
+            const transport = createWinstonTransport(appender);
+            if (transport) {
+                winstonTransports.push(transport);
             }
         }
     }
 
-    // Default console transport if no transports defined
+    // 如果没有定义传输器，添加默认的控制台传输器
     if (winstonTransports.length === 0) {
-        winstonTransports.push(
-            new winston.transports.Console({
-                format: winston.format.combine(
-                    winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
-                    winston.format.errors({ stack: true }),
-                    winston.format.printf(({ timestamp, level, message, category, stack }) => {
-                        const categoryStr = category || 'default';
-                        const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
-                        const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
-                        const levelColor = colours[level.toLowerCase()] || colours.info;
-                        return colorize(logLine, levelColor);
-                    })
-                )
-            })
-        );
+        winstonTransports.push(createDefaultConsoleTransport());
     }
 
     return {
@@ -557,55 +407,100 @@ function convertLog4jsToWinston(log4jsConfig) {
     };
 }
 
-function validateConfig(config) {
-    const errors = [];
+/**
+ * 创建Winston传输器
+ * @param {Object} appender - log4js appender配置
+ * @returns {Object|null} Winston传输器
+ */
+function createWinstonTransport(appender) {
+    const baseFormat = winston.format.combine(
+        winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+        winston.format.errors({ stack: true }),
+        winston.format.printf(getLogFormatFunction())
+    );
 
-    // Validate required fields
-    if (!config) {
-        errors.push('Configuration cannot be null or undefined');
-        return {
-            valid: false,
-            errors
-        };
+    switch (appender.type) {
+        case 'console':
+            return new winston.transports.Console({
+                format: winston.format.combine(
+                    baseFormat,
+                    winston.format.printf(getColoredLogFormatFunction())
+                )
+            });
+        case 'file':
+            return new winston.transports.File({
+                filename: appender.filename,
+                maxsize: appender.maxLogSize,
+                maxFiles: appender.backups,
+                format: baseFormat
+            });
+        case 'dateFile':
+            return new DailyRotateFile({
+                filename: appender.filename,
+                datePattern: appender.pattern || 'YYYY-MM-DD',
+                maxSize: appender.maxLogSize,
+                maxFiles: appender.daysToKeep || appender.numBackups,
+                format: baseFormat
+            });
+        default:
+            return null;
     }
+}
 
-    // Validate appenders if present
-    if (config.appenders) {
-        if (typeof config.appenders !== 'object') {
-            errors.push('Appenders must be an object');
-        } else {
-            for (const appenderName of Object.keys(config.appenders)) {
-                const appender = config.appenders[appenderName];
-                if (!appender.type) {
-                    errors.push(`Appender ${appenderName} is missing type`);
-                }
-                if (appender.type === 'file' && !appender.filename) {
-                    errors.push(`File appender ${appenderName} is missing filename`);
-                }
-                if (appender.type === 'dateFile' && !appender.filename) {
-                    errors.push(`DateFile appender ${appenderName} is missing filename`);
-                }
-            }
-        }
-    }
+/**
+ * 创建默认的控制台传输器
+ * @returns {Object} Winston控制台传输器
+ */
+function createDefaultConsoleTransport() {
+    return new winston.transports.Console({
+        format: winston.format.combine(
+            winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSS' }),
+            winston.format.errors({ stack: true }),
+            winston.format.printf(getColoredLogFormatFunction())
+        )
+    });
+}
 
-    // Validate categories if present
-    if (config.categories) {
-        if (typeof config.categories !== 'object') {
-            errors.push('Categories must be an object');
-        } else if (!config.categories.default) {
-            errors.push('Default category is required');
-        } else if (!config.categories.default.level) {
-            errors.push('Default category is missing level');
-        }
-    }
-
-    return {
-        valid: errors.length === 0,
-        errors
+/**
+ * 获取日志格式化函数
+ * @returns {function} 格式化函数
+ */
+function getLogFormatFunction() {
+    return ({ timestamp, level, message, category, stack }) => {
+        const categoryStr = category || 'default';
+        const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+        return stack ? `${baseMessage}\n${stack}` : baseMessage;
     };
 }
 
+/**
+ * 获取彩色日志格式化函数
+ * @returns {function} 格式化函数
+ */
+function getColoredLogFormatFunction() {
+    return ({ timestamp, level, message, category, stack }) => {
+        const categoryStr = category || 'default';
+        const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${categoryStr} - ${message}`;
+        const logLine = stack ? `${baseMessage}\n${stack}` : baseMessage;
+        const levelColor = ColorUtils.getLevelColor(level);
+        return ColorUtils.colorize(logLine, levelColor);
+    };
+}
+
+/**
+ * 验证日志配置
+ * @param {Object} config - 配置对象
+ * @returns {Object} 验证结果 {valid: boolean, errors: string[]}
+ */
+function validateConfig(config) {
+    return ConfigUtils.validateConfig(config);
+}
+
+/**
+ * 配置日志系统
+ * @param {string|Object} config - 配置文件名或配置对象
+ * @param {Object} opts - 选项对象
+ */
 function configure(config, opts) {
     const filename = config;
     let configValue = config || process.env.LOG4JS_CONFIG;
@@ -614,201 +509,132 @@ function configure(config, opts) {
     try {
         if (typeof configValue === 'string') {
             try {
-                configValue = loadConfigurationFile(configValue);
-            } catch (_error) {
+                configValue = ConfigUtils.loadConfigurationFile(configValue);
+            } catch (error) {
+                console.error(`Failed to load logger configuration: ${error.message}`);
                 configValue = {};
             }
         }
 
         if (configValue) {
             try {
-                configValue = replaceProperties(configValue, options);
+                // 替换配置属性
+                configValue = ConfigUtils.replaceProperties(configValue, options);
 
-                // Validate configuration
+                // 验证配置
                 const validationResult = validateConfig(configValue);
                 if (validationResult.valid) {
-                    if (configValue.replaceConsole) {
-                        configureOnceOff(configValue);
+                    // 应用配置选项
+                    applyConfigurationOptions(configValue);
+                    
+                    // 更新批处理配置
+                    if (configValue.batch) {
+                        batchConfig = { ...batchConfig, ...configValue.batch };
+                        batchManager = new BatchLoggerManager(batchConfig);
                     }
-
-                    if (configValue.lineDebug) {
-                        process.env.LOGGER_LINE = true;
-                    }
-
-                    if (configValue.rawMessage) {
-                        process.env.RAW_MESSAGE = true;
-                    }
-
-                    // Convert log4js config to Winston config
+                    
+                    // 转换log4js配置为Winston配置
                     winstonConfig = convertLog4jsToWinston(configValue);
                 } else {
-                    // Log validation errors if needed
-                    for (const _error of validationResult.errors) {
-                        // Error handling can be added here if needed
-                    }
+                    console.error('Configuration validation failed:', validationResult.errors.join(', '));
                     configValue = {};
                 }
 
-                // Clear logger cache to apply new configuration
+                // 清空日志缓存以应用新配置
                 loggerCache.clear();
-            } catch (_error) {
+            } catch (error) {
+                console.error(`Failed to load logger configuration: ${error.message}`);
                 configValue = {};
                 loggerCache.clear();
             }
         }
 
+        // 初始化配置重载
         if (filename && configValue && configValue.reloadSecs) {
             try {
                 initReloadConfiguration(filename, configValue.reloadSecs);
-            } catch (_error) {
-                /* ignore reload configuration errors */
+            } catch (error) {
+                console.error(`Failed to initialize reload configuration: ${error.message}`);
             }
         }
-    } catch (_error) {
+    } catch (error) {
+        console.error(`Configuration setup failed: ${error.message}`);
         loggerCache.clear();
     }
 }
 
-function replaceProperties(configObj, opts) {
-    if (Array.isArray(configObj)) {
-        for (let i = 0, l = configObj.length; i < l; i++) {
-            configObj[i] = replaceProperties(configObj[i], opts);
-        }
-    } else if (typeof configObj === 'object') {
-        let field;
-        for (const f in configObj) {
-            if (!Object.hasOwn(configObj, f)) {
-                continue;
-            }
-
-            field = configObj[f];
-            if (typeof field === 'string') {
-                configObj[f] = doReplace(field, opts);
-            } else if (typeof field === 'object') {
-                configObj[f] = replaceProperties(field, opts);
-            }
-        }
+/**
+ * 应用配置选项
+ * @param {Object} config - 配置对象
+ */
+function applyConfigurationOptions(config) {
+    if (config.replaceConsole) {
+        configureOnceOff(config);
     }
 
-    return configObj;
+    if (config.lineDebug) {
+        process.env.LOGGER_LINE = true;
+    }
+
+    if (config.rawMessage) {
+        process.env.RAW_MESSAGE = true;
+    }
 }
 
-function doReplace(src, opts) {
-    if (!src) {
-        return src;
-    }
-
-    const ptn = /\$\{(.*?)\}/g;
-    let m,
-        pro,
-        ts,
-        scope,
-        name,
-        defaultValue,
-        func,
-        res = '',
-        lastIndex = 0;
-    m = ptn.exec(src);
-    while (m) {
-        pro = m[1];
-        ts = pro.split(':');
-        if (ts.length !== 2 && ts.length !== 3) {
-            res += pro;
-            m = ptn.exec(src);
-            continue;
-        }
-
-        scope = ts[0];
-        name = ts[1];
-        if (ts.length === 3) {
-            defaultValue = ts[2];
-        }
-
-        func = funcs[scope];
-        if (!func && typeof func !== 'function') {
-            res += pro;
-            m = ptn.exec(src);
-            continue;
-        }
-
-        res += src.substring(lastIndex, m.index);
-        lastIndex = ptn.lastIndex;
-        res += func(name, opts) || defaultValue;
-        m = ptn.exec(src);
-    }
-
-    if (lastIndex < src.length) {
-        res += src.substring(lastIndex);
-    }
-
-    return res;
-}
-
+// 向后兼容性函数
 function doEnv(name) {
     return process.env[name];
 }
 
 function doArgs(name) {
-    return process.argv[name];
+    return process.argv[Number(name)];
 }
 
 function doOpts(name, opts) {
     return opts ? opts[name] : undefined;
 }
 
-function getLine() {
-    const e = new Error('Stack trace for line number detection');
-    // now magic will happen: get line number from callstack
-    if (process.platform === 'win32') {
-        return e.stack.split('\n')[3].split(':')[2];
-    }
-    return e.stack.split('\n')[3].split(':')[1];
+// 这些函数现在由ConfigUtils处理
+// 保留向后兼容性
+function replaceProperties(configObj, opts) {
+    return ConfigUtils.replaceProperties(configObj, opts);
 }
 
-function colorizeStart(style) {
-    return style ? `\x1B[${styles[style][0]}m` : '';
+function doReplace(src, opts) {
+    return ConfigUtils.doReplace(src, opts);
 }
 
-function colorizeEnd(style) {
-    return style ? `\x1B[${styles[style][1]}m` : '';
-}
-
-/**
- * Taken from masylum's fork (https://github.com/masylum/log4js-node)
- */
+// 这些函数现在由ColorUtils处理
+// 保留向后兼容性
 function colorize(str, style) {
-    return colorizeStart(style) + str + colorizeEnd(style);
+    return ColorUtils.colorize(str, style);
 }
 
-const styles = {
-    //styles
-    bold: [1, 22],
-    italic: [3, 23],
-    underline: [4, 24],
-    inverse: [7, 27],
-    //grayscale
-    white: [37, 39],
-    grey: [90, 39],
-    black: [90, 39],
-    //colors
-    blue: [34, 39],
-    cyan: [36, 39],
-    green: [32, 39],
-    magenta: [35, 39],
-    red: [31, 39],
-    yellow: [33, 39]
-};
+function getLine() {
+    const error = new Error('Stack trace for line number detection');
+    const stack = error.stack;
+    if (!stack) {
+        return '';
+    }
 
-const colours = {
-    all: 'grey',
-    trace: 'blue',
-    debug: 'cyan',
-    info: 'green',
-    warn: 'yellow',
-    error: 'red',
-    fatal: 'magenta',
-    off: 'grey'
-};
+    try {
+        const lines = stack.split('\n');
+        if (lines.length < 4) {
+            return '';
+        }
+
+        const thirdLine = lines[3];
+        if (process.platform === 'win32') {
+            return thirdLine.split(':')[2] || '';
+        }
+        return thirdLine.split(':')[1] || '';
+    } catch {
+        return '';
+    }
+}
+
+// 保留向后兼容性的颜色映射
+const colours = ColorUtils.levelColors;
 
 // Winston compatible implementations
 function shutdown(callback = null) {

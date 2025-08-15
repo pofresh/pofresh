@@ -41,7 +41,7 @@ describe('Schedule', () => {
             const period = 50;
             const count = 3;
 
-            jobId = schedule.scheduleJob({ start: Date.now(), period, count }, mockJob);
+            jobId = schedule.scheduleJob({ start: Date.now() + period, period, count }, mockJob);
 
             // 验证初始状态
             expect(mockJob).not.toHaveBeenCalled();
@@ -49,7 +49,7 @@ describe('Schedule', () => {
             // 快进时间，验证每次执行
             for (let i = 1; i <= count; i++) {
                 await vi.advanceTimersByTimeAsync(period);
-                // expect(mockJob).toHaveBeenCalledTimes(i);
+                expect(mockJob).toHaveBeenCalledTimes(i);
             }
 
             // 再次快进，确保不会再执行
