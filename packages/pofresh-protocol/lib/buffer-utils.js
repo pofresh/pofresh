@@ -54,7 +54,7 @@ function getFromBuffer(data) {
         if (typeof TextEncoder !== 'undefined') {
             return new TextEncoder().encode(data);
         }
-        
+
         // Fallback: optimized ASCII-only encoding for better performance
         const bytes = new Uint8Array(data.length);
         for (let i = 0; i < data.length; i++) {

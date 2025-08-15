@@ -41,22 +41,22 @@ class CronTrigger {
         // Note: We can't call nextExecuteTime here because it would set isValid=false on error
         // Instead, we'll initialize nextTime to null and let the first call to nextExecuteTime set it
         this.nextTime = null;
-        
+
         // Resource management
         this.resources = new Set();
         this.timers = new Set();
-        
+
         // Statistics
         this.stats = {
             totalExecutions: 0,
             computationTime: 0,
             errors: 0
         };
-        
+
         // Validation state
         this.isValid = true;
         this.originalExpression = trigger;
-        
+
         // Limits
         this.maxYear = 2999;
         this.maxIterations = 1000; // Prevent infinite loops
@@ -70,12 +70,12 @@ class CronTrigger {
         if (!this.isValid) {
             throw new Error('Trigger is no longer valid');
         }
-        
+
         // If nextTime is null, compute it now
         if (this.nextTime === null) {
             this.nextTime = this.nextExecuteTime(Date.now());
         }
-        
+
         return this.nextTime;
     }
 
@@ -90,7 +90,7 @@ class CronTrigger {
         }
 
         const startTime = Date.now();
-        
+
         try {
             // Use provided time or current next time
             time = time ? time : this.nextTime;
@@ -104,7 +104,7 @@ class CronTrigger {
 
             outmost: while (true) {
                 iterations++;
-                
+
                 // Prevent infinite loops
                 if (iterations > this.maxIterations) {
                     throw new Error('Maximum computation iterations exceeded');
@@ -187,13 +187,12 @@ class CronTrigger {
             }
 
             this.nextTime = date.getTime();
-            
+
             // Update statistics
             this.stats.computationTime = Date.now() - startTime;
             this.stats.totalExecutions++;
 
             return this.nextTime;
-
         } catch (err) {
             this.stats.errors++;
             this.isValid = false;
@@ -209,10 +208,7 @@ class CronTrigger {
      */
     checkDayAndWeek(date, cronTrigger) {
         if (
-            !(
-                decoder.timeMatch(date.getDate(), cronTrigger[DOM]) &&
-                decoder.timeMatch(date.getDay(), cronTrigger[DOW])
-            )
+            !(decoder.timeMatch(date.getDate(), cronTrigger[DOM]) && decoder.timeMatch(date.getDay(), cronTrigger[DOW]))
         ) {
             const domLimit = decoder.getDomLimit(date.getFullYear(), date.getMonth());
 
@@ -297,7 +293,6 @@ class CronTrigger {
 
             // Mark as invalid
             this.isValid = false;
-
         } catch (err) {
             // Log error but don't throw to prevent cleanup failures
             console.error('Error during CronTrigger cleanup:', err);
@@ -331,15 +326,14 @@ class CronTrigger {
             this.trigger = newTrigger;
             this.originalExpression = newExpression;
             this.nextTime = this.nextExecuteTime(Date.now());
-            
+
             // Reset statistics
             this.stats.totalExecutions = 0;
             this.stats.computationTime = 0;
             this.stats.errors = 0;
-            
+
             // Mark as valid
             this.isValid = true;
-
         } catch (err) {
             throw new Error(`Failed to reset CronTrigger: ${err.message}`);
         }

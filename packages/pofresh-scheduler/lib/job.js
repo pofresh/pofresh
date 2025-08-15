@@ -57,7 +57,6 @@ class Job {
             }
 
             this.nextRunAt = this.trigger.executeTime();
-
         } catch (err) {
             this.cleanup();
             throw new Error(`Failed to create job: ${err.message}`);
@@ -70,10 +69,10 @@ class Job {
         this.resources = new Set();
         this.timers = new Set();
 
-        this.options.logger.debug('Job created:', { 
-            id: this.id, 
-            type: this.type, 
-            nextRunAt: this.nextRunAt 
+        this.options.logger.debug('Job created:', {
+            id: this.id,
+            type: this.type,
+            nextRunAt: this.nextRunAt
         });
     }
 
@@ -130,7 +129,6 @@ class Job {
             });
 
             return result;
-
         } catch (err) {
             const executionTime = Date.now() - startTime;
             this.options.logger.error('Job execution failed:', {
@@ -255,7 +253,6 @@ class Job {
 
             this.isActive = false;
             this.options.logger.debug('Job cleaned up:', this.id);
-
         } catch (err) {
             this.options.logger.error('Error cleaning up job:', {
                 jobId: this.id,

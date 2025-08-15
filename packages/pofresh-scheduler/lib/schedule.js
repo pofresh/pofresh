@@ -25,16 +25,16 @@ class Scheduler {
         // Job storage and queue
         this.jobMap = new Map();
         this.queue = PriorityQueue.createPriorityQueue(this.comparator.bind(this));
-        
+
         // State management
         this.currentTimer = null;
         this.isRunning = false;
         this.jobIdCounter = 1;
         this.jobCount = 0;
-        
+
         // Resource management
         this.resourceManager = ErrorHandler.createResourceManager();
-        
+
         // Statistics
         this.stats = {
             totalJobs: 0,
@@ -96,7 +96,6 @@ class Scheduler {
 
             logger.debug('Job scheduled:', { id, executeTime, trigger });
             return id;
-
         } catch (err) {
             logger.error('Failed to schedule job:', err);
             throw err;
@@ -124,7 +123,7 @@ class Scheduler {
                 this.queue.pop();
                 this.jobMap.delete(id);
                 this.jobCount--;
-                
+
                 // Clear current timer and reschedule
                 if (this.currentTimer) {
                     clearTimeout(this.currentTimer);
@@ -144,7 +143,6 @@ class Scheduler {
 
             logger.debug('Job cancelled:', id);
             return true;
-
         } catch (err) {
             logger.error('Failed to cancel job:', err);
             return false;
@@ -211,7 +209,6 @@ class Scheduler {
             } else {
                 this.currentTimer = null;
             }
-
         } catch (err) {
             logger.error('Error in job execution loop:', err);
         }
@@ -290,7 +287,7 @@ class Scheduler {
     shutdown() {
         try {
             logger.info('Shutting down scheduler...');
-            
+
             // Clear current timer
             if (this.currentTimer) {
                 clearTimeout(this.currentTimer);
@@ -318,7 +315,7 @@ class Scheduler {
             logger.error('Unhandled Rejection in Scheduler:', reason);
         });
 
-        process.on('uncaughtException', (err) => {
+        process.on('uncaughtException', err => {
             logger.error('Uncaught Exception in Scheduler:', err);
         });
     }

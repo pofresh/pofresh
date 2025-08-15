@@ -403,23 +403,23 @@ module.exports = {
     // Basic checks
     msgHasId,
     msgHasRoute,
-    
+
     // ID handling
     calculateMsgIdBytes,
     encodeMsgId,
     decodeMsgId,
-    
+
     // Flag handling
     encodeMsgFlag,
-    
+
     // Route handling
     encodeMsgRoute,
     decodeMsgRoute,
-    
+
     // Body handling
     encodeMsgBody,
     decodeMsgBody,
-    
+
     // Utility functions
     calculateMessageSize
 };

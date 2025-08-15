@@ -96,9 +96,9 @@ describe('CronTrigger', () => {
             const mockJob = { runTime: 0 };
             const trigger = createCronTrigger('0 0 12 * * *', mockJob);
             const originalNextTime = trigger.nextTime;
-            
+
             trigger.reset('0 0 18 * * *');
-            
+
             expect(trigger.originalExpression).toBe('0 0 18 * * *');
             expect(trigger.nextTime).not.toBe(originalNextTime);
         });
@@ -108,11 +108,11 @@ describe('CronTrigger', () => {
         test('should clean up resources', () => {
             const mockJob = { runTime: 0 };
             const trigger = createCronTrigger('0 0 12 * * *', mockJob);
-            
+
             expect(() => {
                 trigger.cleanup();
             }).not.toThrow();
-            
+
             expect(trigger.isTriggerValid()).toBe(false);
         });
     });
@@ -122,7 +122,7 @@ describe('CronTrigger', () => {
             const mockJob = { runTime: 0 };
             const trigger = createCronTrigger('0 0 12 * * *', mockJob);
             const stats = trigger.getStats();
-            
+
             expect(stats).toHaveProperty('totalExecutions');
             expect(stats).toHaveProperty('computationTime');
             expect(stats).toHaveProperty('errors');

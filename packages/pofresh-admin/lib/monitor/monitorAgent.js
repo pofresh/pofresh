@@ -25,7 +25,7 @@ const ST_CLOSED = 4;
 class MonitorAgent extends EventEmitter {
     constructor(consoleService, opts) {
         super();
-        
+
         // 输入验证
         if (!consoleService) {
             throw new Error('ConsoleService is required');
@@ -304,7 +304,7 @@ class MonitorAgent extends EventEmitter {
 
         const reqId = this.reqId++;
         this.callbacks[reqId] = cb;
-        
+
         try {
             this.socket.send('monitor', protocol.composeRequest(reqId, moduleId, msg));
         } catch (err) {

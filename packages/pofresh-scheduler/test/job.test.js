@@ -65,9 +65,11 @@ describe('Job', () => {
             const triggerConfig = {
                 start: Date.now() + 1000
             };
-            const mockFn = () => { executed = true; };
+            const mockFn = () => {
+                executed = true;
+            };
             const job = createJob(triggerConfig, mockFn);
-            
+
             job.pause();
             job.run();
 
@@ -97,7 +99,7 @@ describe('Job', () => {
             };
             const mockFn = () => {};
             const job = createJob(triggerConfig, mockFn);
-            
+
             job.pause();
             const nextTime = job.nextTime();
 
@@ -129,10 +131,10 @@ describe('Job', () => {
             const job = createJob(triggerConfig, mockFn);
 
             expect(job.isJobActive()).toBe(true);
-            
+
             job.pause();
             expect(job.isJobActive()).toBe(false);
-            
+
             job.resume();
             expect(job.isJobActive()).toBe(true);
         });

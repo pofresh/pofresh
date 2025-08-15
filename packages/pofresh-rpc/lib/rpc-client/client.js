@@ -49,11 +49,11 @@ class Client {
         this.router = opts.router || router.df;
         this.routerType = opts.routerType;
         this.rpcDebugLog = opts.rpcDebugLog || false;
-        
+
         if (this._context) {
             opts.clientId = this._context.serverId;
         }
-        
+
         this.proxies = {};
         this._station = Station.create(opts);
         this.watchers = {};
@@ -71,7 +71,7 @@ class Client {
         if (typeof cb !== 'function') {
             throw new TypeError('Callback function is required');
         }
-        
+
         if (this.state > STATES.INITED) {
             cb(new Error('rpc client has started.'));
             return;
@@ -115,13 +115,13 @@ class Client {
         if (!record || typeof record !== 'object') {
             return;
         }
-        
+
         const { namespace, serverType, path } = record;
         if (!namespace || !serverType || !path) {
             logger.warn('[pofresh-rpc] invalid proxy record, missing required fields');
             return;
         }
-        
+
         const proxy = generateProxy(this, record, this._context);
         if (!proxy) {
             return;
@@ -129,7 +129,7 @@ class Client {
 
         const proxies = this.proxies;
         proxies[namespace] = proxies[namespace] || {};
-        
+
         if (proxies[namespace][serverType]) {
             // Merge with existing proxy
             for (const attr in proxy) {
@@ -237,15 +237,15 @@ class Client {
         if (!serverId || typeof serverId !== 'string') {
             throw new TypeError('serverId must be a non-empty string');
         }
-        
+
         if (!msg || typeof msg !== 'object') {
             throw new TypeError('msg must be an object');
         }
-        
+
         if (typeof cb !== 'function') {
             throw new TypeError('Callback function is required');
         }
-        
+
         const rpcDebugLog = this.rpcDebugLog;
         let tracer = null;
 
@@ -329,20 +329,20 @@ function generateProxy(client, record, context) {
         logger.warn('[pofresh-rpc] invalid record for proxy generation');
         return null;
     }
-    
+
     const { namespace, serverType, path } = record;
     if (!namespace || !serverType || !path) {
         logger.warn('[pofresh-rpc] missing required fields in proxy record');
         return null;
     }
-    
+
     try {
         const modules = Loader.load(path, context);
         if (!modules) {
             logger.warn(`[pofresh-rpc] failed to load modules from path: ${path}`);
             return null;
         }
-        
+
         const res = {};
         for (const name in modules) {
             res[name] = Proxy.create({
@@ -352,12 +352,12 @@ function generateProxy(client, record, context) {
                 proxyCB: proxyCB.bind(null, client)
             });
         }
-        
+
         // Setup file watching for hot reload if enabled
         if (client.opts.reload && !client.watchers[path]) {
             setupFileWatcher(client, path, context, res, record);
         }
-        
+
         return res;
     } catch (error) {
         logger.error(`[pofresh-rpc] error generating proxy for ${namespace}:${serverType}`, error);
@@ -378,10 +378,10 @@ function setupFileWatcher(client, path, context, res, record) {
     try {
         const watcher = fs.watch(path);
         client.watchers[path] = watcher;
-        
+
         watcher.on('change', (_event, filename) => {
             if (!filename) return;
-            
+
             const name = path.basename(filename, '.js');
             const modules = Loader.load(path, context);
             if (modules && modules[name]) {
@@ -398,8 +398,8 @@ function setupFileWatcher(client, path, context, res, record) {
                 }
             }
         });
-        
-        watcher.on('error', (error) => {
+
+        watcher.on('error', error => {
             logger.error(`[pofresh-rpc] file watcher error for path: ${path}`, error);
             delete client.watchers[path];
         });
@@ -426,7 +426,7 @@ function proxyCB(client, serviceName, methodName, args, attach, isToSpecifiedSer
         logger.error('[pofresh-rpc] fail to invoke rpc proxy for client is not running');
         return;
     }
-    
+
     if (!Array.isArray(args) || args.length < 2) {
         logger.error(
             '[pofresh-rpc] invalid rpc invoke, arguments length less than 2, namespace: %j, serverType: %j, serviceName: %j, methodName: %j',
@@ -437,22 +437,22 @@ function proxyCB(client, serviceName, methodName, args, attach, isToSpecifiedSer
         );
         return;
     }
-    
+
     const routeParam = args.shift();
     const cb = args.pop();
-    
+
     if (typeof cb !== 'function') {
         logger.error('[pofresh-rpc] callback is not a function');
         return;
     }
-    
+
     if (!attach || !attach.namespace || !attach.serverType) {
         const error = new Error('Invalid attach parameters');
         logger.error('[pofresh-rpc] invalid attach parameters for proxy callback');
         cb(error);
         return;
     }
-    
+
     const serverType = attach.serverType;
     const msg = {
         namespace: attach.namespace,
@@ -489,12 +489,12 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
         logger.error('[pofresh-rpc] callback is required for getRouteTarget');
         return;
     }
-    
+
     if (!serverType || typeof serverType !== 'string') {
         cb(new Error('serverType must be a non-empty string'));
         return;
     }
-    
+
     try {
         if (client.routerType) {
             const method = getRoutingMethod(client.routerType);
@@ -502,7 +502,7 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
                 cb(new Error(`Unknown router type: ${client.routerType}`));
                 return;
             }
-            
+
             method.call(null, client, serverType, msg, (err, serverId) => {
                 if (err) {
                     logger.error(`[pofresh-rpc] routing error for ${serverType}:`, err);
@@ -516,7 +516,7 @@ function getRouteTarget(client, serverType, msg, routeParam, cb) {
                 cb(new Error('invalid route function'));
                 return;
             }
-            
+
             route.call(target, routeParam, msg, client._routeContext, (err, serverId) => {
                 if (err) {
                     logger.error('[pofresh-rpc] custom routing error:', err);
@@ -583,7 +583,7 @@ function rpcToSpecifiedServer(client, msg, serverType, serverId, cb) {
         cb(error);
         return;
     }
-    
+
     if (serverId === '*') {
         // Broadcast to all servers of the specified type
         const servers = client._routeContext?.getServersByType?.(serverType);

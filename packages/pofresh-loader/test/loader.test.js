@@ -16,7 +16,7 @@ describe('loader', () => {
         originalConsoleError = console.error;
         console.warn = vi.fn();
         console.error = vi.fn();
-        
+
         // Clear cache before each test
         Loader.clearCache();
     });
@@ -59,10 +59,10 @@ describe('loader', () => {
             let callbackCount = 0;
             const sid = 'area-server-1';
             const context = { id: sid };
-            
+
             // Clear cache to ensure fresh load
             Loader.clearCache();
-            
+
             const services = Loader.load(testPath, context, false, {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
@@ -138,7 +138,7 @@ describe('loader', () => {
             expect(services).toBeDefined();
             expect(services.reloadService).toBeDefined();
             expect(services.reloadService.doService).toBeTypeOf('function');
-            
+
             services.reloadService.doService((_err, res) => {
                 expect(res).toBe(1);
             });
@@ -169,7 +169,7 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             expect(result).toBeDefined();
             expect(result.addOneRemote).toBeDefined();
         });
@@ -189,10 +189,10 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             const stats = Loader.getStats();
             expect(stats).toBeDefined();
-            
+
             // Check if performance monitoring is available
             if (stats.load) {
                 expect(stats.load).toBeDefined();
@@ -200,11 +200,11 @@ describe('loader', () => {
                 expect(stats.load).toHaveProperty('success');
                 expect(stats.load).toHaveProperty('failed');
             }
-            
+
             if (stats.cache) {
                 expect(stats.cache).toBeDefined();
             }
-            
+
             if (stats.health) {
                 expect(stats.health).toBeDefined();
             }
@@ -216,7 +216,7 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             const report = Loader.getPerformanceReport();
             expect(report).toBeDefined();
             expect(report.summary).toBeDefined();
@@ -226,21 +226,21 @@ describe('loader', () => {
 
         it('should work with caching enabled', () => {
             // Use relative path to avoid security issues
-            
+
             // First load
             const result1 = Loader.load(testPath, {}, false, {
                 enableCache: true,
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             // Second load should be faster due to cache
             const result2 = Loader.load(testPath, {}, false, {
                 enableCache: true,
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             expect(result1).toBeDefined();
             expect(result2).toBeDefined();
             expect(Object.keys(result1)).toEqual(Object.keys(result2));
@@ -252,27 +252,27 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             const statsBefore = Loader.getStats();
             Loader.clearCache();
             const statsAfter = Loader.getStats();
-            
+
             // Cache size might be in different properties depending on cache implementation
             const cacheSizeBefore = statsBefore.cache.size || statsBefore.cache.currentSize || 0;
             const cacheSizeAfter = statsAfter.cache.size || statsAfter.cache.currentSize || 0;
-            
+
             // Check that cache clearing worked (size should be 0 or smaller after clearing)
             expect(cacheSizeAfter).toBeLessThanOrEqual(cacheSizeBefore);
         });
 
         it('should support configuration updates', () => {
             const originalConfig = Loader.getConfig();
-            
+
             Loader.updateConfig({
                 maxCacheSize: 2000,
                 strictMode: false
             });
-            
+
             const newConfig = Loader.getConfig();
             expect(newConfig.maxCacheSize).toBe(2000);
             expect(newConfig.strictMode).toBe(false);
@@ -286,7 +286,7 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             expect(result).toBeDefined();
             expect(result.modules).toBeDefined();
             expect(result.modules.addOneRemote).toBeDefined();
@@ -300,7 +300,7 @@ describe('loader', () => {
                 const result = await Loader.loadAsync('', {}, false, {
                     enableSecurity: false
                 });
-                
+
                 expect(result).toBeDefined();
                 expect(result.modules).toBeDefined();
                 // Even with errors, the structure should be maintained
@@ -317,7 +317,7 @@ describe('loader', () => {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
-            
+
             const stats = Loader.getStats();
             expect(stats.load.total).toBeGreaterThan(0);
         });
@@ -338,7 +338,7 @@ describe('loader', () => {
         it('should create secure contexts', () => {
             const context = { user: 'test', secret: 'password123' };
             const secureContext = Loader.createSecureContext(context);
-            
+
             expect(secureContext.user).toBe('test');
             expect(secureContext.secret).toBeUndefined(); // Should be filtered out
             expect(secureContext.console).toBeDefined();
@@ -350,13 +350,13 @@ describe('loader', () => {
             // Use relative path to avoid security issues
             const profileId = Loader.startProfile('test_load', { path: testPath });
             expect(profileId).toBeDefined();
-            
+
             const result = Loader.load(testPath, {}, false, {
                 enableSecurity: true,
                 allowedPaths: [path.resolve(__dirname, '..')]
             });
             const profile = Loader.endProfile(profileId, { success: true });
-            
+
             expect(profile).toBeDefined();
             expect(profile.operation).toBe('test_load');
             expect(profile.duration).toBeGreaterThan(0);

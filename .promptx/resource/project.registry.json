@@ -1,0 +1,94 @@
+{
+  "version": "2.0.0",
+  "source": "project",
+  "metadata": {
+    "version": "2.0.0",
+    "description": "project 级资源注册表",
+    "createdAt": "2025-08-15T07:05:47.268Z",
+    "updatedAt": "2025-08-15T07:05:47.275Z",
+    "resourceCount": 5
+  },
+  "resources": [
+    {
+      "id": "nodejs-development",
+      "source": "project",
+      "protocol": "execution",
+      "name": "Nodejs Development 执行模式",
+      "description": "执行模式，定义具体的行为模式",
+      "reference": "@project://.promptx/resource/role/nodejs-developer/execution/nodejs-development.execution.md",
+      "metadata": {
+        "createdAt": "2025-08-15T07:05:47.271Z",
+        "updatedAt": "2025-08-15T07:05:47.271Z",
+        "scannedAt": "2025-08-15T07:05:47.271Z",
+        "path": "role/nodejs-developer/execution/nodejs-development.execution.md"
+      }
+    },
+    {
+      "id": "nodejs-developer",
+      "source": "project",
+      "protocol": "role",
+      "name": "Nodejs Developer 角色",
+      "description": "专业角色，提供特定领域的专业能力",
+      "reference": "@project://.promptx/resource/role/nodejs-developer/nodejs-developer.role.md",
+      "metadata": {
+        "createdAt": "2025-08-15T07:05:47.272Z",
+        "updatedAt": "2025-08-15T07:05:47.272Z",
+        "scannedAt": "2025-08-15T07:05:47.272Z",
+        "path": "role/nodejs-developer/nodejs-developer.role.md"
+      }
+    },
+    {
+      "id": "best-practice",
+      "source": "project",
+      "protocol": "thought",
+      "name": "Best Practice 思维模式",
+      "description": "思维模式，指导AI的思考方式",
+      "reference": "@project://.promptx/resource/role/nodejs-developer/thought/best-practice.thought.md",
+      "metadata": {
+        "createdAt": "2025-08-15T07:05:47.272Z",
+        "updatedAt": "2025-08-15T07:05:47.272Z",
+        "scannedAt": "2025-08-15T07:05:47.272Z",
+        "path": "role/nodejs-developer/thought/best-practice.thought.md"
+      }
+    },
+    {
+      "id": "nodejs-thinking",
+      "source": "project",
+      "protocol": "thought",
+      "name": "Nodejs Thinking 思维模式",
+      "description": "思维模式，指导AI的思考方式",
+      "reference": "@project://.promptx/resource/role/nodejs-developer/thought/nodejs-thinking.thought.md",
+      "metadata": {
+        "createdAt": "2025-08-15T07:05:47.273Z",
+        "updatedAt": "2025-08-15T07:05:47.273Z",
+        "scannedAt": "2025-08-15T07:05:47.273Z",
+        "path": "role/nodejs-developer/thought/nodejs-thinking.thought.md"
+      }
+    },
+    {
+      "id": "problem-solving",
+      "source": "project",
+      "protocol": "thought",
+      "name": "Problem Solving 思维模式",
+      "description": "思维模式，指导AI的思考方式",
+      "reference": "@project://.promptx/resource/role/nodejs-developer/thought/problem-solving.thought.md",
+      "metadata": {
+        "createdAt": "2025-08-15T07:05:47.274Z",
+        "updatedAt": "2025-08-15T07:05:47.274Z",
+        "scannedAt": "2025-08-15T07:05:47.274Z",
+        "path": "role/nodejs-developer/thought/problem-solving.thought.md"
+      }
+    }
+  ],
+  "stats": {
+    "totalResources": 5,
+    "byProtocol": {
+      "execution": 1,
+      "role": 1,
+      "thought": 3
+    },
+    "bySource": {
+      "project": 5
+    }
+  }
+}

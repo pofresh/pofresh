@@ -61,7 +61,7 @@ function generateProxyFromOrigin(opts) {
 
     while (currentPrototype && currentPrototype !== Object.prototype && currentPrototype !== null) {
         const methodNames = Reflect.ownKeys(currentPrototype);
-        
+
         methodNames.forEach(methodName => {
             if (typeof currentPrototype[methodName] === 'function' && methodName !== 'constructor') {
                 proxyMethods[methodName] = createFunctionProxy(
@@ -73,10 +73,10 @@ function generateProxyFromOrigin(opts) {
                 );
             }
         });
-        
+
         currentPrototype = currentPrototype.__proto__;
     }
-    
+
     return proxyMethods;
 }
 
@@ -92,7 +92,7 @@ function generateProxyFromOrigin(opts) {
  * @private
  */
 function createFunctionProxy(serviceName, methodName, origin, attach, proxyCB) {
-    const proxy = function() {
+    const proxy = function () {
         const args = Array.from(arguments);
         proxyCB(serviceName, methodName, args, attach);
     };
@@ -101,7 +101,7 @@ function createFunctionProxy(serviceName, methodName, origin, attach, proxyCB) {
      * Route to specific server
      * @returns {Function} proxy function for specific server routing
      */
-    proxy.toServer = function() {
+    proxy.toServer = function () {
         const args = Array.from(arguments);
         proxyCB(serviceName, methodName, args, attach, true);
     };

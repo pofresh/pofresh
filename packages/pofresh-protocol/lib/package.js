@@ -156,7 +156,7 @@ class Package {
         return packages.length === 1 ? packages[0] : packages;
     }
 
-      /**
+    /**
      * Validate package data integrity
      * @param  {Object} pkg package object (decoded package)
      * @return {boolean} true if package is valid
@@ -206,14 +206,14 @@ class Package {
      */
     static toString(pkg) {
         if (!pkg) return 'Package(null)';
-        
+
         // Handle Buffer (encoded package)
         if (pkg instanceof Buffer || (pkg.buffer && pkg.type === 'Buffer')) {
             return `EncodedPackage(length=${pkg.length} bytes)`;
         }
-        
-        const bodyLength = pkg.body ? (pkg.body.length || pkg.body.byteLength || 0) : 0;
-        
+
+        const bodyLength = pkg.body ? pkg.body.length || pkg.body.byteLength || 0 : 0;
+
         // Access constants through the class
         const typeNames = {
             [Package.TYPE_HANDSHAKE]: 'HANDSHAKE',
@@ -222,7 +222,7 @@ class Package {
             [Package.TYPE_DATA]: 'DATA',
             [Package.TYPE_KICK]: 'KICK'
         };
-        
+
         const typeName = typeNames[pkg.type] || 'UNKNOWN';
         return `Package(type=${pkg.type}(${typeName}), bodyLength=${bodyLength})`;
     }

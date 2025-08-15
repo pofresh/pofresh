@@ -88,7 +88,7 @@ const loaderStats = {
 
 /**
  * Load modules under the path with enhanced features
- * 
+ *
  * @param  {String} mpath    the path of modules
  * @param  {Object} context  the context parameter
  * @param {Boolean} isReload if true, loader would reload the module
@@ -100,7 +100,7 @@ module.exports.load = (mpath, context, isReload = false, options = {}) => {
     const startTime = performance.now();
     const config = { ...defaultOptions, ...options };
     const profileId = config.profileOperations ? performanceMonitor.startProfile('load', { mpath, isReload }) : null;
-    
+
     try {
         // Input validation
         if (!mpath || typeof mpath !== 'string') {
@@ -113,7 +113,7 @@ module.exports.load = (mpath, context, isReload = false, options = {}) => {
             securityResult = securityValidator.validatePath(mpath, {
                 allowedBasePaths: config.allowedPaths
             });
-            
+
             if (!securityResult.isValid) {
                 throw new LoaderError(
                     `Security validation failed: ${securityResult.violations[0]?.message || 'Unknown security issue'}`,
@@ -129,14 +129,18 @@ module.exports.load = (mpath, context, isReload = false, options = {}) => {
             resolvedPath = getCachedPath(mpath) || fs.realpathSync(mpath);
             pathCache.set(mpath, resolvedPath);
         } catch (err) {
-            throw new LoaderError(`Failed to resolve path "${mpath}"`, 'FS_PATH_RESOLUTION_FAILED', { originalError: err.message });
+            throw new LoaderError(`Failed to resolve path "${mpath}"`, 'FS_PATH_RESOLUTION_FAILED', {
+                originalError: err.message
+            });
         }
 
         try {
             stats = getCachedStats(resolvedPath) || fs.statSync(resolvedPath);
             statsCache.set(resolvedPath, stats);
         } catch (err) {
-            throw new LoaderError(`Failed to access path "${resolvedPath}"`, 'FS_ACCESS_ERROR', { originalError: err.message });
+            throw new LoaderError(`Failed to access path "${resolvedPath}"`, 'FS_ACCESS_ERROR', {
+                originalError: err.message
+            });
         }
 
         if (!stats.isDirectory()) {
@@ -144,43 +148,44 @@ module.exports.load = (mpath, context, isReload = false, options = {}) => {
         }
 
         const result = loadPath(resolvedPath, context, isReload, config);
-        
+
         // Update performance metrics
         const duration = performance.now() - startTime;
         performanceMonitor.recordLoad(mpath, duration, true, {
             moduleCount: Object.keys(result).length,
             securityValidated: !!securityResult
         });
-        
+
         // Update cache statistics
         if (config.enableCache) {
-            performanceMonitor.updateCacheStats(
-                moduleCache.size(),
-                moduleCache.getStats().memoryUsage
-            );
+            performanceMonitor.updateCacheStats(moduleCache.size(), moduleCache.getStats().memoryUsage);
         }
-        
+
         return result;
-        
     } catch (err) {
         // Handle error with recovery
         const duration = performance.now() - startTime;
         performanceMonitor.recordLoad(mpath, duration, false, { error: err.message });
-        
-        const errorResult = errorHandler.handleError(err, err.code || 'LOAD_FAILED', {
-            mpath,
-            isReload,
-            config
-        }, {
-            recoveryStrategy: config.enableRecovery ? 'fallback' : 'none',
-            fallback: () => ({})
-        });
-        
+
+        const errorResult = errorHandler.handleError(
+            err,
+            err.code || 'LOAD_FAILED',
+            {
+                mpath,
+                isReload,
+                config
+            },
+            {
+                recoveryStrategy: config.enableRecovery ? 'fallback' : 'none',
+                fallback: () => ({})
+            }
+        );
+
         if (errorResult.recovered) {
             logger.warn(`Load operation recovered for ${mpath}:`, errorResult.recoveryResult.message);
             return errorResult.recoveryResult.result || {};
         }
-        
+
         throw err;
     } finally {
         if (profileId) {
@@ -200,8 +205,10 @@ module.exports.load = (mpath, context, isReload = false, options = {}) => {
 module.exports.loadAsync = async (mpath, context, isReload = false, options = {}) => {
     const startTime = performance.now();
     const config = { ...defaultOptions, ...options };
-    const profileId = config.profileOperations ? performanceMonitor.startProfile('loadAsync', { mpath, isReload }) : null;
-    
+    const profileId = config.profileOperations
+        ? performanceMonitor.startProfile('loadAsync', { mpath, isReload })
+        : null;
+
     try {
         // Input validation
         if (!mpath || typeof mpath !== 'string') {
@@ -214,7 +221,7 @@ module.exports.loadAsync = async (mpath, context, isReload = false, options = {}
             securityResult = securityValidator.validatePath(mpath, {
                 allowedBasePaths: config.allowedPaths
             });
-            
+
             if (!securityResult.isValid) {
                 throw new LoaderError(
                     `Security validation failed: ${securityResult.violations[0]?.message || 'Unknown security issue'}`,
@@ -227,17 +234,21 @@ module.exports.loadAsync = async (mpath, context, isReload = false, options = {}
         let resolvedPath, stats;
 
         try {
-            resolvedPath = getCachedPath(mpath) || await fsRealpathAsync(mpath);
+            resolvedPath = getCachedPath(mpath) || (await fsRealpathAsync(mpath));
             pathCache.set(mpath, resolvedPath);
         } catch (err) {
-            throw new LoaderError(`Failed to resolve path "${mpath}"`, 'FS_PATH_RESOLUTION_FAILED', { originalError: err.message });
+            throw new LoaderError(`Failed to resolve path "${mpath}"`, 'FS_PATH_RESOLUTION_FAILED', {
+                originalError: err.message
+            });
         }
 
         try {
-            stats = getCachedStats(resolvedPath) || await fsStatAsync(resolvedPath);
+            stats = getCachedStats(resolvedPath) || (await fsStatAsync(resolvedPath));
             statsCache.set(resolvedPath, stats);
         } catch (err) {
-            throw new LoaderError(`Failed to access path "${resolvedPath}"`, 'FS_ACCESS_ERROR', { originalError: err.message });
+            throw new LoaderError(`Failed to access path "${resolvedPath}"`, 'FS_ACCESS_ERROR', {
+                originalError: err.message
+            });
         }
 
         if (!stats.isDirectory()) {
@@ -245,7 +256,7 @@ module.exports.loadAsync = async (mpath, context, isReload = false, options = {}
         }
 
         const result = await loadPathAsync(resolvedPath, context, isReload, config);
-        
+
         // Update performance metrics
         const duration = performance.now() - startTime;
         performanceMonitor.recordLoad(mpath, duration, true, {
@@ -253,41 +264,42 @@ module.exports.loadAsync = async (mpath, context, isReload = false, options = {}
             securityValidated: !!securityResult,
             async: true
         });
-        
+
         // Update cache statistics
         if (config.enableCache) {
-            performanceMonitor.updateCacheStats(
-                moduleCache.size(),
-                moduleCache.getStats().memoryUsage
-            );
+            performanceMonitor.updateCacheStats(moduleCache.size(), moduleCache.getStats().memoryUsage);
         }
-        
+
         return {
             modules: result,
             stats: performanceMonitor.getMetrics(),
             security: securityResult,
             errors: []
         };
-        
     } catch (err) {
         // Handle error with recovery
         const duration = performance.now() - startTime;
         performanceMonitor.recordLoad(mpath, duration, false, { error: err.message, async: true });
-        
-        const errorResult = errorHandler.handleError(err, err.code || 'LOAD_ASYNC_FAILED', {
-            mpath,
-            isReload,
-            config
-        }, {
-            recoveryStrategy: config.enableRecovery ? 'fallback' : 'none',
-            fallback: () => ({ modules: {}, stats: {}, errors: [] })
-        });
-        
+
+        const errorResult = errorHandler.handleError(
+            err,
+            err.code || 'LOAD_ASYNC_FAILED',
+            {
+                mpath,
+                isReload,
+                config
+            },
+            {
+                recoveryStrategy: config.enableRecovery ? 'fallback' : 'none',
+                fallback: () => ({ modules: {}, stats: {}, errors: [] })
+            }
+        );
+
         if (errorResult.recovered) {
             logger.warn(`Async load operation recovered for ${mpath}:`, errorResult.recoveryResult.message);
             return errorResult.recoveryResult.result || { modules: {}, stats: {}, errors: [] };
         }
-        
+
         throw err;
     } finally {
         if (profileId) {
@@ -300,7 +312,7 @@ module.exports.loadAsync = async (mpath, context, isReload = false, options = {}
  * Clear module cache
  * @param {string} mpath - Optional path to clear specific modules
  */
-module.exports.clearCache = (mpath) => {
+module.exports.clearCache = mpath => {
     try {
         if (mpath) {
             const resolvedPath = pathCache.get(mpath);
@@ -318,12 +330,12 @@ module.exports.clearCache = (mpath) => {
             moduleCache.clear();
             pathCache.clear();
             statsCache.clear();
-            
+
             // Clear legacy cache for backward compatibility
             legacyModuleCache.clear();
             legacyPathCache.clear();
             legacyStatsCache.clear();
-            
+
             performanceMonitor.recordCache('eviction', 'all', { reason: 'manual_clear_all' });
         }
     } catch (err) {
@@ -380,17 +392,17 @@ module.exports.getConfig = () => {
  * Update loader configuration
  * @param {Object} newConfig - New configuration options
  */
-module.exports.updateConfig = (newConfig) => {
+module.exports.updateConfig = newConfig => {
     Object.assign(defaultOptions, newConfig);
-    
+
     if (newConfig.allowedPaths !== undefined) {
         securityValidator.config.allowedBasePaths = newConfig.allowedPaths;
     }
-    
+
     if (newConfig.maxCacheSize !== undefined) {
         moduleCache.options.maxCacheSize = newConfig.maxCacheSize;
     }
-    
+
     if (newConfig.ttl !== undefined) {
         moduleCache.options.ttl = newConfig.ttl;
     }
@@ -406,10 +418,10 @@ function validatePath(mpath, allowedPaths = []) {
     if (allowedPaths.length === 0) {
         return true;
     }
-    
+
     const normalizedPath = path.normalize(mpath);
     const resolvedPath = path.resolve(normalizedPath);
-    
+
     return allowedPaths.some(allowedPath => {
         const normalizedAllowedPath = path.normalize(allowedPath);
         const resolvedAllowedPath = path.resolve(normalizedAllowedPath);
@@ -450,7 +462,7 @@ function getCachedModule(filePath, isReload, options = {}) {
             performanceMonitor.recordCache('hit', filePath, { legacy: false });
             return cached;
         }
-        
+
         // Try legacy cache for backward compatibility
         const legacyCached = legacyModuleCache.get(filePath);
         if (legacyCached !== undefined) {
@@ -458,7 +470,7 @@ function getCachedModule(filePath, isReload, options = {}) {
             return legacyCached;
         }
     }
-    
+
     performanceMonitor.recordCache('miss', filePath, { isReload });
     return undefined;
 }
@@ -472,7 +484,7 @@ function cacheModule(filePath, module, options = {}) {
     if (options.enableCache !== false) {
         // Use modern cache
         moduleCache.set(filePath, module);
-        
+
         // Also cache in legacy cache for backward compatibility
         if (legacyModuleCache.size < (options.maxCacheSize || defaultOptions.maxCacheSize)) {
             legacyModuleCache.set(filePath, module);
@@ -554,9 +566,7 @@ async function loadPathAsync(dirPath, context, isReload = false, options = {}) {
         }
 
         const filePath = path.join(dirPath, dirent.name);
-        promises.push(
-            processModuleFileAsync(filePath, dirent, context, isReload, result, errors, options)
-        );
+        promises.push(processModuleFileAsync(filePath, dirent, context, isReload, result, errors, options));
     }
 
     await Promise.all(promises);
@@ -649,7 +659,9 @@ function loadFile(filePath, context, isReload = false, options = {}) {
     try {
         module = requireUncached(filePath, isReload);
     } catch (err) {
-        throw new LoaderError(`Failed to require module "${filePath}"`, 'MODULE_LOAD_FAILED', { originalError: err.message });
+        throw new LoaderError(`Failed to require module "${filePath}"`, 'MODULE_LOAD_FAILED', {
+            originalError: err.message
+        });
     }
 
     if (module === null || module === undefined) {
@@ -667,14 +679,14 @@ function loadFile(filePath, context, isReload = false, options = {}) {
     let result;
     if (typeof module === 'function') {
         // Create secure context for factory function
-        const secureContext = options.enableSecurity 
-            ? securityValidator.createSecureContext(context)
-            : context;
-            
+        const secureContext = options.enableSecurity ? securityValidator.createSecureContext(context) : context;
+
         try {
             result = module(secureContext);
         } catch (err) {
-            throw new LoaderError(`Factory function failed for module "${filePath}"`, 'MODULE_FACTORY_ERROR', { originalError: err.message });
+            throw new LoaderError(`Factory function failed for module "${filePath}"`, 'MODULE_FACTORY_ERROR', {
+                originalError: err.message
+            });
         }
     } else {
         result = module;
@@ -682,7 +694,7 @@ function loadFile(filePath, context, isReload = false, options = {}) {
 
     // Cache the result
     cacheModule(filePath, result, options);
-    
+
     return result;
 }
 
@@ -705,7 +717,9 @@ async function loadFileAsync(filePath, context, isReload = false, options = {}) 
     try {
         module = requireUncached(filePath, isReload);
     } catch (err) {
-        throw new LoaderError(`Failed to require module "${filePath}"`, 'MODULE_LOAD_FAILED', { originalError: err.message });
+        throw new LoaderError(`Failed to require module "${filePath}"`, 'MODULE_LOAD_FAILED', {
+            originalError: err.message
+        });
     }
 
     if (module === null || module === undefined) {
@@ -723,14 +737,14 @@ async function loadFileAsync(filePath, context, isReload = false, options = {}) 
     let result;
     if (typeof module === 'function') {
         // Create secure context for factory function
-        const secureContext = options.enableSecurity 
-            ? securityValidator.createSecureContext(context)
-            : context;
-            
+        const secureContext = options.enableSecurity ? securityValidator.createSecureContext(context) : context;
+
         try {
             result = module(secureContext);
         } catch (err) {
-            throw new LoaderError(`Factory function failed for module "${filePath}"`, 'MODULE_FACTORY_ERROR', { originalError: err.message });
+            throw new LoaderError(`Factory function failed for module "${filePath}"`, 'MODULE_FACTORY_ERROR', {
+                originalError: err.message
+            });
         }
     } else {
         result = module;
@@ -738,7 +752,7 @@ async function loadFileAsync(filePath, context, isReload = false, options = {}) 
 
     // Cache the result
     cacheModule(filePath, result, options);
-    
+
     return result;
 }
 
@@ -753,7 +767,9 @@ function requireUncached(modulePath, isReload = false) {
     try {
         resolvedPath = require.resolve(modulePath);
     } catch (err) {
-        throw new LoaderError(`Cannot resolve module "${modulePath}"`, 'MODULE_RESOLUTION_FAILED', { originalError: err.message });
+        throw new LoaderError(`Cannot resolve module "${modulePath}"`, 'MODULE_RESOLUTION_FAILED', {
+            originalError: err.message
+        });
     }
 
     if (isReload && require.cache[resolvedPath]) {
@@ -763,7 +779,9 @@ function requireUncached(modulePath, isReload = false) {
     try {
         return require(modulePath);
     } catch (err) {
-        throw new LoaderError(`Failed to require module "${modulePath}"`, 'MODULE_REQUIRE_FAILED', { originalError: err.message });
+        throw new LoaderError(`Failed to require module "${modulePath}"`, 'MODULE_REQUIRE_FAILED', {
+            originalError: err.message
+        });
     }
 }
 

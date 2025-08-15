@@ -1,7 +1,5 @@
 const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
-const fs = require('fs');
-const util = require('util');
 
 // 导入重构后的模块
 const BatchLoggerManager = require('./BatchLoggerManager');
@@ -50,7 +48,7 @@ class LRUCache {
      */
     get(key) {
         if (!this.cache.has(key)) {
-            return undefined;
+            return;
         }
 
         // 移动到末尾（最近使用）
@@ -236,12 +234,12 @@ function getLogger(categoryName, ...additionalArgs) {
             return '';
         }
 
-        let prefix = '';
+        let prefixStr = '';
         if (args.length > 1) {
-            prefix = `[${args.join('] [')}] `;
+            prefixStr = `[${args.join('] [')}] `;
         }
         if (args.length && process.env.LOGGER_LINE) {
-            prefix = `${getLine()}: ${prefix}`;
+            prefix = `${getLine()}: ${prefixStr}`;
         }
         return ColorUtils.colorize(prefix, ColorUtils.getLevelColor(level));
     }
@@ -298,10 +296,10 @@ function initReloadConfiguration(filename, reloadSecs) {
     try {
         configState.filename = ConfigUtils.getAbsolutePath(filename);
         configState.lastMTime = ConfigUtils.getMTime(configState.filename);
-        
+
         configState.timerId = setInterval(reloadConfiguration, reloadSecs * 1000);
     } catch (error) {
-        console.error(`Failed to initialize reload configuration: ${error.message}`);
+        process.stderr.write(`Failed to initialize reload configuration: ${error.message}\n`);
     }
 }
 
@@ -321,7 +319,7 @@ function reloadConfiguration() {
         }
         configState.lastMTime = mtime;
     } catch (error) {
-        console.error(`Configuration reload failed: ${error.message}`);
+        process.stderr.write(`Configuration reload failed: ${error.message}\n`);
     }
 }
 
@@ -344,7 +342,7 @@ function configureOnceOff(config) {
             console.debug = logger.debug.bind(logger);
         }
     } catch (error) {
-        console.error(`Problem reading winston config: ${error.message}`);
+        process.stderr.write(`Problem reading winston config: ${error.message}\n`);
     }
 }
 
@@ -373,9 +371,9 @@ function convertLog4jsToWinston(log4jsConfig) {
 
     // 映射log4js级别到Winston级别
     const levelMap = {
-        'all': 'silly',
-        'trace': 'debug',
-        'fatal': 'error'
+        all: 'silly',
+        trace: 'debug',
+        fatal: 'error'
     };
     defaultLevel = levelMap[defaultLevel] || defaultLevel;
 
@@ -422,10 +420,7 @@ function createWinstonTransport(appender) {
     switch (appender.type) {
         case 'console':
             return new winston.transports.Console({
-                format: winston.format.combine(
-                    baseFormat,
-                    winston.format.printf(getColoredLogFormatFunction())
-                )
+                format: winston.format.combine(baseFormat, winston.format.printf(getColoredLogFormatFunction()))
             });
         case 'file':
             return new winston.transports.File({
@@ -511,7 +506,7 @@ function configure(config, opts) {
             try {
                 configValue = ConfigUtils.loadConfigurationFile(configValue);
             } catch (error) {
-                console.error(`Failed to load logger configuration: ${error.message}`);
+                process.stderr.write(`Failed to load logger configuration: ${error.message}\n`);
                 configValue = {};
             }
         }
@@ -526,24 +521,24 @@ function configure(config, opts) {
                 if (validationResult.valid) {
                     // 应用配置选项
                     applyConfigurationOptions(configValue);
-                    
+
                     // 更新批处理配置
                     if (configValue.batch) {
                         batchConfig = { ...batchConfig, ...configValue.batch };
                         batchManager = new BatchLoggerManager(batchConfig);
                     }
-                    
+
                     // 转换log4js配置为Winston配置
                     winstonConfig = convertLog4jsToWinston(configValue);
                 } else {
-                    console.error('Configuration validation failed:', validationResult.errors.join(', '));
+                    process.stderr.write(`Configuration validation failed: ${validationResult.errors.join(', ')}\n`);
                     configValue = {};
                 }
 
                 // 清空日志缓存以应用新配置
                 loggerCache.clear();
             } catch (error) {
-                console.error(`Failed to load logger configuration: ${error.message}`);
+                process.stderr.write(`Failed to load logger configuration: ${error.message}\n`);
                 configValue = {};
                 loggerCache.clear();
             }

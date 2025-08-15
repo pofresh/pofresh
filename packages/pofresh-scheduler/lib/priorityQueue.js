@@ -82,7 +82,6 @@ class PriorityQueue {
             this._stats.maxSize = Math.max(this._stats.maxSize, this._tailPos);
 
             return true;
-
         } catch (err) {
             console.error('Failed to offer element to priority queue:', err);
             return false;
@@ -100,10 +99,10 @@ class PriorityQueue {
 
         try {
             const queue = this._queue;
-            
+
             // Get the head element
             const headNode = queue[0];
-            
+
             // Move the last element to the head
             const tail = queue[this._tailPos - 1];
             queue[0] = tail;
@@ -121,7 +120,6 @@ class PriorityQueue {
             this._stats.pops++;
 
             return headNode;
-
         } catch (err) {
             console.error('Failed to pop element from priority queue:', err);
             return null;

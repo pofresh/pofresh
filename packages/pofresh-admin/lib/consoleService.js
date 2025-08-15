@@ -27,7 +27,7 @@ const MS_OF_SECOND = 1000;
 class ConsoleService extends EventEmitter {
     constructor(opts) {
         super();
-        
+
         // 输入验证
         if (!opts || typeof opts !== 'object') {
             throw new Error('Options must be an object');
@@ -80,8 +80,8 @@ class ConsoleService extends EventEmitter {
         cb = cb || (() => {});
 
         const wrappedCallback = ErrorHandler.createTimeoutCallback(
-            cb, 
-            Constants.DEFAULT_PARAM.TIMEOUT, 
+            cb,
+            Constants.DEFAULT_PARAM.TIMEOUT,
             'ConsoleService.start'
         );
 
@@ -97,7 +97,7 @@ class ConsoleService extends EventEmitter {
                     exportEvent(this, this.agent, 'register');
                     exportEvent(this, this.agent, 'disconnect');
                     exportEvent(this, this.agent, 'reconnect');
-                    
+
                     logger.info('Master server started successfully on port %d', this.port);
                     process.nextTick(() => wrappedCallback.callback());
                 });
@@ -388,7 +388,7 @@ class ConsoleService extends EventEmitter {
      */
     setupErrorHandling() {
         // 处理未捕获的异常
-        process.on('uncaughtException', (err) => {
+        process.on('uncaughtException', err => {
             logger.error('Uncaught Exception in ConsoleService:', err);
             this.emit('error', err);
         });
@@ -400,7 +400,7 @@ class ConsoleService extends EventEmitter {
         });
 
         // 优雅关闭
-        const gracefulShutdown = (signal) => {
+        const gracefulShutdown = signal => {
             logger.info(`Received ${signal}, starting graceful shutdown...`);
             try {
                 this.stop();

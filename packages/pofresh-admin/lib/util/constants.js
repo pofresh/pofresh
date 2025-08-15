@@ -3,16 +3,16 @@
  * Enhanced with comprehensive configuration and validation
  */
 
-const Constants = module.exports = {
+const Constants = (module.exports = {
     // Default connection parameters
     DEFAULT_PARAM: {
-        KEEPALIVE: 5 * 1000,           // Keep alive interval in ms
-        TIMEOUT: 5 * 1000,             // Connection timeout in ms
-        RECONNECT_DELAY: 1000,        // Initial reconnect delay in ms
+        KEEPALIVE: 5 * 1000, // Keep alive interval in ms
+        TIMEOUT: 5 * 1000, // Connection timeout in ms
+        RECONNECT_DELAY: 1000, // Initial reconnect delay in ms
         RECONNECT_DELAY_MAX: 5 * 1000, // Maximum reconnect delay in ms
-        CONNECTION_POOL_SIZE: 10,      // Connection pool size
+        CONNECTION_POOL_SIZE: 10, // Connection pool size
         MAX_MESSAGE_SIZE: 1024 * 1024, // Maximum message size (1MB)
-        HEARTBEAT_INTERVAL: 30 * 1000  // Heartbeat interval in ms
+        HEARTBEAT_INTERVAL: 30 * 1000 // Heartbeat interval in ms
     },
 
     // Process types
@@ -30,8 +30,8 @@ const Constants = module.exports = {
 
     // Module types
     MODULE_TYPE: {
-        PULL: 'pull',    // Master pulls data from monitor
-        PUSH: 'push'     // Monitor pushes data to master
+        PULL: 'pull', // Master pulls data from monitor
+        PUSH: 'push' // Monitor pushes data to master
     },
 
     // Protocol types
@@ -44,9 +44,9 @@ const Constants = module.exports = {
 
     // Authentication levels
     AUTH_LEVEL: {
-        ADMIN: 1,    // Full admin permissions
-        MONITOR: 2,  // Monitor permissions
-        USER: 3      // Limited user permissions
+        ADMIN: 1, // Full admin permissions
+        MONITOR: 2, // Monitor permissions
+        USER: 3 // Limited user permissions
     },
 
     // Error codes
@@ -77,16 +77,16 @@ const Constants = module.exports = {
         CONNECTING: 'connecting',
         DISCONNECTED: 'disconnected'
     }
-};
+});
 
 /**
  * Validate configuration parameters
  * @param {Object} config - Configuration to validate
  * @returns {Object} Validation result {valid: boolean, errors: Array}
  */
-Constants.validateConfig = (config) => {
+Constants.validateConfig = config => {
     const errors = [];
-    
+
     if (!config || typeof config !== 'object') {
         errors.push('Configuration must be an object');
         return { valid: false, errors };
@@ -144,12 +144,8 @@ Constants.getDefaultConfig = () => {
  * @param {string} type - Process type
  * @returns {boolean} True if valid
  */
-Constants.isValidProcessType = (type) => {
-    return [
-        Constants.TYPE_CLIENT,
-        Constants.TYPE_MONITOR,
-        Constants.TYPE_MASTER
-    ].includes(type);
+Constants.isValidProcessType = type => {
+    return [Constants.TYPE_CLIENT, Constants.TYPE_MONITOR, Constants.TYPE_MASTER].includes(type);
 };
 
 /**
@@ -157,7 +153,7 @@ Constants.isValidProcessType = (type) => {
  * @param {string} type - Message type
  * @returns {boolean} True if valid
  */
-Constants.isValidMessageType = (type) => {
+Constants.isValidMessageType = type => {
     return Object.values(Constants.MESSAGE_TYPE).includes(type);
 };
 
@@ -166,7 +162,7 @@ Constants.isValidMessageType = (type) => {
  * @param {string} protocol - Protocol type
  * @returns {boolean} True if valid
  */
-Constants.isValidProtocol = (protocol) => {
+Constants.isValidProtocol = protocol => {
     return Object.values(Constants.PROTOCOL).includes(protocol);
 };
 
@@ -175,6 +171,6 @@ Constants.isValidProtocol = (protocol) => {
  * @param {number} level - Auth level
  * @returns {boolean} True if valid
  */
-Constants.isValidAuthLevel = (level) => {
+Constants.isValidAuthLevel = level => {
     return Object.values(Constants.AUTH_LEVEL).includes(level);
 };

@@ -17,11 +17,14 @@ describe('SimpleTrigger', () => {
             const period = 5000;
             const count = 3;
             const mockJob = { runTime: 0 };
-            const trigger = createSimpleTrigger({
-                start: startTime,
-                period,
-                count
-            }, mockJob);
+            const trigger = createSimpleTrigger(
+                {
+                    start: startTime,
+                    period,
+                    count
+                },
+                mockJob
+            );
 
             expect(trigger.nextTime).toBe(startTime);
             expect(trigger.period).toBe(period);
@@ -32,11 +35,14 @@ describe('SimpleTrigger', () => {
             const startTime = Date.now();
             const period = 5000;
             const mockJob = { runTime: 0 };
-            const trigger = createSimpleTrigger({
-                start: startTime,
-                period,
-                count: 0
-            }, mockJob);
+            const trigger = createSimpleTrigger(
+                {
+                    start: startTime,
+                    period,
+                    count: 0
+                },
+                mockJob
+            );
 
             expect(trigger.count).toBe(-1); // The actual implementation converts 0 to -1 (no limit)
         });
@@ -132,9 +138,9 @@ describe('SimpleTrigger', () => {
         test('should reset trigger with new configuration', () => {
             const mockJob = { runTime: 0 };
             const trigger = createSimpleTrigger({ start: Date.now() + 1000, period: 1000 }, mockJob);
-            
+
             trigger.reset({ start: Date.now() + 2000, period: 2000, count: 5 });
-            
+
             expect(trigger.period).toBe(2000);
             expect(trigger.count).toBe(5);
         });
@@ -144,11 +150,11 @@ describe('SimpleTrigger', () => {
         test('should clean up resources', () => {
             const mockJob = { runTime: 0 };
             const trigger = createSimpleTrigger({ start: Date.now() + 1000 }, mockJob);
-            
+
             expect(() => {
                 trigger.cleanup();
             }).not.toThrow();
-            
+
             expect(trigger.isTriggerValid()).toBe(false);
         });
     });
@@ -158,7 +164,7 @@ describe('SimpleTrigger', () => {
             const mockJob = { runTime: 0 };
             const trigger = createSimpleTrigger({ start: Date.now() + 1000 }, mockJob);
             const stats = trigger.getStats();
-            
+
             expect(stats).toHaveProperty('totalExecutions');
             expect(stats).toHaveProperty('errors');
             expect(stats).toHaveProperty('isValid');
@@ -170,10 +176,10 @@ describe('SimpleTrigger', () => {
             const mockJob = { runTime: 0 };
             const trigger = createSimpleTrigger({ start: Date.now() + 1000 }, mockJob);
             const resource = { test: 'resource' };
-            
+
             trigger.addResource(resource);
             expect(trigger.resources.has(resource)).toBe(true);
-            
+
             trigger.removeResource(resource);
             expect(trigger.resources.has(resource)).toBe(false);
         });

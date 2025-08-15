@@ -29,7 +29,7 @@ const ST_CLOSED = 3;
 class MasterAgent extends EventEmitter {
     constructor(consoleService, opts) {
         super();
-        
+
         // 输入验证
         if (!consoleService) {
             throw new Error('ConsoleService is required');
@@ -98,7 +98,7 @@ class MasterAgent extends EventEmitter {
                 }
             });
 
-            this.server.on('error', (err) => {
+            this.server.on('error', err => {
                 logger.error('Master server error:', err);
                 this.emit('error', err);
             });
@@ -664,10 +664,10 @@ class MasterAgent extends EventEmitter {
                 callback.cleanup();
             }
         }
-        
+
         // 清理回调映射
         this.callbacks = {};
-        
+
         // 清理请求消息映射
         this.reqMsgMap = {};
     }

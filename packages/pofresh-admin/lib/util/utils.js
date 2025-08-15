@@ -78,26 +78,26 @@ utils.format = (date, format = 'MM-dd-hhmm') => {
     if (!(date instanceof Date)) {
         date = new Date(date);
     }
-    
+
     if (isNaN(date.getTime())) {
         throw new Error('Invalid date');
     }
 
     const o = {
-        'M+': date.getMonth() + 1,           // month
-        'd+': date.getDate(),              // day
-        'h+': date.getHours(),             // hour
-        'm+': date.getMinutes(),           // minute
-        's+': date.getSeconds(),           // second
+        'M+': date.getMonth() + 1, // month
+        'd+': date.getDate(), // day
+        'h+': date.getHours(), // hour
+        'm+': date.getMinutes(), // minute
+        's+': date.getSeconds(), // second
         'q+': Math.floor((date.getMonth() + 3) / 3), // quarter
-        'S+': date.getMilliseconds()       // millisecond
+        'S+': date.getMilliseconds() // millisecond
     };
 
     // Year replacement
     if (/(y+)/.test(format)) {
         format = format.replace(RegExp.$1, String(date.getFullYear()).substr(4 - RegExp.$1.length));
     }
-    
+
     // Other patterns
     for (const k in o) {
         if (new RegExp(`(${k})`).test(format)) {
@@ -149,11 +149,11 @@ utils.size = (obj, type) => {
  * @param {string} str - String to hash
  * @returns {string} MD5 hash
  */
-utils.md5 = (str) => {
+utils.md5 = str => {
     if (!str || typeof str !== 'string') {
         throw new Error('Input must be a non-empty string');
     }
-    
+
     const md5sum = crypto.createHash('md5');
     md5sum.update(str, 'utf8');
     return md5sum.digest('hex');
@@ -190,7 +190,7 @@ utils.defaultAuthUser = (msg, env, cb) => {
             }
 
             const { username, password, md5 } = msg;
-            
+
             // Sanitize inputs
             const sanitizedUsername = String(username).trim();
             const sanitizedPassword = String(password);
@@ -203,7 +203,7 @@ utils.defaultAuthUser = (msg, env, cb) => {
                 if (!u || typeof u !== 'object' || u.username !== sanitizedUsername) {
                     return false;
                 }
-                
+
                 const userPassword = String(u.password);
                 return md5 ? utils.md5(userPassword) === sanitizedPassword : userPassword === sanitizedPassword;
             });
@@ -246,25 +246,23 @@ utils.defaultAuthServerMaster = (msg, env, cb) => {
         }
 
         // Load server configurations asynchronously but maintain callback interface
-        utils.loadServerConfig(env).then(servers => {
-            if (!servers || !Array.isArray(servers) || servers.length === 0) {
-                return ErrorHandler.safeCallback(cb, null, 'ok');
-            }
+        utils
+            .loadServerConfig(env)
+            .then(servers => {
+                if (!servers || !Array.isArray(servers) || servers.length === 0) {
+                    return ErrorHandler.safeCallback(cb, null, 'ok');
+                }
 
-            // Find matching server (fallback to simple comparison for compatibility)
-            const server = servers.find(s => 
-                s && 
-                s.type === serverType && 
-                s.token && 
-                s.token === token
-            );
+                // Find matching server (fallback to simple comparison for compatibility)
+                const server = servers.find(s => s && s.type === serverType && s.token && s.token === token);
 
-            ErrorHandler.safeCallback(cb, null, server ? 'ok' : 'bad');
-        }).catch(err => {
-            const logger = getLogger();
-            logger.error('Server master authentication error:', err);
-            ErrorHandler.safeCallback(cb, err);
-        });
+                ErrorHandler.safeCallback(cb, null, server ? 'ok' : 'bad');
+            })
+            .catch(err => {
+                const logger = getLogger();
+                logger.error('Server master authentication error:', err);
+                ErrorHandler.safeCallback(cb, err);
+            });
     } catch (err) {
         const logger = getLogger();
         logger.error('Server master authentication error:', err);
@@ -291,19 +289,22 @@ utils.defaultAuthServerMonitor = (msg, env, cb) => {
         const { serverType } = msg;
 
         // Load server configurations asynchronously but maintain callback interface
-        utils.loadServerConfig(env).then(servers => {
-            if (!servers || !Array.isArray(servers) || servers.length === 0) {
-                return ErrorHandler.safeCallback(cb, null, null);
-            }
+        utils
+            .loadServerConfig(env)
+            .then(servers => {
+                if (!servers || !Array.isArray(servers) || servers.length === 0) {
+                    return ErrorHandler.safeCallback(cb, null, null);
+                }
 
-            // Find matching server
-            const server = servers.find(s => s && s.type === serverType);
-            ErrorHandler.safeCallback(cb, null, server ? server.token : null);
-        }).catch(err => {
-            const logger = getLogger();
-            logger.error('Server monitor authentication error:', err);
-            ErrorHandler.safeCallback(cb, err);
-        });
+                // Find matching server
+                const server = servers.find(s => s && s.type === serverType);
+                ErrorHandler.safeCallback(cb, null, server ? server.token : null);
+            })
+            .catch(err => {
+                const logger = getLogger();
+                logger.error('Server monitor authentication error:', err);
+                ErrorHandler.safeCallback(cb, err);
+            });
     } catch (err) {
         const logger = getLogger();
         logger.error('Server monitor authentication error:', err);
@@ -316,7 +317,7 @@ utils.defaultAuthServerMonitor = (msg, env, cb) => {
  * @param {string} env - Environment name
  * @returns {Promise<Array>} Server configurations
  */
-utils.loadServerConfig = async (env) => {
+utils.loadServerConfig = async env => {
     try {
         const appBase = path.dirname(require.main.filename);
         const serverPath = path.join(appBase, 'config/adminServer.json');
@@ -338,7 +339,7 @@ utils.loadServerConfig = async (env) => {
 
         const configData = await fs.readFile(configPath, 'utf8');
         const config = ErrorHandler.safeJsonParse(configData, []);
-        
+
         if (!Array.isArray(config)) {
             throw new Error('Server configuration must be an array');
         }

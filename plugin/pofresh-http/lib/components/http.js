@@ -13,10 +13,10 @@ const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 8087;
 
 const defaultLogger = () => ({
-    debug: console.log,
-    info: console.log,
-    warn: console.warn,
-    error: console.error
+    debug: msg => process.stdout.write(`[DEBUG] ${msg}\n`),
+    info: msg => process.stdout.write(`[INFO] ${msg}\n`),
+    warn: msg => process.stderr.write(`[WARN] ${msg}\n`),
+    error: msg => process.stderr.write(`[ERROR] ${msg}\n`)
 });
 
 class Http {
@@ -92,15 +92,15 @@ class Http {
     }
 
     start(cb) {
-        this.beforeFilters.forEach(elem => {
+        for (const elem of this.beforeFilters) {
             this.http.use(elem);
-        });
+        }
 
         this.loadRoutes();
 
-        this.afterFilters.forEach(elem => {
+        for (const elem of this.afterFilters) {
             this.http.use(elem);
-        });
+        }
 
         if (this.useSSL) {
             this.server = https.createServer(this.sslOpts, this.http).listen(this.port, this.host, () => {

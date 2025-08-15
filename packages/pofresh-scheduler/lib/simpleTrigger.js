@@ -37,18 +37,18 @@ class SimpleTrigger {
 
         // Store job reference
         this.job = job;
-        
+
         // Resource management
         this.resources = new Set();
         this.timers = new Set();
-        
+
         // Statistics
         this.stats = {
             totalExecutions: 0,
             skippedExecutions: 0,
             errors: 0
         };
-        
+
         // Validation state
         this.isValid = true;
     }
@@ -95,7 +95,6 @@ class SimpleTrigger {
             }
 
             return this.nextTime;
-
         } catch (err) {
             this.isValid = false;
             throw new Error(`Failed to compute next execution time: ${err.message}`);
@@ -175,7 +174,6 @@ class SimpleTrigger {
 
             // Mark as invalid
             this.isValid = false;
-
         } catch (err) {
             // Log error but don't throw to prevent cleanup failures
             console.error('Error during SimpleTrigger cleanup:', err);
@@ -199,7 +197,7 @@ class SimpleTrigger {
             // Validate new configuration
             if (newConfig) {
                 validateTrigger(newConfig, 'simple');
-                
+
                 if (newConfig.start !== undefined) {
                     this.nextTime = newConfig.start;
                 }
@@ -214,10 +212,9 @@ class SimpleTrigger {
             // Reset statistics
             this.stats.totalExecutions = 0;
             this.stats.skippedExecutions = 0;
-            
+
             // Mark as valid
             this.isValid = true;
-
         } catch (err) {
             throw new Error(`Failed to reset trigger: ${err.message}`);
         }
@@ -235,7 +232,7 @@ function createTrigger(trigger, job) {
         // Validate inputs
         ErrorHandler.validateInput(trigger, 'object', 'Trigger');
         ErrorHandler.validateInput(job, 'object', 'Job');
-        
+
         // Validate trigger configuration
         validateTrigger(trigger, 'simple');
 
@@ -250,7 +247,7 @@ function createTrigger(trigger, job) {
  * @param {Object} trigger - Trigger configuration to validate
  * @returns {boolean} True if valid
  */
-SimpleTrigger.validateTrigger = function(trigger) {
+SimpleTrigger.validateTrigger = function (trigger) {
     try {
         validateTrigger(trigger, 'simple');
         return true;

@@ -25,8 +25,6 @@ class AppUtil {
         AppUtil.configLogger(app);
     }
 
-
-
     /**
      * Start servers by type
      * @param {Object} app - Application instance
@@ -35,7 +33,7 @@ class AppUtil {
     static async startByType(app) {
         await AppUtil.loadLifecycle(app, app.enabled(Constants.LIFECYCLE.RELOAD));
 
-        const shouldRunServers = app.startId 
+        const shouldRunServers = app.startId
             ? app.startId !== Constants.RESERVED.MASTER
             : app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER;
 
@@ -55,14 +53,14 @@ class AppUtil {
      */
     static loadDefaultComponents(app) {
         const pofresh = require('../pofresh');
-        
+
         try {
             if (app.serverType === Constants.RESERVED.MASTER) {
                 AppUtil._loadMasterComponents(app, pofresh);
             } else {
                 AppUtil._loadServerComponents(app, pofresh);
             }
-            
+
             // Load monitor component for all server types
             app.load(pofresh.monitor, app.get('monitorConfig'));
         } catch (error) {
@@ -85,12 +83,12 @@ class AppUtil {
      */
     static _loadServerComponents(app, pofresh) {
         app.load(pofresh.proxy, app.get('proxyConfig'));
-        
+
         const currentServer = app.getCurServer();
         if (currentServer?.port) {
             app.load(pofresh.remote, app.get('remoteConfig'));
         }
-        
+
         if (app.isFrontend()) {
             const frontendComponents = [
                 { component: pofresh.connection, config: 'connectionConfig' },
@@ -98,18 +96,18 @@ class AppUtil {
                 { component: pofresh.session, config: 'sessionConfig' },
                 { component: pofresh.pushScheduler, config: 'pushSchedulerConfig' }
             ];
-            
+
             frontendComponents.forEach(({ component, config }) => {
                 app.load(component, app.get(config));
             });
         }
-        
+
         const backendComponents = [
             { component: pofresh.backendSession, config: 'backendSessionConfig' },
             { component: pofresh.channel, config: 'channelConfig' },
             { component: pofresh.server, config: 'serverConfig' }
         ];
-        
+
         backendComponents.forEach(({ component, config }) => {
             app.load(component, app.get(config));
         });
@@ -125,7 +123,7 @@ class AppUtil {
         for (const comp of comps) {
             if (typeof comp.stop === 'function') {
                 try {
-                    await new Promise((resolve) => {
+                    await new Promise(resolve => {
                         comp.stop(force, () => {
                             // Ignore any error and continue with next component
                             resolve();
@@ -138,8 +136,6 @@ class AppUtil {
             }
         }
     }
-    
-
 
     /**
      * Apply command to loaded components in series
@@ -151,7 +147,7 @@ class AppUtil {
         for (const comp of comps) {
             if (typeof comp[method] === 'function') {
                 await new Promise((resolve, reject) => {
-                    comp[method]((err) => {
+                    comp[method](err => {
                         if (err) reject(err);
                         else resolve();
                     });
@@ -168,11 +164,11 @@ class AppUtil {
         app.loadConfigBaseApp(Constants.RESERVED.SERVERS, Constants.FILEPATH.SERVER);
         const servers = app.get(Constants.RESERVED.SERVERS);
         const serverMap = {};
-        
+
         for (const [serverType, serverList] of Object.entries(servers)) {
             for (const server of serverList) {
                 server.serverType = serverType;
-                
+
                 if (server[Constants.RESERVED.CLUSTER_COUNT]) {
                     utils.loadCluster(app, server, serverMap);
                 } else {
@@ -180,7 +176,7 @@ class AppUtil {
                 }
             }
         }
-        
+
         app.set(Constants.KEYWORDS.SERVER_MAP, serverMap);
     }
 
@@ -215,11 +211,11 @@ class AppUtil {
             [Constants.RESERVED.MODE, mode],
             [Constants.RESERVED.TYPE, type]
         ];
-        
+
         configs.forEach(([key, value]) => {
             app.set(key, value, true);
         });
-        
+
         if (startId) {
             app.set(Constants.RESERVED.STARTID, startId, true);
         }
@@ -227,7 +223,7 @@ class AppUtil {
         // Set current server configuration
         AppUtil._setCurrentServer(app, args, serverType, masterha);
     }
-    
+
     /**
      * Set current server configuration
      * @private
@@ -280,20 +276,20 @@ class AppUtil {
         for (let i = mainPos + 1; i < args.length; i++) {
             const arg = args[i];
             const separatorIndex = arg.indexOf('=');
-            
+
             if (separatorIndex === -1) continue;
-            
+
             const key = arg.slice(0, separatorIndex);
             let value = arg.slice(separatorIndex + 1);
-            
+
             // Convert numeric strings to numbers (excluding decimals)
             if (!Number.isNaN(Number(value)) && !value.includes('.')) {
                 value = Number(value);
             }
-            
+
             argsMap[key] = value;
         }
-        
+
         return argsMap;
     }
 
@@ -310,16 +306,16 @@ class AppUtil {
             app.serverType,
             Constants.FILEPATH.LIFECYCLE
         );
-        
+
         try {
             // Use async file existence check
             await fsPromises.access(filePath, fs.constants.F_OK);
-            
+
             // Clear require cache for hot reload
             delete require.cache[require.resolve(filePath)];
-            
+
             const lifecycle = require(filePath);
-            
+
             for (const [key, value] of Object.entries(lifecycle)) {
                 if (typeof value === 'function') {
                     app.lifecycleCbs[key] = value;
@@ -327,11 +323,11 @@ class AppUtil {
                     logger.warn('Invalid lifecycle function format in %s for key: %s', filePath, key);
                 }
             }
-            
+
             if (reload) {
                 AppUtil._watchLifecycleFile(app, filePath);
             }
-            
+
             logger.debug('Lifecycle file loaded successfully: %s', filePath);
         } catch (error) {
             if (error.code === 'ENOENT') {
@@ -342,15 +338,13 @@ class AppUtil {
             throw error;
         }
     }
-    
 
-    
     /**
      * Watch lifecycle file for changes
      * @private
      */
     static _watchLifecycleFile(app, filePath) {
-        fs.watch(filePath, async (event) => {
+        fs.watch(filePath, async event => {
             if (event === 'change') {
                 try {
                     await AppUtil.loadLifecycle(app, false); // Reload without watching again

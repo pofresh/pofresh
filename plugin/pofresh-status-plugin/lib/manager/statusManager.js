@@ -18,7 +18,12 @@ class StatusManager {
         // if (this.opts.auth_pass) {
         //   this.redis.auth(this.opts.auth_pass);
         // }
-        this.redis.on('error', _err => {});
+        this.redis.on('error', err => {
+            // Log Redis connection errors but don't crash
+            if (this.logger) {
+                this.logger.error('Redis connection error:', err);
+            }
+        });
         this.redis.once('ready', cb);
         this.redis.connect();
     }
@@ -38,8 +43,8 @@ class StatusManager {
                 utils.invokeCallback(cb, err);
                 return;
             }
-            for (let i = 0; i < list.length; i++) {
-                cmds.push(['del', list[i]]);
+            for (const item of list) {
+                cmds.push(['del', item]);
             }
             execMultiCommands(this.redis, cmds, cb);
         });
@@ -63,8 +68,8 @@ class StatusManager {
 
     getSidsByUids(uids, cb) {
         const cmds = [];
-        for (let i = 0; i < uids.length; i++) {
-            cmds.push(['exists', genKey(this, uids[i])]);
+        for (const uid of uids) {
+            cmds.push(['exists', genKey(this, uid)]);
         }
         execMultiCommands(this.redis, cmds, (err, list) => {
             utils.invokeCallback(cb, err, list);
@@ -72,12 +77,12 @@ class StatusManager {
     }
 }
 
-const execMultiCommands = (redis, cmds, cb) => {
+const execMultiCommands = (redisClient, cmds, cb) => {
     if (!cmds.length) {
         utils.invokeCallback(cb);
         return;
     }
-    redis.multi(cmds).exec((err, replies) => {
+    redisClient.multi(cmds).exec((err, replies) => {
         utils.invokeCallback(cb, err, replies);
     });
 };
