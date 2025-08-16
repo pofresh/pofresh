@@ -48,7 +48,7 @@ starter.runServers = function (app) {
  * @param {Object} server
  * @return {Void}
  */
-starter.run = (app, server, cb) => {
+starter.run = async (app, server) => {
     const _appEnv = app.get(Constants.RESERVED.ENV);
     let cmd, key;
     if (utils.isLocal(server.host)) {
@@ -69,7 +69,7 @@ starter.run = (app, server, cb) => {
             }
             options.push(util.format('%s=%s', key, server[key]));
         }
-        starter.localrun(process.execPath, null, options, cb);
+        starter.localrun(process.execPath, null, options);
     } else {
         cmd = util.format('cd "%s" && "%s"', app.getBase(), process.execPath);
         const arg = server.args;
@@ -83,7 +83,7 @@ starter.run = (app, server, cb) => {
             }
             cmd += util.format(' %s=%s ', key, server[key]);
         }
-        starter.sshrun(cmd, server.host, cb);
+        starter.sshrun(cmd, server.host);
     }
 };
 
@@ -169,23 +169,23 @@ starter.sshrun = (cmd, host, cb) => {
  * Run local command.
  *
  * @param {String} cmd
- * @param {Callback} callback
- *
+ * @param host
+ * @param options
  */
-starter.localrun = (cmd, host, options, callback) => {
+starter.localrun = async (cmd, host, options) => {
     logger.info(`Executing ${cmd} ${options} locally`);
-    spawnProcess(cmd, host, options, callback);
+    await spawnProcess(cmd, host, options);
 };
 
 /**
  * Fork child process to run command.
  *
  * @param {String} command
+ * @param host
  * @param {Object} options
- * @param {Callback} callback
  *
  */
-function spawnProcess(command, host, options, cb) {
+async function spawnProcess(command, host, options) {
     let child = null;
 
     if (env === Constants.RESERVED.ENV_DEV) {

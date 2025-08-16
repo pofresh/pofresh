@@ -1,6 +1,5 @@
 const os = require('os');
 const admin = require('pofresh-admin');
-const utils = require('./utils.js');
 const Constants = require('./constants.js');
 const pathUtil = require('./pathUtil.js');
 const starter = require('../master/starter.js');
@@ -24,43 +23,44 @@ function loadModules(self, consoleService) {
         return;
     }
 
-    const modules = Object.values(_modules);
+    for (const key in _modules) {
+        const record = _modules[key];
+        const moduleId = record.moduleId || record.module?.moduleId;
+        const module =
+            typeof record.module === 'function' ? record.module(record.opts, consoleService) : record.module;
 
-    modules.forEach((record, index) => {
-        try {
-            const moduleId = record.moduleId || record.module?.moduleId;
-            const module =
-                typeof record.module === 'function' ? record.module(record.opts, consoleService) : record.module;
-
-            if (!moduleId) {
-                logger.warn('Ignoring module at index %d: missing moduleId', index);
-                return;
-            }
-
-            consoleService.register(moduleId, module);
-            self.modules.push(module);
-        } catch (error) {
-            logger.error('Failed to load module at index %d:', index, error);
-            throw error;
+        if (!moduleId) {
+            logger.warn('Ignoring module at %d: missing moduleId', key);
+            return;
         }
-    });
+
+        consoleService.register(moduleId, module);
+        self.modules.push(module);
+    }
 }
 
 /**
  * Start modules by invoking their start lifecycle methods
  * @param {Array} modules - Array of modules to start
- * @param {function} callback - Completion callback
  */
-async function startModules(modules, callback) {
+async function startModules(modules) {
     if (!modules) {
-        utils.invokeCallback(callback, null);
         return;
     }
 
+    const startFns = [];
+    for (const module of modules) {
+        if (module && typeof module.start !== 'function') {
+            continue;
+        }
+
+        startFns.push(new Promise((resolve, reject) => module.start().then(resolve).catch(reject)));
+    }
+
     try {
-        await startModule(null, modules, 0, callback);
+        await Promise.all(startFns);
     } catch (error) {
-        utils.invokeCallback(callback, error);
+        throw error;
     }
 }
 
@@ -105,42 +105,8 @@ function registerDefaultModules(isMaster, app, closeWatcher = false) {
     }
 }
 
-/**
- * Internal function to start modules recursively
- * @private
- */
-async function startModule(err, modules, index, callback) {
-    if (err || index >= modules.length) {
-        utils.invokeCallback(callback, err);
-        return;
-    }
-
-    const module = modules[index];
-    if (module && typeof module.start === 'function') {
-        try {
-            await new Promise((resolve, reject) => {
-                module.start(error => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve();
-                    }
-                });
-            });
-
-            startModule(null, modules, index + 1, callback);
-        } catch (error) {
-            logger.error('Failed to start module at index %d:', index, error);
-            startModule(error, modules, index + 1, callback);
-        }
-    } else {
-        startModule(null, modules, index + 1, callback);
-    }
-}
-
 module.exports = {
     loadModules,
     startModules,
-    registerDefaultModules,
-    startModule
+    registerDefaultModules
 };

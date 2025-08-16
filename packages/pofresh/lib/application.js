@@ -37,7 +37,7 @@ const Application = {};
  * @param {Object} opts - 初始化选项
  * @param {string} opts.base - 应用基础路径
  */
-Application.init = function (opts = {}) {
+Application.init = function(opts = {}) {
     // 组件管理
     this.loaded = []; // 已加载的组件列表
     this.components = {}; // 组件名称到组件实例的映射
@@ -68,14 +68,14 @@ Application.init = function (opts = {}) {
     appUtil.defaultConfiguration(this);
 
     this.state = AppState.INITED;
-    logger.info(`应用初始化完成: ${this.getServerId()}`);
+    logger.info(`application initialized: ${this.getServerId()}`);
 };
 
 /**
  * 获取应用基础路径
  * @return {string} 应用基础路径
  */
-Application.getBase = function () {
+Application.getBase = function() {
     return this.get(Constants.RESERVED.BASE);
 };
 
@@ -93,7 +93,7 @@ Application.getBase = function () {
  * app.set('key2', 'value2', true);
  * app.key2;         // 'value2'
  */
-Application.set = function (setting, val, attach = false) {
+Application.set = function(setting, val, attach = false) {
     if (setting === undefined) {
         return this;
     }
@@ -103,9 +103,13 @@ Application.set = function (setting, val, attach = false) {
 
     this.settings[setting] = val;
     if (attach) {
-        this[setting] = val;
+        Object.defineProperty(this, setting, {
+            get: () => this.settings[setting],
+            set: val => this.settings[setting] = val,
+            enumerable: true,
+            configurable: true
+        });
     }
-
     return this;
 };
 
@@ -114,7 +118,7 @@ Application.set = function (setting, val, attach = false) {
  * @param {string} setting - 配置键名
  * @return {*} 配置值
  */
-Application.get = function (setting) {
+Application.get = function(setting) {
     return this.settings[setting];
 };
 
@@ -123,7 +127,7 @@ Application.get = function (setting) {
  * @param {string} setting - 配置键名
  * @return {boolean} 是否启用
  */
-Application.enabled = function (setting) {
+Application.enabled = function(setting) {
     return !!this.get(setting);
 };
 
@@ -132,7 +136,7 @@ Application.enabled = function (setting) {
  * @param {string} setting - 配置键名
  * @return {boolean} 是否禁用
  */
-Application.disabled = function (setting) {
+Application.disabled = function(setting) {
     return !this.get(setting);
 };
 
@@ -141,7 +145,7 @@ Application.disabled = function (setting) {
  * @param {string} setting - 配置键名
  * @return {Application} 链式调用
  */
-Application.enable = function (setting) {
+Application.enable = function(setting) {
     return this.set(setting, true);
 };
 
@@ -150,7 +154,7 @@ Application.enable = function (setting) {
  * @param {string} setting - 配置键名
  * @return {Application} 链式调用
  */
-Application.disable = function (setting) {
+Application.disable = function(setting) {
     return this.set(setting, false);
 };
 
@@ -165,7 +169,7 @@ Application.require = ph => require(path.join(Application.getBase(), ph));
  * 配置日志系统
  * @param {Object} jsLogger - pofresh-logger实例
  */
-Application.configureLogger = function (jsLogger) {
+Application.configureLogger = function(jsLogger) {
     if (process.env.pofresh_LOGGER === 'off') {
         return;
     }
@@ -189,7 +193,7 @@ Application.configureLogger = function (jsLogger) {
  * 添加前置和后置过滤器
  * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
-Application.filter = function (filter) {
+Application.filter = function(filter) {
     this.before(filter);
     this.after(filter);
 };
@@ -198,7 +202,7 @@ Application.filter = function (filter) {
  * 添加前置过滤器
  * @param {Object|Function} bf - 前置过滤器 bf(msg, session, next)
  */
-Application.before = function (bf) {
+Application.before = function(bf) {
     addFilter(this, Constants.KEYWORDS.BEFORE_FILTER, bf);
 };
 
@@ -206,7 +210,7 @@ Application.before = function (bf) {
  * 添加后置过滤器
  * @param {Object|Function} af - 后置过滤器 af(err, msg, session, resp, next)
  */
-Application.after = function (af) {
+Application.after = function(af) {
     addFilter(this, Constants.KEYWORDS.AFTER_FILTER, af);
 };
 
@@ -214,7 +218,7 @@ Application.after = function (af) {
  * 添加全局前置和后置过滤器
  * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
-Application.globalFilter = function (filter) {
+Application.globalFilter = function(filter) {
     this.globalBefore(filter);
     this.globalAfter(filter);
 };
@@ -223,7 +227,7 @@ Application.globalFilter = function (filter) {
  * 添加全局前置过滤器
  * @param {Object|Function} bf - 全局前置过滤器 bf(msg, session, next)
  */
-Application.globalBefore = function (bf) {
+Application.globalBefore = function(bf) {
     addFilter(this, Constants.KEYWORDS.GLOBAL_BEFORE_FILTER, bf);
 };
 
@@ -231,7 +235,7 @@ Application.globalBefore = function (bf) {
  * 添加全局后置过滤器
  * @param {Object|Function} af - 全局后置过滤器 af(err, msg, session, resp, next)
  */
-Application.globalAfter = function (af) {
+Application.globalAfter = function(af) {
     addFilter(this, Constants.KEYWORDS.GLOBAL_AFTER_FILTER, af);
 };
 
@@ -239,7 +243,7 @@ Application.globalAfter = function (af) {
  * 添加RPC前置过滤器
  * @param {Object|Function} bf - RPC前置过滤器 bf(serverId, msg, opts, next)
  */
-Application.rpcBefore = function (bf) {
+Application.rpcBefore = function(bf) {
     addFilter(this, Constants.KEYWORDS.RPC_BEFORE_FILTER, bf);
 };
 
@@ -247,7 +251,7 @@ Application.rpcBefore = function (bf) {
  * 添加RPC后置过滤器
  * @param {Object|Function} af - RPC后置过滤器 af(serverId, msg, opts, next)
  */
-Application.rpcAfter = function (af) {
+Application.rpcAfter = function(af) {
     addFilter(this, Constants.KEYWORDS.RPC_AFTER_FILTER, af);
 };
 
@@ -255,7 +259,7 @@ Application.rpcAfter = function (af) {
  * 添加RPC前置和后置过滤器
  * @param {Object} filter - 过滤器对象，应包含before和after方法
  */
-Application.rpcFilter = function (filter) {
+Application.rpcFilter = function(filter) {
     this.rpcBefore(filter);
     this.rpcAfter(filter);
 };
@@ -267,7 +271,7 @@ Application.rpcFilter = function (filter) {
  * @param {Object} opts - 构造参数（可选）
  * @return {Application} 链式调用
  */
-Application.load = function (name, component, opts) {
+Application.load = function(name, component, opts) {
     // 参数重载处理
     if (typeof name !== 'string') {
         [opts, component, name] = [component, name, null];
@@ -309,7 +313,7 @@ Application.load = function (name, component, opts) {
  * @param {string} val - 配置文件路径
  * @param {boolean} reload - 是否监听文件变化自动重载
  */
-Application.loadConfigBaseApp = function (key, val, reload = false) {
+Application.loadConfigBaseApp = function(key, val, reload = false) {
     const env = this.get(Constants.RESERVED.ENV);
     const originPath = path.join(Application.getBase(), val);
     const presentPath = path.join(Application.getBase(), Constants.FILEPATH.CONFIG_DIR, env, path.basename(val));
@@ -348,7 +352,7 @@ Application.loadConfigBaseApp = function (key, val, reload = false) {
  * @param {string} key - 配置键名
  * @param {string} val - 配置文件路径
  */
-Application.loadConfig = function (key, val) {
+Application.loadConfig = function(key, val) {
     const env = this.get(Constants.RESERVED.ENV);
     const config = require(val);
     this.set(key, config[env] || config);
@@ -366,7 +370,7 @@ Application.loadConfig = function (key, val) {
  *   cb(null, areas[0].id);
  * });
  */
-Application.route = function (serverType, routeFunc) {
+Application.route = function(serverType, routeFunc) {
     let routes = this.get(Constants.KEYWORDS.ROUTE);
     if (!routes) {
         routes = {};
@@ -380,70 +384,75 @@ Application.route = function (serverType, routeFunc) {
  * 启动应用程序，加载默认组件并启动所有已加载的组件
  * @param {Function} cb - 回调函数
  */
-Application.start = function (cb) {
-    this.startTime = Date.now();
+Application.start = function(cb) {
+    const promise = new Promise(async (resolve, reject) => {
+        this.startTime = Date.now();
 
-    if (this.state > AppState.INITED) {
-        utils.invokeCallback(cb, new Error('应用程序已经启动'));
-        return;
-    }
+        if (this.state > AppState.INITED) {
+            reject(new Error('应用程序已经启动'));
+            return;
+        }
 
-    appUtil.startByType(this, () => {
-        appUtil.loadDefaultComponents(this);
+        try {
+            await appUtil.startByType(this);
 
-        const startUp = () => {
-            appUtil.optComponents(this.loaded, Constants.RESERVED.START, err => {
-                this.state = AppState.START;
-                if (err) {
-                    utils.invokeCallback(cb, err);
-                } else {
-                    logger.info(`${this.getServerId()} 进入启动后阶段...`);
-                    this.afterStart(cb);
-                }
-            });
-        };
+            appUtil.loadDefaultComponents(this);
 
-        const beforeFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
-        if (beforeFun) {
-            beforeFun.call(null, this, startUp);
-        } else {
-            startUp();
+            const beforeFun = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_STARTUP];
+            if (beforeFun) {
+                beforeFun.call(null, this);
+            }
+
+            await appUtil.optComponents(this.loaded, Constants.RESERVED.START);
+            this.state = AppState.START;
+            logger.info(`${this.getServerId()} 进入启动后阶段...`);
+            await this.afterStart();
+            resolve();
+        } catch (err) {
+            reject(err);
         }
     });
+
+    if (!cb) return promise; // 避免返回 Promise
+    promise.then(data => cb(null, data)).catch(cb);
 };
 
 /**
  * 启动后的生命周期回调
- * @param {Function} cb - 回调函数
  */
-Application.afterStart = function (cb) {
-    if (this.state !== AppState.START) {
-        utils.invokeCallback(cb, new Error('应用程序当前未运行'));
-        return;
-    }
+Application.afterStart = function(cb) {
 
-    const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
+    const promise = new Promise(async (resolve, reject) => {
+        if (this.state !== AppState.START) {
+            return reject(new Error('应用程序当前未运行'));
+        }
 
-    appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START, err => {
-        this.state = AppState.STARTED;
-        const id = this.getServerId();
+        const afterFun = this.lifecycleCbs[Constants.LIFECYCLE.AFTER_STARTUP];
 
-        if (!err) {
+        try {
+            await appUtil.optComponents(this.loaded, Constants.RESERVED.AFTER_START);
+            this.state = AppState.STARTED;
+            const id = this.getServerId();
             logger.info(`${id} 启动完成`);
-        }
 
-        if (afterFun) {
-            afterFun.call(null, this, () => {
-                utils.invokeCallback(cb, err);
-            });
-        } else {
-            utils.invokeCallback(cb, err);
-        }
+            if (afterFun) {
+                // const f1 = util.promisify(afterFun);
+                // afterFun.call(null, this, () => {
+                //     utils.invokeCallback(cb, err);
+                // });
+                afterFun.call(null, this);
+            }
 
-        const usedTime = Date.now() - this.startTime;
-        logger.info(`${id} 启动耗时 ${usedTime} ms`);
-        this.event.emit(events.START_SERVER, id);
+            const usedTime = Date.now() - this.startTime;
+            logger.info(`${id} 启动耗时 ${usedTime} ms`);
+            this.event.emit(events.START_SERVER, id);
+            resolve();
+        } catch (err) {
+            reject(err);
+        }
     });
+    if (!cb) return promise;
+    promise.then(data => cb(null, data)).catch(cb);
 };
 
 /**
@@ -451,42 +460,41 @@ Application.afterStart = function (cb) {
  * @param {boolean} force - 是否强制停止应用
  * @param {Function} cb - 回调函数
  */
-Application.stop = function (force, cb) {
-    if (this.state < AppState.STARTED) {
-        utils.invokeCallback(cb, new Error('应用程序当前未运行'));
-        return;
-    }
+Application.stop = function(force, cb) {
 
-    this.state = AppState.STOPED;
+    const promise = new Promise(async (resolve, reject) => {
+        if (this.state < AppState.STARTED) {
+            return reject(new Error('应用程序当前未运行'));
+        }
 
-    // 设置超时强制退出
-    this.stopTimer = setTimeout(() => {
-        process.exit(1);
-    }, Constants.TIME.TIME_WAIT_STOP);
+        this.state = AppState.STOPPED;
 
-    const shutDown = () => {
-        appUtil.stopComps(this.loaded, 0, force, () => {
-            if (this.stopTimer) {
-                clearTimeout(this.stopTimer);
-            }
-            if (force) {
-                process.exit(1);
-            }
-            utils.invokeCallback(cb);
-        });
-    };
+        // 设置超时强制退出
+        this.stopTimer = setTimeout(() => {
+            process.exit(1);
+        }, Constants.TIME.TIME_WAIT_STOP);
 
-    // 执行关闭钩子
-    const shutDownHook = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
-    const stopServiceHook = this.get(Constants.RESERVED.STOP_SERVICE_HOOK);
+        // 执行关闭钩子
+        const shutDownHook = this.lifecycleCbs[Constants.LIFECYCLE.BEFORE_SHUTDOWN];
 
-    if (shutDownHook) {
-        shutDownHook.call(this, this, shutDown, shutDown);
-    } else if (stopServiceHook) {
-        stopServiceHook.call(this, this, shutDown, shutDown);
-    } else {
-        shutDown();
-    }
+        if (shutDownHook) {
+            shutDownHook.call(this, this);
+        }
+
+        await appUtil.stopComps(this.loaded, 0, force);
+
+        if (this.stopTimer) {
+            clearTimeout(this.stopTimer);
+        }
+        if (!cb && force) {
+            process.exit(1);
+        }
+    });
+
+    if (!cb) return promise;
+
+    promise.then(data => cb(null, data)).catch(cb);
+    if (force) process.exit(1);
 };
 
 /**
@@ -507,7 +515,7 @@ Application.stop = function (force, cb) {
  *   // 开发环境的connector服务器类型执行
  * });
  */
-Application.configure = function (...args) {
+Application.configure = function(...args) {
     const callback = args.pop();
     const [currentEnv = Constants.RESERVED.ALL, currentType = Constants.RESERVED.ALL] = args;
 
@@ -526,7 +534,7 @@ Application.configure = function (...args) {
  * @param {Object|Function} module - 模块对象或工厂函数
  * @param {Object} opts - 构造参数
  */
-Application.registerAdmin = function (moduleId, module, opts) {
+Application.registerAdmin = function(moduleId, module, opts) {
     let modules = this.get(Constants.KEYWORDS.MODULE);
     if (!modules) {
         modules = {};
@@ -557,7 +565,7 @@ Application.registerAdmin = function (moduleId, module, opts) {
  * @param {Object} plugin - 插件实例
  * @param {Object} opts - 构造参数（可选）
  */
-Application.use = function (plugin, opts = {}) {
+Application.use = function(plugin, opts = {}) {
     if (!plugin.components) {
         logger.error('无效的组件配置，组件不存在');
         return;
@@ -576,7 +584,7 @@ Application.use = function (plugin, opts = {}) {
  * 加载插件组件
  * @private
  */
-Application._loadPluginComponents = function (componentsPath, opts) {
+Application._loadPluginComponents = function(componentsPath, opts) {
     if (!fs.existsSync(componentsPath)) {
         logger.error(`组件路径不存在: ${componentsPath}`);
         return;
@@ -608,7 +616,7 @@ Application._loadPluginComponents = function (componentsPath, opts) {
  * 加载插件事件
  * @private
  */
-Application._loadPluginEvents = function (eventsPath) {
+Application._loadPluginEvents = function(eventsPath) {
     if (!fs.existsSync(eventsPath)) {
         logger.error(`事件路径不存在: ${eventsPath}`);
         return;
@@ -651,7 +659,7 @@ Application.transaction = (name, conditions, handlers, retry) => {
  * 获取主服务器信息
  * @return {Object} 主服务器信息 {id, host, port}
  */
-Application.getMaster = function () {
+Application.getMaster = function() {
     return this.master;
 };
 
@@ -659,7 +667,7 @@ Application.getMaster = function () {
  * 获取当前服务器信息
  * @return {Object} 当前服务器信息 {id, serverType, host, port}
  */
-Application.getCurServer = function () {
+Application.getCurServer = function() {
     return this.curServer;
 };
 
@@ -667,7 +675,7 @@ Application.getCurServer = function () {
  * 获取当前服务器ID
  * @return {string|number} 来自servers.json的当前服务器ID
  */
-Application.getServerId = function () {
+Application.getServerId = function() {
     return this.serverId;
 };
 
@@ -675,7 +683,7 @@ Application.getServerId = function () {
  * 获取当前服务器类型
  * @return {string} 来自servers.json的当前服务器类型
  */
-Application.getServerType = function () {
+Application.getServerType = function() {
     return this.serverType;
 };
 
@@ -683,7 +691,7 @@ Application.getServerType = function () {
  * 获取所有当前服务器信息
  * @return {Object} 服务器信息映射，键：服务器ID，值：服务器信息
  */
-Application.getServers = function () {
+Application.getServers = function() {
     return this.servers;
 };
 
@@ -691,7 +699,7 @@ Application.getServers = function () {
  * 从servers.json获取所有服务器信息
  * @return {Object} 服务器信息映射，键：服务器ID，值：服务器信息
  */
-Application.getServersFromConfig = function () {
+Application.getServersFromConfig = function() {
     return this.get(Constants.KEYWORDS.SERVER_MAP);
 };
 
@@ -699,7 +707,7 @@ Application.getServersFromConfig = function () {
  * 获取所有服务器类型
  * @return {Array} 服务器类型列表
  */
-Application.getServerTypes = function () {
+Application.getServerTypes = function() {
     return this.serverTypes;
 };
 
@@ -708,7 +716,7 @@ Application.getServerTypes = function () {
  * @param {string} serverId - 服务器ID
  * @return {Object|undefined} 服务器信息或undefined
  */
-Application.getServerById = function (serverId) {
+Application.getServerById = function(serverId) {
     return this.servers[serverId];
 };
 
@@ -717,7 +725,7 @@ Application.getServerById = function (serverId) {
  * @param {string} serverId - 服务器ID
  * @return {Object|undefined} 服务器信息或undefined
  */
-Application.getServerFromConfig = function (serverId) {
+Application.getServerFromConfig = function(serverId) {
     return this.get(Constants.KEYWORDS.SERVER_MAP)[serverId];
 };
 
@@ -726,7 +734,7 @@ Application.getServerFromConfig = function (serverId) {
  * @param {string} serverType - 服务器类型
  * @return {Array} 服务器信息列表
  */
-Application.getServersByType = function (serverType) {
+Application.getServersByType = function(serverType) {
     return this.serverTypeMaps[serverType] || [];
 };
 
@@ -735,7 +743,7 @@ Application.getServersByType = function (serverType) {
  * @param {Object} server - 服务器信息，未指定时检查当前服务器
  * @return {boolean} 是否为前端服务器
  */
-Application.isFrontend = function (server) {
+Application.isFrontend = function(server) {
     const currentServer = server || this.getCurServer();
     return !!currentServer && currentServer.frontend === 'true';
 };
@@ -745,7 +753,7 @@ Application.isFrontend = function (server) {
  * @param {Object} server - 服务器信息，未指定时检查当前服务器
  * @return {boolean} 是否为后端服务器
  */
-Application.isBackend = function (server) {
+Application.isBackend = function(server) {
     const currentServer = server || this.getCurServer();
     return !!currentServer && !currentServer.frontend;
 };
@@ -754,7 +762,7 @@ Application.isBackend = function (server) {
  * 检查当前服务器是否为主服务器
  * @return {boolean} 是否为主服务器
  */
-Application.isMaster = function () {
+Application.isMaster = function() {
     return this.serverType === Constants.RESERVED.MASTER;
 };
 
@@ -762,7 +770,7 @@ Application.isMaster = function () {
  * 运行时向当前应用添加新服务器信息
  * @param {Array} servers - 新服务器信息列表
  */
-Application.addServers = function (servers) {
+Application.addServers = function(servers) {
     if (!servers?.length) {
         return;
     }
@@ -791,7 +799,7 @@ Application.addServers = function (servers) {
  * 运行时从当前应用移除服务器信息
  * @param {Array} ids - 服务器ID列表
  */
-Application.removeServers = function (ids) {
+Application.removeServers = function(ids) {
     if (!ids?.length) {
         return;
     }
@@ -816,7 +824,7 @@ Application.removeServers = function (ids) {
  * 运行时替换当前应用的服务器信息
  * @param {Object} servers - 服务器ID映射
  */
-Application.replaceServers = function (servers) {
+Application.replaceServers = function(servers) {
     if (!servers) {
         return;
     }
@@ -851,7 +859,7 @@ Application.replaceServers = function (servers) {
  * 运行时向当前应用添加定时任务
  * @param {Array} crons - 要添加的定时任务列表
  */
-Application.addCrons = function (crons) {
+Application.addCrons = function(crons) {
     if (!crons?.length) {
         logger.warn('定时任务列表为空');
         return;
@@ -864,7 +872,7 @@ Application.addCrons = function (crons) {
  * 运行时从当前应用移除定时任务
  * @param {Array} crons - 要移除的定时任务列表
  */
-Application.removeCrons = function (crons) {
+Application.removeCrons = function(crons) {
     if (!crons?.length) {
         logger.warn('定时任务列表为空');
         return;

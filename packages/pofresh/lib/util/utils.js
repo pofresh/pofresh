@@ -1,4 +1,4 @@
-const { exec } = require('child_process');
+const { execSync } = require('child_process');
 const os = require('os');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 const pofresh = require('../pofresh.js');
@@ -151,50 +151,37 @@ function unicodeToUtf8(str) {
 /**
  * Ping a server to check if network is available
  * @param {string} host - Host to ping
- * @param {function} callback - Callback function
  */
-async function ping(host, callback) {
+async function ping(host) {
     if (isLocal(host)) {
-        invokeCallback(callback, true);
-        return;
+        return true;
     }
 
     try {
         const cmd = `ping -w 15 ${host}`;
-        await new Promise((resolve, reject) => {
-            exec(cmd, (err, _stdout, _stderr) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
-        invokeCallback(callback, true);
+        execSync(cmd);
+        return true;
     } catch (_error) {
-        invokeCallback(callback, false);
+        return false;
     }
 }
 
 /**
  * Check if a server port is available
  * @param {Object} server - Server configuration object
- * @param {function} callback - Callback function
  */
-async function checkPort(server, callback) {
+async function checkPort(server) {
     if (!(server.port || server.clientPort) || os.platform() === 'win32') {
-        invokeCallback(callback, 'leisure');
-        return;
+        return 'leisure';
     }
 
     const port = server.port || server.clientPort;
     const host = server.host;
 
     try {
-        const result = await checkPortInternal(port, host);
-        invokeCallback(callback, result);
-    } catch (_error) {
-        invokeCallback(callback, 'error');
+        return await checkPortInternal(port, host);
+    } catch (error) {
+        return error;
     }
 }
 

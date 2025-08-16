@@ -38,12 +38,7 @@ class AppUtil {
             : app.type && app.type !== Constants.RESERVED.ALL && app.type !== Constants.RESERVED.MASTER;
 
         if (shouldRunServers) {
-            // If starter.runServers supports promises, await it
-            if (starter.runServers.constructor.name === 'AsyncFunction') {
-                await starter.runServers(app);
-            } else {
-                starter.runServers(app);
-            }
+            await starter.runServers(app);
         }
     }
 
@@ -144,8 +139,10 @@ class AppUtil {
      * @returns {Promise<void>} Promise that resolves when all components are processed
      */
     static async optComponents(comps, method) {
+        const funs = [];
         for (const comp of comps) {
             if (typeof comp[method] === 'function') {
+
                 await new Promise((resolve, reject) => {
                     comp[method](err => {
                         if (err) reject(err);
@@ -359,16 +356,3 @@ class AppUtil {
 
 // Export all methods (now all async/await based)
 module.exports = AppUtil;
-module.exports.AppUtil = AppUtil;
-module.exports.defaultConfiguration = AppUtil.defaultConfiguration;
-module.exports.startByType = AppUtil.startByType;
-module.exports.loadDefaultComponents = AppUtil.loadDefaultComponents;
-module.exports.stopComps = AppUtil.stopComps;
-module.exports.optComponents = AppUtil.optComponents;
-module.exports.loadServers = AppUtil.loadServers;
-module.exports.loadMaster = AppUtil.loadMaster;
-module.exports.processArgs = AppUtil.processArgs;
-module.exports.setupEnv = AppUtil.setupEnv;
-module.exports.configLogger = AppUtil.configLogger;
-module.exports.parseArgs = AppUtil.parseArgs;
-module.exports.loadLifecycle = AppUtil.loadLifecycle;

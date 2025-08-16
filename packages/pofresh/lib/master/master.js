@@ -22,26 +22,21 @@ class Server {
         this.masterConsole = admin.createMasterConsole(opts);
     }
 
-    start(cb) {
+    async start(cb) {
         moduleUtil.registerDefaultModules(true, this.app, this.closeWatcher);
         moduleUtil.loadModules(this, this.masterConsole);
         // start master console
-        this.masterConsole.start(err => {
-            if (err) {
-                process.exit(0);
-            }
-            moduleUtil.startModules(this.modules, _startModulesErr => {
-                if (err) {
-                    utils.invokeCallback(cb, err);
-                    return;
-                }
+        try {
+            await this.masterConsole.start();
+            await moduleUtil.startModules(this.modules);
 
-                if (this.app.get(Constants.RESERVED.MODE) !== Constants.RESERVED.STAND_ALONE) {
-                    starter.runServers(this.app);
-                }
-                utils.invokeCallback(cb);
-            });
-        });
+            if (this.app.get(Constants.RESERVED.MODE) !== Constants.RESERVED.STAND_ALONE) {
+                starter.runServers(this.app);
+            }
+
+        } catch (err) {
+            throw err;
+        }
 
         this.masterConsole.on('error', err => {
             if (err) {
@@ -81,42 +76,38 @@ class Server {
                 stopFlags.indexOf(id) < 0
             ) {
                 const setTimer = setTimerTime => {
-                    pingTimer = setTimeout(() => {
-                        utils.ping(server.host, flag => {
-                            if (flag) {
-                                handle();
+                    pingTimer = setTimeout(async () => {
+                        const flag = await utils.ping(server.host);
+                        if (flag) {
+                            await handle();
+                        } else {
+                            count++;
+                            if (count > 3) {
+                                setTimerTime = Constants.TIME.TIME_WAIT_MAX_PING;
                             } else {
-                                count++;
-                                if (count > 3) {
-                                    setTimerTime = Constants.TIME.TIME_WAIT_MAX_PING;
-                                } else {
-                                    setTimerTime = Constants.TIME.TIME_WAIT_PING * count;
-                                }
-                                setTimer(setTimerTime);
+                                setTimerTime = Constants.TIME.TIME_WAIT_PING * count;
                             }
-                        });
+                            setTimer(setTimerTime);
+                        }
                     }, time);
                 };
                 setTimer(time);
-                const handle = () => {
+                const handle = async () => {
                     clearTimeout(pingTimer);
-                    utils.checkPort(server, status => {
-                        if (status === 'error') {
-                            utils.invokeCallback(cb, new Error('Check port command executed with error.'));
-                            return;
+                    const status = await utils.checkPort(server);
+                    if (status === 'error') {
+                        throw new Error('Check port command executed with error.');
+                    }
+                    if (status === 'busy') {
+                        if (server[Constants.RESERVED.RESTART_FORCE]) {
+                            starter.kill([info.pid], [server]);
+                        } else {
+                            throw new Error('Port occupied already, check your server to add.');
                         }
-                        if (status === 'busy') {
-                            if (server[Constants.RESERVED.RESTART_FORCE]) {
-                                starter.kill([info.pid], [server]);
-                            } else {
-                                utils.invokeCallback(cb, new Error('Port occupied already, check your server to add.'));
-                                return;
-                            }
-                        }
-                        setTimeout(() => {
-                            starter.run(this.app, server, null);
-                        }, Constants.TIME.TIME_WAIT_STOP);
-                    });
+                    }
+                    setTimeout(() => {
+                        starter.run(this.app, server, null);
+                    }, Constants.TIME.TIME_WAIT_STOP);
                 };
             }
         });

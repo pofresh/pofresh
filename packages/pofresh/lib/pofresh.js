@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const application = require('./application');
+const events = require('./util/events');
 const Package = require('../package');
 
 /**
@@ -20,7 +21,7 @@ class PofreshFramework {
     constructor() {
         this.app = null;
         this.version = Package.version;
-        this.events = require('./util/events');
+        this.events = events;
 
         // Initialize lazy-loaded modules
         this.components = {};
