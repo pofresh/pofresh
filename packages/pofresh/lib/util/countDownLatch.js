@@ -13,12 +13,7 @@ class CountDownLatch {
      * @param {function} callback - Callback function when countdown completes or times out
      */
     constructor(count, options, callback) {
-        if (typeof callback === 'function') {
-            this.callback = callback;
-        } else if (typeof options === 'function') {
-            this.callback = options;
-            options = {};
-        }
+        this.callback = callback;
 
         if (count <= 0) {
             throw new Error('Count must be a positive number');
@@ -100,6 +95,5 @@ function createCountDownLatch(count, options, callback) {
 }
 
 module.exports = {
-    createCountDownLatch,
-    CountDownLatch
+    createCountDownLatch
 };
