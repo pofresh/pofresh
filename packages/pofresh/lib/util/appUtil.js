@@ -2,7 +2,7 @@ const { promisify } = require('util');
 const utils = require('./utils');
 const path = require('path');
 const fs = require('fs');
-const { promises: fsPromises } = require('fs');
+const { existsSync } = require('fs');
 const Constants = require('./constants');
 const starter = require('../master/starter');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
@@ -115,20 +115,24 @@ class AppUtil {
      * @returns {Promise<void>} Promise that resolves when all components are stopped
      */
     static async stopComps(comps, force) {
+        const asyncStops = [];
         for (const comp of comps) {
             if (typeof comp.stop === 'function') {
-                try {
-                    await new Promise(resolve => {
-                        comp.stop(force, () => {
-                            // Ignore any error and continue with next component
-                            resolve();
-                        });
-                    });
-                } catch (error) {
-                    // Log error but continue with next component
-                    logger.warn('Error stopping component:', error);
-                }
+                asyncStops.push(new Promise((resolve, reject) => {
+                    if (utils.isAsyncFunction(comp.stop)) {
+                        comp.stop(force).then(resolve).catch(reject);
+                    } else {
+                        comp.stop(force, err => err ? reject(err) : resolve());
+                    }
+                }));
             }
+        }
+
+        try {
+            await Promise.all(asyncStops);
+        } catch (error) {
+            // Log error but continue with next component
+            logger.warn('Error stopping components:', error);
         }
     }
 
@@ -142,14 +146,20 @@ class AppUtil {
         const funs = [];
         for (const comp of comps) {
             if (typeof comp[method] === 'function') {
-
-                await new Promise((resolve, reject) => {
-                    comp[method](err => {
-                        if (err) reject(err);
-                        else resolve();
-                    });
-                });
+                funs.push(new Promise((resolve, reject) => {
+                    if (comp[method].constructor.name === 'AsyncFunction') {
+                        comp[method]().then(resolve).catch(reject);
+                    } else {
+                        comp[method](err => err ? reject(err) : resolve());
+                    }
+                }));
             }
+        }
+
+        try {
+            await Promise.all(funs);
+        } catch (error) {
+            throw error;
         }
     }
 
@@ -192,19 +202,21 @@ class AppUtil {
      * @param {Object} args - Parsed command line arguments
      */
     static processArgs(app, args) {
-        const serverType = args.serverType || Constants.RESERVED.MASTER;
         const master = app.getMaster();
-        const serverId = args.id || master?.id || 'master-server-1';
-        const mode = args.mode || Constants.RESERVED.CLUSTER;
-        const masterha = args.masterha || 'false';
-        const type = args.type || Constants.RESERVED.ALL;
-        const { startId } = args;
+        const {
+            serverType = Constants.RESERVED.MASTER,
+            id = master?.id || 'master-server-1',
+            mode = Constants.RESERVED.CLUSTER,
+            masterha = 'false',
+            type = Constants.RESERVED.ALL,
+            startId
+        } = args;
 
         // Set application configuration
         const configs = [
             [Constants.RESERVED.MAIN, args.main],
             [Constants.RESERVED.SERVER_TYPE, serverType],
-            [Constants.RESERVED.SERVER_ID, serverId],
+            [Constants.RESERVED.SERVER_ID, id],
             [Constants.RESERVED.MODE, mode],
             [Constants.RESERVED.TYPE, type]
         ];
@@ -226,14 +238,13 @@ class AppUtil {
      * @private
      */
     static _setCurrentServer(app, args, serverType, masterha) {
+        let info = args;
         if (masterha === 'true') {
             app.master = args;
-            app.set(Constants.RESERVED.CURRENT_SERVER, args, true);
-        } else if (serverType !== Constants.RESERVED.MASTER) {
-            app.set(Constants.RESERVED.CURRENT_SERVER, args, true);
-        } else {
-            app.set(Constants.RESERVED.CURRENT_SERVER, app.getMaster(), true);
+        } else if (serverType === Constants.RESERVED.MASTER) {
+            info = app.getMaster();
         }
+        app.set(Constants.RESERVED.CURRENT_SERVER, info, true);
     }
 
     /**
@@ -306,10 +317,9 @@ class AppUtil {
 
         try {
             // Use async file existence check
-            await fsPromises.access(filePath, fs.constants.F_OK);
-
-            // Clear require cache for hot reload
-            delete require.cache[require.resolve(filePath)];
+            if (existsSync(filePath)) {
+                return;
+            }
 
             const lifecycle = require(filePath);
 
@@ -340,10 +350,12 @@ class AppUtil {
      * Watch lifecycle file for changes
      * @private
      */
-    static _watchLifecycleFile(app, filePath) {
+    static _watchLifecycleFile(app, filePath, reload) {
         fs.watch(filePath, async event => {
             if (event === 'change') {
                 try {
+                    // Clear require cache for hot reload
+                    delete require.cache[require.resolve(filePath)];
                     await AppUtil.loadLifecycle(app, false); // Reload without watching again
                     logger.info('Lifecycle file reloaded: %s', filePath);
                 } catch (error) {

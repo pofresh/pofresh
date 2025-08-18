@@ -1,3 +1,5 @@
+const utils = require('./utils');
+
 /**
  * CountDownLatch utility for synchronizing multiple concurrent operations
  * A synchronization aid that allows one or more threads to wait until
@@ -24,7 +26,7 @@ class CountDownLatch {
 
         if (options.timeout) {
             this.timerId = setTimeout(() => {
-                this.callback?.(true);
+                utils.invokeCallback(this.callback, true);
             }, options.timeout);
         }
     }
@@ -43,7 +45,8 @@ class CountDownLatch {
             if (this.timerId) {
                 clearTimeout(this.timerId);
             }
-            this.callback?.(false);
+            utils.invokeCallback(this.callback, false);
+
         }
     }
 

@@ -16,7 +16,7 @@ const starter = module.exports;
  * @param {Object} app current application  context
  * @return {Void}
  */
-starter.runServers = function (app) {
+starter.runServers = function(app) {
     let server, servers;
     const condition = app.startId || app.type;
     switch (condition) {
@@ -114,9 +114,9 @@ starter.bindCpu = (sid, pid, host) => {
  * Kill application in all servers
  *
  * @param {String} pids  array of server's pid
- * @param {String} serverIds array of serverId
+ * @param {Array} servers array of serverId
  */
-starter.kill = (pids, servers) => {
+starter.kill = async (pids, servers) => {
     let cmd;
     for (let i = 0; i < servers.length; i++) {
         const server = servers[i];
@@ -131,14 +131,14 @@ starter.kill = (pids, servers) => {
                 options.push(-9);
             }
             options.push(pids[i]);
-            starter.localrun(cmd, null, options);
+            await starter.localrun(cmd, null, options);
         } else {
             if (os.platform() === Constants.PLATFORM.WIN) {
                 cmd = util.format('taskkill /pid %s /f', pids[i]);
             } else {
                 cmd = util.format('kill -9 %s', pids[i]);
             }
-            starter.sshrun(cmd, server.host);
+            await starter.sshrun(cmd, server.host);
         }
     }
 };
@@ -151,7 +151,7 @@ starter.kill = (pids, servers) => {
  * @param {Function} cb callback function
  *
  */
-starter.sshrun = (cmd, host, cb) => {
+starter.sshrun = async (cmd, host) => {
     let args = [];
     args.push(host);
     const ssh_params = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS);
@@ -161,8 +161,7 @@ starter.sshrun = (cmd, host, cb) => {
     args.push(cmd);
 
     logger.info(`Executing ${cmd} on ${host}:22`);
-    spawnProcess(Constants.COMMAND.SSH, host, args, cb);
-    return;
+    await spawnProcess(Constants.COMMAND.SSH, host, args);
 };
 
 /**
@@ -186,35 +185,35 @@ starter.localrun = async (cmd, host, options) => {
  *
  */
 async function spawnProcess(command, host, options) {
-    let child = null;
+    return new Promise((resolve, reject) => {
+        let child = null;
 
-    if (env === Constants.RESERVED.ENV_DEV) {
-        child = cp.spawn(command, options);
-        const prefix = command === Constants.COMMAND.SSH ? `[${host}] ` : '';
+        if (env === Constants.RESERVED.ENV_DEV) {
+            child = cp.spawn(command, options);
+            const prefix = command === Constants.COMMAND.SSH ? `[${host}] ` : '';
 
-        child.stderr.on('data', chunk => {
-            const msg = chunk.toString();
-            process.stderr.write(msg);
-            if (cb) {
-                cb(msg);
+            child.stderr.on('data', chunk => {
+                const msg = chunk.toString();
+                process.stderr.write(msg);
+                reject(msg);
+            });
+
+            child.stdout.on('data', chunk => {
+                const msg = prefix + chunk.toString();
+                process.stdout.write(msg);
+                resolve(msg);
+            });
+        } else {
+            child = cp.spawn(command, options, { detached: true, stdio: 'inherit' });
+            child.unref();
+            resolve();
+        }
+
+        child.on('exit', code => {
+            if (code !== 0) {
+                logger.warn('child process exit with error, error code: %s, executed command: %s', code, command);
             }
+            resolve(code === 0 ? null : code);
         });
-
-        child.stdout.on('data', chunk => {
-            const msg = prefix + chunk.toString();
-            process.stdout.write(msg);
-        });
-    } else {
-        child = cp.spawn(command, options, { detached: true, stdio: 'inherit' });
-        child.unref();
-    }
-
-    child.on('exit', code => {
-        if (code !== 0) {
-            logger.warn('child process exit with error, error code: %s, executed command: %s', code, command);
-        }
-        if (typeof cb === 'function') {
-            cb(code === 0 ? null : code);
-        }
     });
 }

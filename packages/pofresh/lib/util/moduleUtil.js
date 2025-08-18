@@ -1,9 +1,9 @@
 const os = require('os');
 const admin = require('pofresh-admin');
-const Constants = require('./constants.js');
-const pathUtil = require('./pathUtil.js');
-const starter = require('../master/starter.js');
-const logger = require('pofresh-logger').getLogger('pofresh', 'moduleUtil.js');
+const Constants = require('./constants');
+const pathUtil = require('./pathUtil');
+const starter = require('../master/starter');
+const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 
 /**
  * Module utilities for loading and managing admin modules

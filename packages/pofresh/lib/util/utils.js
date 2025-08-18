@@ -3,6 +3,7 @@ const os = require('os');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 const pofresh = require('../pofresh.js');
 const Constants = require('./constants.js');
+const { a } = require('vitest/dist/chunks/suite.d.FvehnV49');
 
 const LOG = logger;
 const CHINESE_CHAR_REGEX = /[\u4e00-\u9fa5]/;
@@ -22,7 +23,11 @@ const DATE_FORMAT_REGEX = /yyyy|MM|dd|hh|mm|ss|SSS|q/g;
  */
 function invokeCallback(cb, ...args) {
     if (typeof cb === 'function') {
-        cb(...args);
+        if (isAsyncFunction(cb)) {
+            cb(...args).then(() => Promise.resolve());
+        } else {
+            cb(...args);
+        }
     }
 }
 
@@ -380,6 +385,10 @@ function isObject(arg) {
     return arg !== null && typeof arg === 'object';
 }
 
+function isAsyncFunction(fn) {
+    return fn?.constructor?.name === 'AsyncFunction';
+}
+
 module.exports = {
     invokeCallback,
     size,
@@ -395,5 +404,6 @@ module.exports = {
     loadCluster,
     extend,
     headHandler,
-    isObject
+    isObject,
+    isAsyncFunction
 };

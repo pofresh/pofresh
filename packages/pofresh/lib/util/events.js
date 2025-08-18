@@ -55,7 +55,3 @@ const events = {
 };
 
 module.exports = events;
-module.exports.SERVER_EVENTS = SERVER_EVENTS;
-module.exports.SESSION_EVENTS = SESSION_EVENTS;
-module.exports.CRON_EVENTS = CRON_EVENTS;
-module.exports.CONTROL_EVENTS = CONTROL_EVENTS;
