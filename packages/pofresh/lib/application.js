@@ -38,6 +38,12 @@ const Application = {};
  * @param {string} opts.base - 应用基础路径
  */
 Application.init = function(opts = {}) {
+
+    if(this.state === AppState.INITED) {
+        logger.info(`Application has already been initialized: ${this.getServerId()}`);
+        return;
+    }
+
     // 组件管理
     this.loaded = []; // 已加载的组件列表
     this.components = {}; // 组件名称到组件实例的映射
@@ -331,8 +337,7 @@ Application.loadConfigBaseApp = function(key, val, reload = false) {
         config = require(presentPath);
         this.set(key, config);
     } else {
-        logger.error(`配置文件未找到: ${key} -> ${originPath} 或 ${presentPath}`);
-        return;
+        throw new Error(`invalid configuration with file path: ${key}`);
     }
 
     // 设置文件监听

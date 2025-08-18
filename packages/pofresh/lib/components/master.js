@@ -7,6 +7,7 @@ const Master = require('../master/master');
  * Component factory function
  *
  * @param  {Object} app  current application context
+ * @param opts
  * @return {Object}      component instances
  */
 module.exports = (app, opts) => new Component(app, opts);
@@ -24,12 +25,9 @@ class Component {
 
     /**
      * Component lifecycle function
-     *
-     * @param  {Function} cb
-     * @return {Void}
      */
-    start(cb) {
-        this.master.start(cb);
+    async start() {
+        await this.master.start();
     }
 
     /**

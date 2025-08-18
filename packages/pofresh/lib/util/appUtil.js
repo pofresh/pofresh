@@ -317,7 +317,7 @@ class AppUtil {
 
         try {
             // Use async file existence check
-            if (existsSync(filePath)) {
+            if (!existsSync(filePath)) {
                 return;
             }
 

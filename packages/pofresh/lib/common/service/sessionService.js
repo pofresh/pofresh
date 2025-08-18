@@ -580,7 +580,7 @@ class Session extends EventEmitter {
      * @api public
      */
     set(key, value) {
-        if (utils.isObject(key)) {
+        if (typeof key === 'object') {
             for (const i in key) {
                 this.settings[i] = key[i];
             }

@@ -38,52 +38,6 @@ describe('utils test', () => {
         });
     });
 
-    describe('#startsWith', () => {
-        it('should return true if the string do start with the prefix', () => {
-            const src = 'prefix with a string';
-            const prefix = 'prefix';
-
-            expect(utils.startsWith(src, prefix)).toBe(true);
-        });
-
-        it('should return false if the string not start with the prefix', () => {
-            const src = 'prefix with a string';
-            let prefix = 'prefix222';
-
-            expect(utils.startsWith(src, prefix)).toBe(false);
-
-            prefix = 'with';
-            expect(utils.startsWith(src, prefix)).toBe(false);
-        });
-
-        it('should return false if the src not a string', () => {
-            expect(utils.startsWith(1, 'str')).toBe(false);
-        });
-    });
-
-    describe('#endsWith', () => {
-        it('should return true if the string do end with the prefix', () => {
-            const src = 'string with a suffix';
-            const suffix = 'suffix';
-
-            expect(utils.endsWith(src, suffix)).toBe(true);
-        });
-
-        it('should return false if the string not end with the prefix', () => {
-            const src = 'string with a suffix';
-            let suffix = 'suffix222';
-
-            expect(utils.endsWith(src, suffix)).toBe(false);
-
-            suffix = 'with';
-            expect(utils.endsWith(src, suffix)).toBe(false);
-        });
-
-        it('should return false if the src not a string', () => {
-            expect(utils.endsWith(1, 'str')).toBe(false);
-        });
-    });
-
     describe('#hasChineseChar', () => {
         it('should return false if the string does not have any Chinese characters', () => {
             const src = 'string without Chinese characters';
@@ -145,22 +99,6 @@ describe('utils test', () => {
             const array2 = [1, 2, 3];
             const array = utils.arrayDiff(array1, array2);
             expect(array).toEqual([4, 5]);
-        });
-    });
-
-    describe('#extend', () => {
-        it('should extends opts', () => {
-            const opts = {
-                test: 123
-            };
-            const add = {
-                aaa: 555
-            };
-            const result = utils.extend(opts, add);
-            expect(result).toEqual({
-                test: 123,
-                aaa: 555
-            });
         });
     });
 

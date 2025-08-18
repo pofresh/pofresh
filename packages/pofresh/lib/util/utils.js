@@ -3,7 +3,6 @@ const os = require('os');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 const pofresh = require('../pofresh.js');
 const Constants = require('./constants.js');
-const { a } = require('vitest/dist/chunks/suite.d.FvehnV49');
 
 const LOG = logger;
 const CHINESE_CHAR_REGEX = /[\u4e00-\u9fa5]/;
@@ -48,36 +47,6 @@ function size(obj) {
         }
     }
     return count;
-}
-
-/**
- * Check if a string ends with a suffix
- * @param {string} str - String to check
- * @param {string} suffix - Suffix to look for
- * @returns {boolean} True if string ends with suffix
- */
-function endsWith(str, suffix) {
-    return (
-        typeof str === 'string' &&
-        typeof suffix === 'string' &&
-        str.length >= suffix.length &&
-        str.slice(-suffix.length) === suffix
-    );
-}
-
-/**
- * Check if a string starts with a prefix
- * @param {string} str - String to check
- * @param {string} prefix - Prefix to look for
- * @returns {boolean} True if string starts with prefix
- */
-function startsWith(str, prefix) {
-    return (
-        typeof str === 'string' &&
-        typeof prefix === 'string' &&
-        str.length >= prefix.length &&
-        str.slice(0, prefix.length) === prefix
-    );
 }
 
 /**
@@ -354,19 +323,6 @@ function loadCluster(app, server, serverMap) {
 }
 
 /**
- * Extend object with properties from another object
- * @param {Object} origin - Base object
- * @param {Object} add - Object to add properties from
- * @returns {Object} Extended object
- */
-function extend(origin, add) {
-    if (add && isObject(add)) {
-        return { ...origin, ...add };
-    }
-    return origin;
-}
-
-/**
  * Parse head buffer to extract header information
  * @param {Buffer} headBuffer - Head buffer
  * @returns {number} Parsed header value
@@ -376,15 +332,6 @@ function headHandler(headBuffer) {
     return (headBuffer.readUInt8(1) << 16) | (headBuffer.readUInt8(2) << 8) | headBuffer.readUInt8(3);
 }
 
-/**
- * Check if value is an object (not null)
- * @param {*} arg - Value to check
- * @returns {boolean} True if value is an object
- */
-function isObject(arg) {
-    return arg !== null && typeof arg === 'object';
-}
-
 function isAsyncFunction(fn) {
     return fn?.constructor?.name === 'AsyncFunction';
 }
@@ -392,8 +339,6 @@ function isAsyncFunction(fn) {
 module.exports = {
     invokeCallback,
     size,
-    endsWith,
-    startsWith,
     arrayDiff,
     format,
     hasChineseChar,
@@ -402,8 +347,6 @@ module.exports = {
     checkPort,
     isLocal,
     loadCluster,
-    extend,
     headHandler,
-    isObject,
     isAsyncFunction
 };

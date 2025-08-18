@@ -22,7 +22,7 @@ class Server {
         this.masterConsole = admin.createMasterConsole(opts);
     }
 
-    async start(cb) {
+    async start() {
         moduleUtil.registerDefaultModules(true, this.app, this.closeWatcher);
         moduleUtil.loadModules(this, this.masterConsole);
         // start master console
@@ -31,7 +31,7 @@ class Server {
             await moduleUtil.startModules(this.modules);
 
             if (this.app.get(Constants.RESERVED.MODE) !== Constants.RESERVED.STAND_ALONE) {
-                starter.runServers(this.app);
+               await starter.runServers(this.app);
             }
 
         } catch (err) {
