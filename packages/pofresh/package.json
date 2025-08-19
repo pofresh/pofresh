@@ -39,6 +39,7 @@
         "mkdirp": "^3.0.1",
         "mqtt": "^5.13.1",
         "node-bignumber": "^1.2.2",
+        "ping": "^0.4.4",
         "pofresh-admin": "workspace:*",
         "pofresh-loader": "workspace:*",
         "pofresh-logger": "workspace:*",
@@ -54,6 +55,5 @@
     },
     "bin": {
         "pofresh": "./bin/pofresh"
-    },
-    "devDependencies": {}
+    }
 }

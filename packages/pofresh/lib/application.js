@@ -277,7 +277,7 @@ Application.rpcFilter = function(filter) {
  * @param {Object} opts - 构造参数（可选）
  * @return {Application} 链式调用
  */
-Application.load = function(name, component, opts) {
+Application.load = function(name, component = null, opts = null) {
     // 参数重载处理
     if (typeof name !== 'string') {
         [opts, component, name] = [component, name, null];
@@ -298,7 +298,6 @@ Application.load = function(name, component, opts) {
 
     // 检查重复组件
     if (name && this.components[name]) {
-        logger.warn(`忽略重复组件: ${name}`);
         return this;
     }
 

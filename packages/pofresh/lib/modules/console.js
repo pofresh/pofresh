@@ -165,7 +165,7 @@ function kill(_app, agent, msg, cb) {
 
 function stop(app, agent, msg, cb) {
     let serverIds = msg.ids;
-    let servers = null;
+    let servers;
     if (serverIds.length) {
         servers = app.getServers();
         app.set(Constants.RESERVED.STOP_SERVERS, serverIds);
@@ -350,22 +350,20 @@ function startServer(app, msg, cb) {
     }
 }
 
-function runServer(app, server, cb) {
-    utils.checkPort(server, status => {
+async function runServer(app, server) {
+    try {
+        const status = await utils.checkPort(server);
         if (status === 'busy') {
-            utils.invokeCallback(cb, new Error('Port occupied already, check your server to add.'));
+            throw new Error('Port occupied already, check your server to add.');
         } else {
-            starter.run(app, server, err => {
-                if (err) {
-                    utils.invokeCallback(cb, new Error(err));
-                    return;
-                }
-            });
-            process.nextTick(() => {
-                utils.invokeCallback(cb, null, { status: 'ok' });
-            });
+            await starter.run(app, server);
+            const promise = new Promise(resolve => process.nextTick(() => resolve({ status: 'ok' })));
+            return (await promise)();
         }
-    });
+    } catch (err) {
+        throw err;
+    }
+
 }
 
 function startCluster(app, msg, cb) {

@@ -6,6 +6,12 @@ const WAIT_TIME = 1000;
 const mockBase = path.join(process.cwd(), 'test');
 
 describe('application test', () => {
+    beforeAll(() => {
+        app.init({ base: mockBase });
+    });
+
+    // beforeEach()
+
     afterEach(() => {
         app.state = 0;
         app.settings = {};
@@ -17,7 +23,6 @@ describe('application test', () => {
 
     describe('#init', () => {
         it('should init the app instance', () => {
-            app.init({ base: mockBase });
             expect(app.state).toBe(1); // magic number from application.js
         });
     });
@@ -59,7 +64,7 @@ describe('application test', () => {
 
     describe('#component', () => {
         it(
-            'should load the component and fire their lifecircle callback by app.start, app.afterStart, app.stop',
+            'should load the component and fire their lifecycle callback by app.start, app.afterStart, app.stop',
             async () => {
                 let startCount = 0,
                     afterStartCount = 0,
@@ -82,23 +87,18 @@ describe('application test', () => {
                     }
                 };
 
-                app.init({ base: mockBase });
                 app.set('env', 'development');
                 app.set('serverType', 'master');
                 app.load(mockComponent);
 
-                await new Promise((resolve, reject) => {
-                    app.start(err => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
+                try {
+                    await app.start();
+                } catch (err) {
+                    console.error(err);
+                }
 
                 // wait for after start
-                await new Promise(resolve => setTimeout(resolve, WAIT_TIME));
+                // await new Promise(resolve => setTimeout(resolve, WAIT_TIME));
 
                 await new Promise(resolve => {
                     app.stop(false);

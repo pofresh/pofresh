@@ -1,5 +1,5 @@
-const { execSync } = require('child_process');
 const os = require('os');
+const Ping = require('ping');
 const logger = require('pofresh-logger').getLogger('pofresh', __filename);
 const pofresh = require('../pofresh.js');
 const Constants = require('./constants.js');
@@ -131,13 +131,7 @@ async function ping(host) {
         return true;
     }
 
-    try {
-        const cmd = `ping -w 15 ${host}`;
-        execSync(cmd);
-        return true;
-    } catch (_error) {
-        return false;
-    }
+   return await Ping.promise.probe(host);
 }
 
 /**

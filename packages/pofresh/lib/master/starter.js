@@ -14,9 +14,9 @@ const starter = module.exports;
  * Run all servers
  *
  * @param {Object} app current application  context
- * @return {Void}
+ * @return {void}
  */
-starter.runServers = function(app) {
+starter.runServers = async function(app) {
     let server, servers;
     const condition = app.startId || app.type;
     switch (condition) {
@@ -25,17 +25,17 @@ starter.runServers = function(app) {
         case Constants.RESERVED.ALL:
             servers = app.getServersFromConfig();
             for (const serverId in servers) {
-                this.run(app, servers[serverId]);
+               await this.run(app, servers[serverId]);
             }
             break;
         default:
             server = app.getServerFromConfig(condition);
             if (server) {
-                this.run(app, server);
+                await this.run(app, server);
             } else {
                 servers = app.get(Constants.RESERVED.SERVERS)[condition];
                 for (const ser of servers) {
-                    this.run(app, ser);
+                   await this.run(app, ser);
                 }
             }
     }
@@ -46,10 +46,10 @@ starter.runServers = function(app) {
  *
  * @param {Object} app current application context
  * @param {Object} server
- * @return {Void}
+ * @return {void}
  */
 starter.run = async (app, server) => {
-    const _appEnv = app.get(Constants.RESERVED.ENV);
+    const appEnv = app.get(Constants.RESERVED.ENV);
     let cmd, key;
     if (utils.isLocal(server.host)) {
         let options = [];
@@ -62,28 +62,28 @@ starter.run = async (app, server) => {
         }
         cmd = app.get(Constants.RESERVED.MAIN);
         options.push(cmd);
-        options.push(util.format('env=%s', env));
+        options.push(util.format('env=%s', appEnv));
         for (key in server) {
             if (key === Constants.RESERVED.CPU) {
                 cpus[server.id] = server[key];
             }
             options.push(util.format('%s=%s', key, server[key]));
         }
-        starter.localrun(process.execPath, null, options);
+        await starter.localRun(process.execPath, null, options);
     } else {
         cmd = util.format('cd "%s" && "%s"', app.getBase(), process.execPath);
         const arg = server.args;
         if (arg !== undefined) {
             cmd += arg;
         }
-        cmd += util.format(' "%s" env=%s ', app.get(Constants.RESERVED.MAIN), env);
+        cmd += util.format(' "%s" env=%s ', app.get(Constants.RESERVED.MAIN), appEnv);
         for (key in server) {
             if (key === Constants.RESERVED.CPU) {
                 cpus[server.id] = server[key];
             }
             cmd += util.format(' %s=%s ', key, server[key]);
         }
-        starter.sshrun(cmd, server.host);
+        await starter.sshRun(cmd, server.host);
     }
 };
 
@@ -93,19 +93,19 @@ starter.run = async (app, server) => {
  * @param {String} sid server id
  * @param {String} pid process id
  * @param {String} host server host
- * @return {Void}
+ * @return {void}
  */
-starter.bindCpu = (sid, pid, host) => {
+starter.bindCpu = async (sid, pid, host) => {
     if (os.platform() === Constants.PLATFORM.LINUX && cpus[sid] !== undefined) {
         if (utils.isLocal(host)) {
             const options = [];
             options.push('-pc');
             options.push(cpus[sid]);
             options.push(pid);
-            starter.localrun(Constants.COMMAND.TASKSET, null, options);
+            await starter.localRun(Constants.COMMAND.TASKSET, null, options);
         } else {
             const cmd = util.format('taskset -pc "%s" "%s"', cpus[sid], pid);
-            starter.sshrun(cmd, host, null);
+            await starter.sshRun(cmd, host);
         }
     }
 };
@@ -131,14 +131,14 @@ starter.kill = async (pids, servers) => {
                 options.push(-9);
             }
             options.push(pids[i]);
-            await starter.localrun(cmd, null, options);
+            await starter.localRun(cmd, null, options);
         } else {
             if (os.platform() === Constants.PLATFORM.WIN) {
                 cmd = util.format('taskkill /pid %s /f', pids[i]);
             } else {
                 cmd = util.format('kill -9 %s', pids[i]);
             }
-            await starter.sshrun(cmd, server.host);
+            await starter.sshRun(cmd, server.host);
         }
     }
 };
@@ -151,7 +151,7 @@ starter.kill = async (pids, servers) => {
  * @param {Function} cb callback function
  *
  */
-starter.sshrun = async (cmd, host) => {
+starter.sshRun = async (cmd, host) => {
     let args = [];
     args.push(host);
     const ssh_params = pofresh.app.get(Constants.RESERVED.SSH_CONFIG_PARAMS);
@@ -171,7 +171,7 @@ starter.sshrun = async (cmd, host) => {
  * @param host
  * @param options
  */
-starter.localrun = async (cmd, host, options) => {
+starter.localRun = async (cmd, host, options) => {
     logger.info(`Executing ${cmd} ${options} locally`);
     await spawnProcess(cmd, host, options);
 };
