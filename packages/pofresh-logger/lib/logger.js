@@ -2,24 +2,10 @@ const winston = require('winston');
 const DailyRotateFile = require('winston-daily-rotate-file');
 
 // 导入重构后的模块
-const BatchLoggerManager = require('./BatchLoggerManager');
 const SerializationUtils = require('./utils/serializationUtils');
 const ColorUtils = require('./utils/colorUtils');
 const ConfigUtils = require('./utils/configUtils');
 
-// 批量日志配置 - 将在configure函数中更新
-let batchConfig = {
-    enabled: true,
-    sizeThreshold: 100,
-    timeThreshold: 500, // ms,
-    batches: new Map()
-};
-
-// 初始化批量管理器
-let batchManager = new BatchLoggerManager(batchConfig);
-
-// 导出配置用于测试
-module.exports.batchConfig = batchConfig;
 
 const funcs = {
     env: doEnv,
@@ -153,9 +139,6 @@ class LRUCache {
 
 const loggerCache = new LRUCache(1000);
 
-// Export batchConfig for testing purposes
-module.exports.batchConfig = batchConfig;
-
 // Default Winston configuration
 let winstonConfig = {
     level: 'info',
@@ -269,8 +252,8 @@ function getLogger(categoryName, ...additionalArgs) {
                 message += ` ${processedArgs.join(' ')}`;
             }
 
-            // Use batch manager to handle log entries
-            batchManager.addLogEntry(logger, level, message, {
+            // Direct logging without batch manager
+            logger[level](message, {
                 category: categoryName
             });
         };
@@ -522,12 +505,7 @@ function configure(config, opts) {
                     // 应用配置选项
                     applyConfigurationOptions(configValue);
 
-                    // 更新批处理配置
-                    if (configValue.batch) {
-                        batchConfig = { ...batchConfig, ...configValue.batch };
-                        batchManager = new BatchLoggerManager(batchConfig);
-                    }
-
+  
                     // 转换log4js配置为Winston配置
                     winstonConfig = convertLog4jsToWinston(configValue);
                 } else {
@@ -633,13 +611,6 @@ const colours = ColorUtils.levelColors;
 
 // Winston compatible implementations
 function shutdown(callback = null) {
-    try {
-        // Flush all remaining log batches
-        batchManager.flushAllBatches(loggerCache);
-    } catch (_error) {
-        // Ignore flush errors during shutdown
-    }
-
     // Clear all cached loggers
     loggerCache.clear();
 
@@ -764,7 +735,6 @@ module.exports = {
     configure,
     shutdown,
     connectLogger,
-    batchConfig,
     levels,
     addLayout
 };

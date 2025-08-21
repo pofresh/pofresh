@@ -221,9 +221,10 @@ describe('logger', () => {
 
     describe('error handling', () => {
         it('should handle invalid config file path gracefully', () => {
-            // Mock console.error to capture error messages
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-                // Suppress console.error output during test
+            // Mock process.stderr.write to capture error messages
+            const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+                // Suppress stderr output during test
+                return true;
             });
 
             expect(() => {
@@ -231,18 +232,19 @@ describe('logger', () => {
             }).not.toThrow();
 
             // Should have logged an error
-            expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to load logger configuration'));
+            expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to load logger configuration'));
 
-            consoleSpy.mockRestore();
+            stderrSpy.mockRestore();
         });
 
         it('should handle invalid JSON in config file gracefully', () => {
             const invalidConfigPath = path.join(process.cwd(), 'invalid-config.json');
             fs.writeFileSync(invalidConfigPath, 'invalid json content');
 
-            // Mock console.error to capture error messages
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-                // Suppress console.error output during test
+            // Mock process.stderr.write to capture error messages
+            const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+                // Suppress stderr output during test
+                return true;
             });
 
             expect(() => {
@@ -250,9 +252,9 @@ describe('logger', () => {
             }).not.toThrow();
 
             // Should have logged an error
-            expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to load logger configuration'));
+            expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to load logger configuration'));
 
-            consoleSpy.mockRestore();
+            stderrSpy.mockRestore();
 
             // Clean up
             fs.unlinkSync(invalidConfigPath);

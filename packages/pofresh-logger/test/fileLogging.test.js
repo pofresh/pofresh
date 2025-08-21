@@ -1,28 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import logger, { batchConfig } from '../lib/logger.js';
-
-let originalBatchConfig;
-
-// Save original batch configuration before all tests
-beforeAll(() => {
-    // Store original batch config
-    originalBatchConfig = {
-        enabled: batchConfig.enabled,
-        sizeThreshold: batchConfig.sizeThreshold,
-        timeThreshold: batchConfig.timeThreshold
-    };
-    // Disable batch logging
-    batchConfig.enabled = false;
-});
-
-// Restore original batch configuration after all tests
-afterAll(() => {
-    // Restore original settings
-    batchConfig.enabled = originalBatchConfig.enabled;
-    batchConfig.sizeThreshold = originalBatchConfig.sizeThreshold;
-    batchConfig.timeThreshold = originalBatchConfig.timeThreshold;
-});
+import logger from '../lib/logger.js';
 
 describe('File Logging', () => {
     let testLogDir;
@@ -88,10 +66,7 @@ describe('File Logging', () => {
                         level: 'info'
                     }
                 },
-                batch: {
-                    enabled: false
-                }
-            };
+                };
 
             logger.configure(config);
             const testLogger = logger.getLogger('file-test');
@@ -127,10 +102,7 @@ describe('File Logging', () => {
                         level: 'info'
                     }
                 },
-                batch: {
-                    enabled: false
-                }
-            };
+                };
 
             logger.configure(config);
             const testLogger = logger.getLogger('rotate-test');
@@ -175,10 +147,7 @@ describe('File Logging', () => {
                         level: 'info'
                     }
                 },
-                batch: {
-                    enabled: false
-                }
-            };
+                };
 
             logger.configure(config);
             const testLogger = logger.getLogger('multi-test');
@@ -215,10 +184,7 @@ describe('File Logging', () => {
                         level: 'warn' // Only warn and above
                     }
                 },
-                batch: {
-                    enabled: false
-                }
-            };
+                };
 
             logger.configure(config);
             const testLogger = logger.getLogger('level-test');
