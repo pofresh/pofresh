@@ -166,6 +166,27 @@ npx biome format --write .
 ### 生命周期管理
 应用程序遵循严格的生命周期：INITED → START → STARTED → STOPED
 
+### 关键架构文件
+这些文件需要跨多个文件理解才能掌握整体架构：
+
+1. **`packages/pofresh/lib/application.js`**: 核心应用生命周期管理，协调所有组件和服务器
+2. **`packages/pofresh/lib/server/server.js`**: 服务器实例创建和管理，处理不同类型服务器的抽象
+3. **`packages/pofresh/lib/master/`**: 主服务器集群协调逻辑，管理worker进程生命周期
+4. **`packages/pofresh/lib/components/`**: 插件架构实现，各组件间通过事件总线通信
+5. **`packages/pofresh-rpc/`**: RPC基础设施，支持多种传输协议和服务发现
+
+### 分布式架构模式
+- **服务注册与发现**: 基于JSON配置的静态服务注册，通过master服务器协调
+- **负载均衡**: 客户端连接器级别的负载均衡，支持多种策略
+- **故障转移**: 基于心跳检测的故障检测和自动重启机制
+- **状态同步**: 通过backendSession组件实现跨服务器状态共享
+
+### 组件间通信机制
+- **事件驱动**: 基于EventEmitter的松耦合通信
+- **RPC调用**: 同步/异步远程过程调用，支持filter链
+- **消息广播**: Channel组件提供发布订阅机制
+- **会话管理**: Session组件维护用户状态，BackendSession处理分布式场景
+
 ## 包管理
 
 此项目使用 pnpm workspaces，结构如下：
