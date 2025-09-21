@@ -26,8 +26,16 @@
     "realtime",
     "server"
   ],
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@10.17.0",
   "devDependencies": {
-    "turbo": "^2.0.14"
+    "@biomejs/biome": "2.2.4",
+    "lint-staged": "^16.1.6",
+    "turbo": "^2.0.14",
+    "ultracite": "5.4.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
+      "pnpm dlx ultracite fix"
+    ]
   }
 }
